@@ -1,0 +1,307 @@
+/* ==========================================================================
+   Auth / Login Page Styles
+   Website Sekolah - Single Login (Admin, Guru, Siswa)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --navy: #1B2A4A;
+  --navy-dark: #10192E;
+  --gold: #C9A227;
+  --gold-light: #E4C558;
+  --bg: #F5F6F8;
+  --white: #FFFFFF;
+  --text: #1F2430;
+  --muted: #6B7280;
+  --error: #D64545;
+  --error-bg: #FCEAEA;
+  --radius: 10px;
+  --shadow: 0 20px 50px rgba(27, 42, 74, 0.12);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+}
+
+/* ---------- Panel Kiri (Identitas / Signature) ---------- */
+
+.login-aside {
+  position: relative;
+  flex: 1 1 45%;
+  background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 56px 48px;
+  overflow: hidden;
+}
+
+/* Pola checklist halus - simbol absensi/verifikasi, bukan dekorasi kosong */
+.login-aside::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background-image:
+    repeating-linear-gradient(
+      transparent, transparent 39px,
+      rgba(255,255,255,0.6) 39px, rgba(255,255,255,0.6) 40px
+    );
+  pointer-events: none;
+}
+
+.login-aside::after {
+  content: '';
+  position: absolute;
+  right: -60px;
+  bottom: -60px;
+  width: 320px;
+  height: 320px;
+  border: 40px solid rgba(201, 162, 39, 0.12);
+  border-radius: 50%;
+}
+
+.aside-brand {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.aside-brand img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.aside-brand span {
+  font-family: 'Lora', serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.aside-content {
+  position: relative;
+  z-index: 1;
+  max-width: 380px;
+}
+
+.aside-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 18px;
+}
+
+.aside-eyebrow::before {
+  content: '✓';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--gold-light);
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.aside-content h1 {
+  font-family: 'Lora', serif;
+  font-size: 30px;
+  line-height: 1.35;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+.aside-content p {
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.72);
+  margin: 0;
+}
+
+.aside-footer {
+  position: relative;
+  z-index: 1;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.45);
+}
+
+/* ---------- Panel Kanan (Form) ---------- */
+
+.login-main {
+  flex: 1 1 55%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  background: var(--bg);
+}
+
+.login-box {
+  width: 100%;
+  max-width: 380px;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 40px 36px;
+}
+
+.login-box h2 {
+  font-family: 'Lora', serif;
+  font-size: 23px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: var(--navy);
+}
+
+.login-box .login-subtitle {
+  font-size: 13.5px;
+  color: var(--muted);
+  margin: 0 0 28px;
+}
+
+.alert {
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  margin-bottom: 20px;
+}
+
+.alert-error {
+  background: var(--error-bg);
+  color: var(--error);
+  border: 1px solid rgba(214, 69, 69, 0.25);
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 7px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"] {
+  width: 100%;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  border: 1.5px solid #E2E5EA;
+  border-radius: 8px;
+  background: #FBFBFC;
+  color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-group input::placeholder {
+  color: #A6ACB8;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(27, 42, 74, 0.12);
+  background: var(--white);
+}
+
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+
+.form-options label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.form-options input[type="checkbox"] {
+  accent-color: var(--navy);
+}
+
+.form-options a {
+  color: var(--navy);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.form-options a:hover {
+  text-decoration: underline;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 12.5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--navy-dark);
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.05s ease;
+}
+
+.btn-login:hover {
+  filter: brightness(1.04);
+}
+
+.btn-login:active {
+  transform: translateY(1px);
+}
+
+.btn-login:focus-visible,
+.form-options a:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .login-aside {
+    display: none;
+  }
+  .login-main {
+    flex: 1 1 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-login,
+  .form-group input {
+    transition: none;
+  }
+}

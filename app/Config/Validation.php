@@ -38,6 +38,25 @@ class Validation extends BaseConfig
         'single' => 'CodeIgniter\Validation\Views\single',
     ];
 
+
+    public array $login = [
+    'username' => [
+        'label' => 'Username',
+        'rules' => 'required|min_length[3]|max_length[50]',
+        'errors' => [
+            'required'   => '{field} wajib diisi.',
+            'min_length' => '{field} minimal 3 karakter.',
+        ],
+    ],
+    'password' => [
+        'label' => 'Password',
+        'rules' => 'required|min_length[5]',
+        'errors' => [
+            'required'   => '{field} wajib diisi.',
+            'min_length' => '{field} minimal 5 karakter.',
+        ],
+    ],
+];
     // --------------------------------------------------------------------
     // Rules
     // --------------------------------------------------------------------
