@@ -8,6 +8,6 @@ class Dashboard extends BaseController
 {
     public function index()
     {
-        return 'Dashboard Admin - ' . session()->get('username') . ' <br><a href="' . base_url('logout') . '">Logout</a>';
+        return view('admin/dashboard/index', ['title' => 'Dashboard']);
     }
 }
