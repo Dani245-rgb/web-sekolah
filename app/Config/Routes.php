@@ -9,10 +9,14 @@ $routes->get('login', 'Auth\Login::index');
 
 $routes->post('login', 'Auth\Login::authenticate');
 
+// Wajib ganti password - berlaku SEMUA role, makanya di luar grup admin/guru/siswa
+$routes->get('auth/gantipassword', 'Auth\Login::gantipassword');
+$routes->post('auth/gantipasswordsubmit', 'Auth\Login::gantipasswordsubmit');
+
 $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('dashboard', 'Admin\Dashboard::index');
 
-     // Tahun Ajaran (fondasi)
+    // Tahun Ajaran (fondasi)
     $routes->get('tahun-ajaran', 'Admin\TahunAjaran::index');
     $routes->get('tahun-ajaran/create', 'Admin\TahunAjaran::create');
     $routes->post('tahun-ajaran/store', 'Admin\TahunAjaran::store');
@@ -43,6 +47,26 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('mapel/edit/(:num)', 'Admin\Mapel::edit/$1');
     $routes->post('mapel/update/(:num)', 'Admin\Mapel::update/$1');
     $routes->get('mapel/delete/(:num)', 'Admin\Mapel::delete/$1');
+
+    // Data Sekolah - Siswa
+    $routes->get('siswa', 'Admin\Siswa::index');
+    $routes->get('siswa/create', 'Admin\Siswa::create');
+    $routes->post('siswa/store', 'Admin\Siswa::store');
+    $routes->get('siswa/edit/(:num)', 'Admin\Siswa::edit/$1');
+    $routes->post('siswa/update/(:num)', 'Admin\Siswa::update/$1');
+    $routes->get('siswa/delete/(:num)', 'Admin\Siswa::delete/$1');
+
+    // Import Siswa Massal
+    $routes->get('siswa/import', 'Admin\ImportSiswa::index');
+    $routes->get('siswa/import/template', 'Admin\ImportSiswa::template');
+    $routes->post('siswa/import/upload', 'Admin\ImportSiswa::upload');
+    $routes->post('siswa/import/proses/(:num)', 'Admin\ImportSiswa::proses/$1');
+    $routes->get('siswa/import/status/(:num)', 'Admin\ImportSiswa::status/$1');
+
+    $routes->get('auth/gantipassword', 'Auth::gantipassword');
+    $routes->post('auth/gantipasswordsubmit', 'Auth::gantipasswordsubmit');
+    $routes->get('siswa/resetpassword/(:num)', 'Admin\Siswa::resetPassword/$1');
+    $routes->get('audit-log', 'Admin\AuditLog::index');
 });
 
 $routes->group('guru', ['filter' => 'roleAuth:Guru'], function ($routes) {

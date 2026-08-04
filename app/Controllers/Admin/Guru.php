@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Models\GuruModel;
 use App\Models\UserModel;
+use App\Libraries\ImageCompressor;
 use Config\Database;
 
 class Guru extends BaseController
@@ -25,9 +26,9 @@ class Guru extends BaseController
         $builder = $this->guruModel->getAllWithUser();
         if ($keyword) {
             $builder->groupStart()
-                    ->like('guru.nama', $keyword)
-                    ->orLike('guru.nip', $keyword)
-                    ->groupEnd();
+                ->like('guru.nama', $keyword)
+                ->orLike('guru.nip', $keyword)
+                ->groupEnd();
         }
 
         $data['guru']    = $builder->paginate(5, 'guru');
@@ -62,7 +63,8 @@ class Guru extends BaseController
         $fotoFile = $this->request->getFile('foto');
         if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
             $fotoName = $fotoFile->getRandomName();
-            $fotoFile->move(FCPATH . 'uploads/guru', $fotoName);
+            $compressor = new ImageCompressor();
+            $compressor->compressAndSave($fotoFile->getTempName(), FCPATH . 'uploads/guru/' . $fotoName);
         }
 
         $db = Database::connect();
@@ -148,7 +150,8 @@ class Guru extends BaseController
                 unlink(FCPATH . 'uploads/guru/' . $guru['foto']);
             }
             $fotoName = $fotoFile->getRandomName();
-            $fotoFile->move(FCPATH . 'uploads/guru', $fotoName);
+            $compressor = new ImageCompressor();
+            $compressor->compressAndSave($fotoFile->getTempName(), FCPATH . 'uploads/guru/' . $fotoName);
             $dataUpdate['foto'] = $fotoName;
         }
 
@@ -167,7 +170,7 @@ class Guru extends BaseController
         return redirect()->to('/admin/guru')->with('success', 'Data guru berhasil diperbarui.');
     }
 
-   public function delete($id_guru)
+    public function delete($id_guru)
     {
         $guru = $this->guruModel->find($id_guru);
         if (!$guru) {

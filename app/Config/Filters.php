@@ -35,6 +35,9 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'roleAuth' => \App\Filters\RoleFilter::class,
+        'mustchangepassword' => \App\Filters\MustChangePassword::class,
+        'mustchangepassword' => \App\Filters\MustChangePassword::class,
+        'sessiontimeout'      => \App\Filters\SessionTimeout::class,
     ];
 
     /**
@@ -76,10 +79,13 @@ class Filters extends BaseFilters
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
+            'sessiontimeout',
+            'mustchangepassword',
         ],
         'after' => [
             // 'honeypot',
             // 'secureheaders',
+            'mustchangepassword',
         ],
     ];
 

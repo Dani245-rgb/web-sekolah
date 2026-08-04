@@ -46,11 +46,16 @@ class KelasModel extends Model
     }
 
     // Hitung jumlah siswa di kelas ini — sementara return 0, nanti diganti COUNT(kelas_siswa) begitu modul Siswa selesai
-    public function countSiswa($id_kelas): int
+  public function countSiswa($id_kelas): int
     {
-        return 0;
-    }
+        $db = \Config\Database::connect();
 
+        return $db->table('kelas_siswa')
+                   ->join('siswa', 'siswa.id_siswa = kelas_siswa.id_siswa')
+                   ->where('kelas_siswa.id_kelas', $id_kelas)
+                   ->where('siswa.status', 'Aktif')
+                   ->countAllResults();
+    }
     // Cek apakah kombinasi tingkat+jurusan+rombel+tahun ajaran sudah ada (cegah duplikat nama_kelas di tahun yang sama)
     public function isDuplikat(string $tingkat, string $jurusan, int $rombel, int $idTahunAjaran, ?int $excludeId = null): bool
     {
