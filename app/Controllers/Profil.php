@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Controllers\BaseController;
 use App\Models\UserModel;
 
 class Profil extends BaseController
@@ -46,11 +47,11 @@ class Profil extends BaseController
         }
 
         $userModel->update($idUser, [
-        'password' => password_hash($passwordBaru, PASSWORD_DEFAULT),
-    ]);
+            'password' => password_hash($passwordBaru, PASSWORD_DEFAULT),
+        ]);
 
-    (new \App\Models\AuditLogModel())->catat($idUser, $user['username'], 'ganti_password', 'Ganti password mandiri lewat menu Profil.');
+        (new \App\Models\AuditLogModel())->catat($idUser, $user['username'], 'ganti_password', 'Ganti password mandiri lewat menu Profil.');
 
-    return redirect()->back()->with('success', 'Password berhasil diubah.');
+        return redirect()->back()->with('success', 'Password berhasil diubah.');
     }
 }

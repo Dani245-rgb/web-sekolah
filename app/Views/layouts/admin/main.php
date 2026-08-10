@@ -39,15 +39,31 @@
                 <a href="<?= base_url('admin/guru') ?>"
                     class="<?= strpos(uri_string(), 'admin/guru') === 0 ? 'active' : '' ?>">Guru</a>
                 <a href="<?= base_url('admin/kelas') ?>"
-                    class="<?= strpos(uri_string(), 'admin/kelas') === 0 ? 'active' : '' ?>">Kelas</a>
+                    class="<?= strpos(uri_string(), 'admin/kelas') === 0 && strpos(uri_string(), 'assign-kelas') === false ? 'active' : '' ?>">Kelas</a>
+                <a href="<?= base_url('admin/assign-kelas') ?>"
+                    class="<?= strpos(uri_string(), 'admin/assign-kelas') === 0 ? 'active' : '' ?>">Assign Kelas</a>
                 <a href="<?= base_url('admin/mapel') ?>"
                     class="<?= strpos(uri_string(), 'admin/mapel') === 0 ? 'active' : '' ?>">Mata Pelajaran</a>
                 <a href="<?= base_url('admin/jadwal') ?>"
                     class="<?= strpos(uri_string(), 'admin/jadwal') === 0 ? 'active' : '' ?>">Jadwal Manager</a>
 
+                <p class="menu-label">DATA AKADEMIK</p>
+                <a href="<?= base_url('admin/alumni') ?>"
+                    class="<?= strpos(uri_string(), 'admin/alumni') === 0 ? 'active' : '' ?>">Alumni</a>
+                <a href="<?= base_url('admin/mutasi') ?>"
+                    class="<?= strpos(uri_string(), 'admin/mutasi') === 0 ? 'active' : '' ?>">Mutasi</a>
+                <a href="<?= base_url('admin/kenaikan-kelas') ?>"
+                    class="<?= strpos(uri_string(), 'admin/kenaikan-kelas') === 0 ? 'active' : '' ?>">Kenaikan Kelas</a>
+                <a href="<?= base_url('admin/riwayat-kelas') ?>"
+                    class="<?= strpos(uri_string(), 'admin/riwayat-kelas') === 0 ? 'active' : '' ?>">Riwayat Kelas</a>
+                <a href="<?= base_url('admin/rekap-absensi') ?>"
+                    class="<?= strpos(uri_string(), 'admin/rekap-absensi') === 0 ? 'active' : '' ?>">Rekap Absensi</a>
+
                 <p class="menu-label">USER MANAGEMENT</p>
                 <a href="<?= base_url('admin/user') ?>"
                     class="<?= strpos(uri_string(), 'admin/user') === 0 ? 'active' : '' ?>">User</a>
+                <a href="<?= base_url('admin/audit-log') ?>"
+                    class="<?= strpos(uri_string(), 'admin/audit-log') === 0 ? 'active' : '' ?>">Audit Log</a>
             </nav>
         </aside>
 

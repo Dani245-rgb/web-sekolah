@@ -27,9 +27,9 @@ class Kelas extends BaseController
         $builder = $this->kelasModel->getAllWithRelasi();
         if ($keyword) {
             $builder->groupStart()
-                    ->like('kelas.nama_kelas', $keyword)
-                    ->orLike('kelas.jurusan', $keyword)
-                    ->groupEnd();
+                ->like('kelas.nama_kelas', $keyword)
+                ->orLike('kelas.jurusan', $keyword)
+                ->groupEnd();
         }
 
         $kelas = $builder->paginate(10, 'kelas');
@@ -173,4 +173,56 @@ class Kelas extends BaseController
 
         return redirect()->to('/admin/kelas')->with('success', 'Kelas berhasil dihapus.');
     }
+
+    public function assignJurusanForm()
+    {
+        $tahunAktif = $this->tahunAjaranModel->getActive();
+
+        $data['kelas']   = $this->kelasModel
+            ->where('id_tahun_ajaran', $tahunAktif['id_tahun_ajaran'])
+            ->orderBy('nama_kelas', 'ASC')
+            ->findAll();
+        $data['jurusan'] = $this->jurusanModel->orderBy('nama_jurusan', 'ASC')->findAll();
+
+        return view('admin/kelas/assign_jurusan', $data);
+    }
+
+    public function assignJurusanProses()
+    {
+        $idKelasList = $this->request->getPost('id_kelas'); // array dari checkbox
+        $idJurusan   = $this->request->getPost('id_jurusan');
+
+        if (empty($idKelasList) || empty($idJurusan)) {
+            return redirect()->back()->with('errors', ['pilih' => 'Pilih minimal 1 kelas dan 1 jurusan.']);
+        }
+
+        $this->kelasModel->whereIn('id_kelas', $idKelasList)->set(['id_jurusan' => $idJurusan])->update();
+
+        return redirect()->to('/admin/kelas/assign-jurusan')
+            ->with('success', count($idKelasList) . ' kelas berhasil di-assign ke jurusan tersebut.');
+    }
+
+    public function siswa($idKelas)
+{
+    $kelasModel = new \App\Models\KelasModel();
+    $kelas = $kelasModel->find($idKelas);
+
+    if (!$kelas) {
+        return redirect()->to('/admin/kelas')->with('errors', ['404' => 'Kelas tidak ditemukan.']);
+    }
+
+    $tahunAjaranModel = new \App\Models\TahunAjaranModel();
+    $tahunAktif = $tahunAjaranModel->getActive();
+
+    $kelasSiswaModel = new \App\Models\KelasSiswaModel();
+    $siswa = $tahunAktif
+        ? $kelasSiswaModel->getSiswaByKelas($idKelas, $tahunAktif['id_tahun_ajaran'])
+        : [];
+
+    $data['kelas']      = $kelas;
+    $data['siswa']       = $siswa;
+    $data['tahunAktif']  = $tahunAktif;
+
+    return view('admin/kelas/siswa', $data);
+}
 }

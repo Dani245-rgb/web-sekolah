@@ -14,14 +14,14 @@ class AuditLogModel extends Model
     protected $createdField  = 'created_at';
     protected $updatedField  = '';
 
-    public function catat(?int $userId, string $username, string $aksi, string $keterangan = ''): void
-    {
-        $this->insert([
-            'user_id'    => $userId,
-            'username'   => $username,
-            'aksi'       => $aksi,
-            'keterangan' => $keterangan,
-            'ip_address' => \Config\Services::request()->getIPAddress(),
-        ]);
-    }
+   public function catat(?int $userId, ?string $username, string $aksi, string $keterangan = ''): void
+{
+    $this->insert([
+        'user_id'    => $userId,
+        'username'   => $username ?? '-',
+        'aksi'       => $aksi,
+        'keterangan' => $keterangan,
+        'ip_address' => \Config\Services::request()->getIPAddress(),
+    ]);
+}
 }

@@ -6,7 +6,6 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::index');
 
 $routes->get('login', 'Auth\Login::index');
-
 $routes->post('login', 'Auth\Login::authenticate');
 
 // Wajib ganti password - berlaku SEMUA role, makanya di luar grup admin/guru/siswa
@@ -39,6 +38,11 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('kelas/edit/(:num)', 'Admin\Kelas::edit/$1');
     $routes->post('kelas/update/(:num)', 'Admin\Kelas::update/$1');
     $routes->get('kelas/delete/(:num)', 'Admin\Kelas::delete/$1');
+    $routes->get('kelas/siswa/(:num)', 'Admin\Kelas::siswa/$1');
+
+    // Riwayat Kelas
+    $routes->get('riwayat-kelas', 'Admin\RiwayatKelas::index');
+    $routes->get('riwayat-kelas/detail/(:num)', 'Admin\RiwayatKelas::detail/$1');
 
     // Data Sekolah - Mata Pelajaran
     $routes->get('mapel', 'Admin\Mapel::index');
@@ -63,18 +67,93 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->post('siswa/import/proses/(:num)', 'Admin\ImportSiswa::proses/$1');
     $routes->get('siswa/import/status/(:num)', 'Admin\ImportSiswa::status/$1');
 
-    $routes->get('auth/gantipassword', 'Auth::gantipassword');
-    $routes->post('auth/gantipasswordsubmit', 'Auth::gantipasswordsubmit');
+    // Reset Password Siswa (oleh Admin)
     $routes->get('siswa/resetpassword/(:num)', 'Admin\Siswa::resetPassword/$1');
+
+    // Audit Log
     $routes->get('audit-log', 'Admin\AuditLog::index');
+
+    // Assign Kelas Siswa
+    $routes->get('assign-kelas', 'Admin\AssignKelas::index');
+    $routes->get('assign-kelas/form', 'Admin\AssignKelas::form');
+    $routes->get('assign-kelas/siswa-belum-assign', 'Admin\AssignKelas::siswaBelumAssign');
+    $routes->post('assign-kelas/proses', 'Admin\AssignKelas::proses');
+    $routes->get('assign-kelas/batal/(:num)', 'Admin\AssignKelas::batal/$1');
+
+    // Jadwal Pelajaran
+    $routes->get('jadwal', 'Admin\Jadwal::index');
+    $routes->get('jadwal/create', 'Admin\Jadwal::create');
+    $routes->post('jadwal/store', 'Admin\Jadwal::store');
+    $routes->get('jadwal/edit/(:num)', 'Admin\Jadwal::edit/$1');
+    $routes->post('jadwal/update/(:num)', 'Admin\Jadwal::update/$1');
+    $routes->get('jadwal/delete/(:num)', 'Admin\Jadwal::delete/$1');
+    $routes->get('jadwal/template', 'Admin\Jadwal::template');
+    $routes->get('jadwal/import', 'Admin\Jadwal::importForm');
+    $routes->post('jadwal/import/preview', 'Admin\Jadwal::importPreview');
+    $routes->post('jadwal/import/confirm', 'Admin\Jadwal::importConfirm');
+    $routes->get('jadwal/export', 'Admin\Jadwal::exportExcel');
+
+    // Assign massal Jurusan ke Kelas
+    $routes->get('kelas/assign-jurusan', 'Admin\Kelas::assignJurusanForm');
+    $routes->post('kelas/assign-jurusan', 'Admin\Kelas::assignJurusanProses');
+
+    // Alumni siswa
+    $routes->get('alumni', 'Admin\Alumni::index');
+    $routes->get('alumni/form', 'Admin\Alumni::form');
+    $routes->get('alumni/siswa-per-kelas/(:num)', 'Admin\Alumni::siswaPerKelas/$1');
+    $routes->post('alumni/proses', 'Admin\Alumni::proses');
+    $routes->get('alumni/batal/(:num)', 'Admin\Alumni::batal/$1');
+
+    // Mutasi siswa
+    $routes->get('mutasi', 'Admin\Mutasi::index');
+    $routes->get('mutasi/form', 'Admin\Mutasi::form');
+    $routes->get('mutasi/siswa-per-kelas/(:num)', 'Admin\Mutasi::siswaPerKelas/$1');
+    $routes->post('mutasi/proses', 'Admin\Mutasi::proses');
+    $routes->get('mutasi/batal/(:num)', 'Admin\Mutasi::batal/$1');
+
+    // Kenaikan Kelas
+    $routes->get('kenaikan-kelas', 'Admin\KenaikanKelas::index');
+    $routes->get('kenaikan-kelas/form', 'Admin\KenaikanKelas::form');
+    $routes->get('kenaikan-kelas/siswa-by-kelas/(:num)/(:num)', 'Admin\KenaikanKelas::siswaByKelas/$1/$2');
+    $routes->post('kenaikan-kelas/proses', 'Admin\KenaikanKelas::proses');
+
+    // Rekap Kelas
+    $routes->get('rekap-absensi', 'Admin\RekapAbsensi::index');
+    $routes->get('rekap-absensi/siswa', 'Admin\RekapAbsensi::siswa');
+    $routes->get('rekap-absensi/siswa/detail/(:num)', 'Admin\RekapAbsensi::siswaDetail/$1');
+
+    // Rekap Nilai
+    $routes->get('nilai/rekap', 'Admin\RekapNilai::index');
+    $routes->get('nilai/rekap/(:num)', 'Admin\RekapNilai::detail/$1');
 });
 
 $routes->group('guru', ['filter' => 'roleAuth:Guru'], function ($routes) {
     $routes->get('dashboard', 'Guru\Dashboard::index');
+    $routes->get('absensi/form/(:num)', 'Guru\Absensi::form/$1');
+    $routes->post('absensi/simpan', 'Guru\Absensi::simpan');
+
+    // Nilai
+    $routes->get('nilai/form/(:num)', 'Guru\Nilai::form/$1');
+    $routes->get('nilai/form/(:num)/pengaturan', 'Guru\Nilai::pengaturanManual/$1');
+    $routes->post('nilai/form/(:num)/pengaturan', 'Guru\Nilai::simpanPengaturan/$1');
+    $routes->post('nilai/form/(:num)/simpan', 'Guru\Nilai::simpan/$1');
+    $routes->get('nilai/rekap/(:num)', 'Guru\Nilai::rekap/$1');
+    
+    // Import Nilai
+    $routes->get('nilai/import/template/(:num)', 'Guru\ImportNilai::template/$1');
+    $routes->post('nilai/import/preview', 'Guru\ImportNilai::preview');
+    $routes->post('nilai/import/konfirmasi', 'Guru\ImportNilai::konfirmasi');
+    $routes->post('nilai/import/rollback/(:num)', 'Guru\ImportNilai::rollback/$1');
 });
 
 $routes->group('siswa', ['filter' => 'roleAuth:Siswa'], function ($routes) {
     $routes->get('dashboard', 'Siswa\Dashboard::index');
+
+    // Nilai (read-only)
+    $routes->get('nilai', 'Siswa\Nilai::index');
 });
 
-$routes->get('logout', 'Auth\Logout::index');
+$routes->get('profil/gantipassword', 'Profil::gantipassword', ['filter' => 'auth']);
+$routes->post('profil/gantipasswordsubmit', 'Profil::gantipasswordsubmit', ['filter' => 'auth']);
+
+$routes->get('logout', 'Auth\Logout::index', ['filter' => 'auth']);
