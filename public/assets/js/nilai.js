@@ -96,16 +96,19 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function gantiNamaKomponenBaris(tr, kategoriIndex, komponenIndex) {
-    tr.querySelector('input[type="text"]').name =
-      `kategori[${kategoriIndex}][komponen][${komponenIndex}][nama]`;
+ function gantiNamaKomponenBaris(tr, kategoriIndex, komponenIndex) {
+    const inputTeks = tr.querySelectorAll('input[type="text"]');
+    inputTeks[0].name = `kategori[${kategoriIndex}][komponen][${komponenIndex}][nama]`;
+    if (inputTeks[1]) {
+      inputTeks[1].name = `kategori[${kategoriIndex}][komponen][${komponenIndex}][keterangan]`;
+    }
     tr.querySelector('input[type="url"]').name =
       `kategori[${kategoriIndex}][komponen][${komponenIndex}][link]`;
     tr.querySelector('input[type="number"]').name =
       `kategori[${kategoriIndex}][komponen][${komponenIndex}][bobot]`;
   }
 
-  function hitungTotalBobotKategori() {
+ function hitungTotalBobotKategori() {
     const bobotInputs = document.querySelectorAll(".input-bobot-kategori");
     let total = 0;
     bobotInputs.forEach((input) => (total += Number(input.value || 0)));
@@ -113,9 +116,8 @@ document.addEventListener("DOMContentLoaded", function () {
     totalBobotKategoriInfo.textContent =
       "Total bobot kategori: " +
       total +
-      "%" +
-      (total !== 100 ? " (harus 100%)" : " ✓");
-    totalBobotKategoriInfo.classList.toggle("valid", total === 100);
+      " (bobot relatif antar kategori — tidak wajib 100%)";
+    totalBobotKategoriInfo.classList.add("valid");
   }
 
   function hitungTotalBobotKomponen(blok) {

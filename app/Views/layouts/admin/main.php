@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title><?= $title ?? 'Admin' ?> - Sistem Sekolah</title>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin.css') ?>">
+    <?= $this->renderSection('styles') ?>
 </head>
 
 <body>
@@ -58,6 +59,12 @@
                     class="<?= strpos(uri_string(), 'admin/riwayat-kelas') === 0 ? 'active' : '' ?>">Riwayat Kelas</a>
                 <a href="<?= base_url('admin/rekap-absensi') ?>"
                     class="<?= strpos(uri_string(), 'admin/rekap-absensi') === 0 ? 'active' : '' ?>">Rekap Absensi</a>
+                <a href="<?= base_url('admin/nilai/rekap') ?>"
+                    class="<?= strpos(uri_string(), 'admin/nilai/rekap') === 0 ? 'active' : '' ?>">Rekap Nilai</a>
+
+                <p class="menu-label">WEBSITE</p>
+                <a href="<?= base_url('admin/berita') ?>"
+                    class="<?= strpos(uri_string(), 'admin/berita') === 0 ? 'active' : '' ?>">Berita</a>
 
                 <p class="menu-label">USER MANAGEMENT</p>
                 <a href="<?= base_url('admin/user') ?>"

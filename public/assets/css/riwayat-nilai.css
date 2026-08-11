@@ -1,0 +1,82 @@
+.riwayat-item {
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+}
+
+.riwayat-waktu {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 10px;
+}
+
+.riwayat-info-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.badge-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #eef1ff;
+    color: #3346a8;
+}
+
+.badge-kkm {
+    background: #fff6e0;
+    color: #8a6400;
+}
+
+.riwayat-kategori-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.riwayat-kategori-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.kategori-card {
+    background: #f8f9fb;
+    border: 1px solid #e6e6e6;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+.kategori-nama {
+    font-weight: 600;
+    color: #222;
+}
+
+.kategori-bobot {
+    color: #888;
+    margin-left: 4px;
+}
+
+.kategori-komponen {
+    color: #555;
+    margin-top: 2px;
+}
+
+.kategori-komponen .chip-komponen {
+    display: inline-block;
+    background: #eef1ff;
+    color: #3346a8;
+    border-radius: 5px;
+    padding: 1px 8px;
+    font-size: 12px;
+    margin: 3px 4px 0 0;
+}

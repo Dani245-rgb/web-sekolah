@@ -34,11 +34,12 @@
                         <button type="button" class="nilai-btn nilai-btn-danger btn-hapus-kategori">Hapus Kategori</button>
                     </div>
 
-                    <table class="nilai-komponen-table">
+                   <table class="nilai-komponen-table">
                         <thead>
                             <tr>
                                 <th>Nama Komponen</th>
                                 <th>Link (opsional)</th>
+                                <th>Keterangan (opsional)</th>
                                 <th>Bobot dalam kategori (%)</th>
                                 <th></th>
                             </tr>
@@ -47,6 +48,7 @@
                             <tr>
                                 <td><input type="text" name="kategori[0][komponen][0][nama]" placeholder="misal: Kuis Bab 3" required></td>
                                 <td><input type="url" name="kategori[0][komponen][0][link]" placeholder="https://forms.google.com/..."></td>
+                                <td><input type="text" name="kategori[0][komponen][0][keterangan]" placeholder="misal: Dikumpulkan lewat WA grup"></td>
                                 <td><input type="number" name="kategori[0][komponen][0][bobot]" min="1" max="100" required></td>
                                 <td><button type="button" class="nilai-btn nilai-btn-danger btn-hapus-komponen">Hapus</button></td>
                             </tr>
@@ -65,11 +67,12 @@
                             <button type="button" class="nilai-btn nilai-btn-danger btn-hapus-kategori">Hapus Kategori</button>
                         </div>
 
-                        <table class="nilai-komponen-table">
+                       <table class="nilai-komponen-table">
                             <thead>
                                 <tr>
                                     <th>Nama Komponen</th>
                                     <th>Link (opsional)</th>
+                                    <th>Keterangan (opsional)</th>
                                     <th>Bobot dalam kategori (%)</th>
                                     <th></th>
                                 </tr>
@@ -79,6 +82,7 @@
                                     <tr>
                                         <td><input type="text" name="kategori[<?= $ki ?>][komponen][<?= $kompi ?>][nama]" value="<?= esc($komp['nama_komponen']) ?>" placeholder="misal: Kuis Bab 3" required></td>
                                         <td><input type="url" name="kategori[<?= $ki ?>][komponen][<?= $kompi ?>][link]" value="<?= esc($komp['link_referensi'] ?? '') ?>" placeholder="https://forms.google.com/..."></td>
+                                        <td><input type="text" name="kategori[<?= $ki ?>][komponen][<?= $kompi ?>][keterangan]" value="<?= esc($komp['keterangan'] ?? '') ?>" placeholder="misal: Dikumpulkan lewat WA grup"></td>
                                         <td><input type="number" name="kategori[<?= $ki ?>][komponen][<?= $kompi ?>][bobot]" value="<?= esc($komp['bobot']) ?>" min="1" max="100" required></td>
                                         <td><button type="button" class="nilai-btn nilai-btn-danger btn-hapus-komponen">Hapus</button></td>
                                     </tr>

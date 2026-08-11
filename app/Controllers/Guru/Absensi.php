@@ -9,6 +9,9 @@ use App\Models\KelasSiswaModel;
 use App\Models\TahunAjaranModel;
 use App\Models\AbsensiJadwalModel;
 use App\Models\AbsensiDetailModel;
+use App\Models\AuditLogModel;
+use App\Models\SiswaModel;
+use App\Libraries\WhatsappService;
 
 class Absensi extends BaseController
 {
@@ -116,6 +119,119 @@ class Absensi extends BaseController
             return redirect()->back()->with('errors', ['gagal' => 'Terjadi kesalahan, absensi tidak tersimpan.']);
         }
 
+        // Ambil nama siswa yang beneran (jangan andalkan $siswaList, itu cuma ada di method form())
+        $siswaModel = new \App\Models\SiswaModel();
+        $namaSiswaMap = [];
+        if (!empty($statusArr)) {
+            $siswaRows = $siswaModel->whereIn('id_siswa', array_keys($statusArr))->findAll();
+            foreach ($siswaRows as $s) {
+                $namaSiswaMap[$s['id_siswa']] = $s['nama'];
+            }
+        }
+
+        // Catat riwayat perubahan (v1.1 - pakai nama siswa asli, format lebih mudah di-parse)
+        $rekap = ['Hadir' => 0, 'Izin' => 0, 'Sakit' => 0, 'Alfa' => 0];
+        $tidakHadir = [];
+        foreach ($statusArr as $idSiswa => $status) {
+            if (isset($rekap[$status])) {
+                $rekap[$status]++;
+            }
+            if ($status !== 'Hadir') {
+                $namaSiswa = $namaSiswaMap[$idSiswa] ?? "Siswa#{$idSiswa}";
+                $tidakHadir[] = "{$namaSiswa} ({$status})";
+            }
+        }
+
+        $jadwalLengkap = $jadwalModel->select('jadwal.*, kelas.nama_kelas, mapel.nama_mapel')
+            ->join('kelas', 'kelas.id_kelas = jadwal.id_kelas')
+            ->join('mapel', 'mapel.id_mapel = jadwal.id_mapel')
+            ->find($idJadwal);
+
+        $ringkasan = "Jadwal:{$idJadwal}|Tanggal:{$tanggal}|Kelas:{$jadwalLengkap['nama_kelas']}|Mapel:{$jadwalLengkap['nama_mapel']}"
+            . "|Hadir:{$rekap['Hadir']}|Izin:{$rekap['Izin']}|Sakit:{$rekap['Sakit']}|Alfa:{$rekap['Alfa']}"
+            . "|TidakHadir:" . (empty($tidakHadir) ? '-' : implode(', ', $tidakHadir));
+
+       $auditLogModel = new AuditLogModel();
+        $auditLogModel->catat(
+            session()->get('id_user'),
+            $guru['nama'],
+            'Isi Absensi',
+            $ringkasan
+        );
+
+        $this->kirimNotifAbsensi($statusArr, $keteranganArr, $jadwalLengkap, $tanggal);
+
         return redirect()->to('/guru/dashboard')->with('success', 'Absensi berhasil disimpan.');
+    }
+
+    /**
+     * Kirim notif WA ke ortu untuk siswa dengan status selain Hadir.
+     * Best-effort: kegagalan kirim (nomor kosong/API error) tidak menggagalkan proses absensi.
+     */
+    protected function kirimNotifAbsensi(array $statusArr, array $keteranganArr, array $jadwal, string $tanggal): void
+    {
+        $siswaModel = new SiswaModel();
+        $wa = new WhatsappService();
+
+        $idSiswaTidakHadir = [];
+        foreach ($statusArr as $idSiswa => $status) {
+            if ($status !== 'Hadir') {
+                $idSiswaTidakHadir[] = $idSiswa;
+            }
+        }
+
+        if (empty($idSiswaTidakHadir)) {
+            return;
+        }
+
+        $siswaRows = $siswaModel->whereIn('id_siswa', $idSiswaTidakHadir)->findAll();
+
+        foreach ($siswaRows as $s) {
+            $status = $statusArr[$s['id_siswa']];
+            $ket = $keteranganArr[$s['id_siswa']] ?? null;
+            $tanggalFormatted = date('d M Y', strtotime($tanggal));
+
+            $pesan = "Yth. Orang Tua/Wali dari {$s['nama']},\n"
+                . "Kami informasikan bahwa ananda tercatat *{$status}* pada mata pelajaran {$jadwal['nama_mapel']} "
+                . "tanggal {$tanggalFormatted}."
+                . ($ket ? "\nKeterangan: {$ket}" : '')
+                . "\n\nTerima kasih.";
+
+            $refKey = "absensi-{$s['id_siswa']}-{$tanggal}-{$jadwal['id_jadwal']}";
+            $wa->kirimKeOrtu($s, 'absensi', $pesan, $refKey);
+        }
+    }
+
+    /**
+     * GET /guru/absensi/riwayat/(:num)
+     * Tampilkan riwayat pengisian absensi untuk jadwal ini,
+     * diambil dari audit_log (aksi = 'Isi Absensi'), difilter berdasarkan id_jadwal
+     * yang dititipkan di dalam teks keterangan.
+     */
+    public function riwayat($idJadwal)
+    {
+        $guru = $this->getGuruLogin();
+        $jadwalModel = new JadwalModel();
+        $jadwal = $jadwalModel->select('jadwal.*, kelas.nama_kelas, mapel.nama_mapel')
+            ->join('kelas', 'kelas.id_kelas = jadwal.id_kelas')
+            ->join('mapel', 'mapel.id_mapel = jadwal.id_mapel')
+            ->find($idJadwal);
+
+        if (!$jadwal || $jadwal['id_guru'] != $guru['id_guru']) {
+            return redirect()->to('/guru/dashboard')->with('errors', ['403' => 'Jadwal ini bukan milik Anda.']);
+        }
+
+        $auditLogModel = new AuditLogModel();
+        $riwayatList = $auditLogModel
+            ->where('user_id', session()->get('id_user'))
+            ->where('aksi', 'Isi Absensi')
+            ->like('keterangan', "Jadwal:{$idJadwal}|", 'after')
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
+
+        return view('guru/absensi/riwayat', [
+            'jadwal'      => $jadwal,
+            'riwayatList' => $riwayatList,
+        ]);
     }
 }

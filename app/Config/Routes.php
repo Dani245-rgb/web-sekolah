@@ -72,6 +72,8 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
 
     // Audit Log
     $routes->get('audit-log', 'Admin\AuditLog::index');
+    $routes->get('audit-log/export/pdf', 'Admin\AuditLog::exportPdf');
+    $routes->get('audit-log/export/excel', 'Admin\AuditLog::exportExcel');
 
     // Assign Kelas Siswa
     $routes->get('assign-kelas', 'Admin\AssignKelas::index');
@@ -92,6 +94,7 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->post('jadwal/import/preview', 'Admin\Jadwal::importPreview');
     $routes->post('jadwal/import/confirm', 'Admin\Jadwal::importConfirm');
     $routes->get('jadwal/export', 'Admin\Jadwal::exportExcel');
+    $routes->get('jadwal/export/pdf', 'Admin\Jadwal::exportPdf');
 
     // Assign massal Jurusan ke Kelas
     $routes->get('kelas/assign-jurusan', 'Admin\Kelas::assignJurusanForm');
@@ -119,18 +122,34 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
 
     // Rekap Kelas
     $routes->get('rekap-absensi', 'Admin\RekapAbsensi::index');
+    $routes->get('rekap-absensi/export/pdf', 'Admin\RekapAbsensi::exportPdfKelas');
+    $routes->get('rekap-absensi/export/excel', 'Admin\RekapAbsensi::exportExcelKelas');
     $routes->get('rekap-absensi/siswa', 'Admin\RekapAbsensi::siswa');
     $routes->get('rekap-absensi/siswa/detail/(:num)', 'Admin\RekapAbsensi::siswaDetail/$1');
+    $routes->get('rekap-absensi/siswa/detail/(:num)/export/pdf', 'Admin\RekapAbsensi::exportPdfSiswa/$1');
+    $routes->get('rekap-absensi/siswa/detail/(:num)/export/excel', 'Admin\RekapAbsensi::exportExcelSiswa/$1');
+
+
+    // Berita (CMS)
+    $routes->get('berita', 'Admin\Berita::index');
+    $routes->get('berita/create', 'Admin\Berita::create');
+    $routes->post('berita/store', 'Admin\Berita::store');
+    $routes->get('berita/edit/(:num)', 'Admin\Berita::edit/$1');
+    $routes->post('berita/update/(:num)', 'Admin\Berita::update/$1');
+    $routes->get('berita/delete/(:num)', 'Admin\Berita::delete/$1');
 
     // Rekap Nilai
     $routes->get('nilai/rekap', 'Admin\RekapNilai::index');
     $routes->get('nilai/rekap/(:num)', 'Admin\RekapNilai::detail/$1');
+    $routes->get('nilai/rekap/(:num)/export/pdf', 'Admin\RekapNilai::exportPdf/$1');
+    $routes->get('nilai/rekap/(:num)/export/excel', 'Admin\RekapNilai::exportExcel/$1');
 });
 
 $routes->group('guru', ['filter' => 'roleAuth:Guru'], function ($routes) {
     $routes->get('dashboard', 'Guru\Dashboard::index');
     $routes->get('absensi/form/(:num)', 'Guru\Absensi::form/$1');
     $routes->post('absensi/simpan', 'Guru\Absensi::simpan');
+    $routes->get('absensi/riwayat/(:num)', 'Guru\Absensi::riwayat/$1');
 
     // Nilai
     $routes->get('nilai/form/(:num)', 'Guru\Nilai::form/$1');
@@ -138,7 +157,10 @@ $routes->group('guru', ['filter' => 'roleAuth:Guru'], function ($routes) {
     $routes->post('nilai/form/(:num)/pengaturan', 'Guru\Nilai::simpanPengaturan/$1');
     $routes->post('nilai/form/(:num)/simpan', 'Guru\Nilai::simpan/$1');
     $routes->get('nilai/rekap/(:num)', 'Guru\Nilai::rekap/$1');
-    
+    $routes->get('nilai/rekap/(:num)/export/pdf', 'Guru\Nilai::exportPdf/$1');
+
+    $routes->get('nilai/form/(:num)/riwayat', 'Guru\Nilai::riwayat/$1');
+
     // Import Nilai
     $routes->get('nilai/import/template/(:num)', 'Guru\ImportNilai::template/$1');
     $routes->post('nilai/import/preview', 'Guru\ImportNilai::preview');
@@ -157,3 +179,6 @@ $routes->get('profil/gantipassword', 'Profil::gantipassword', ['filter' => 'auth
 $routes->post('profil/gantipasswordsubmit', 'Profil::gantipasswordsubmit', ['filter' => 'auth']);
 
 $routes->get('logout', 'Auth\Logout::index', ['filter' => 'auth']);
+
+$routes->get('berita', 'Berita::index');
+$routes->get('berita/(:segment)', 'Berita::detail/$1');

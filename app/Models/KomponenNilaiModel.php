@@ -11,5 +11,5 @@ class KomponenNilaiModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
     protected $useTimestamps = false;
-    protected $allowedFields = ['id_pengaturan', 'id_kategori', 'nama_komponen', 'link_referensi', 'bobot', 'urutan'];
+   protected $allowedFields = ['id_pengaturan', 'id_kategori', 'nama_komponen', 'link_referensi', 'keterangan', 'bobot', 'urutan'];
 }

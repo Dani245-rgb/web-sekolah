@@ -12,6 +12,9 @@ use App\Models\KomponenNilaiModel;
 use App\Models\NilaiSiswaModel;
 use App\Models\SemesterModel;
 use App\Models\KategoriNilaiModel;
+use App\Models\AuditLogModel;
+use App\Models\SiswaModel;
+use App\Libraries\WhatsappService;
 
 class Nilai extends BaseController
 {
@@ -20,6 +23,7 @@ class Nilai extends BaseController
     protected $nilaiModel;
     protected $semesterModel;
     protected $kategoriModel;
+    protected $auditLogModel;
 
     public function __construct()
     {
@@ -28,6 +32,7 @@ class Nilai extends BaseController
         $this->nilaiModel      = new NilaiSiswaModel();
         $this->semesterModel   = new SemesterModel();
         $this->kategoriModel   = new KategoriNilaiModel();
+        $this->auditLogModel   = new AuditLogModel();
     }
 
     protected function getGuruLogin()
@@ -52,7 +57,7 @@ class Nilai extends BaseController
         return $jadwal;
     }
 
-   /**
+    /**
      * GET /guru/nilai/form/(:num)/pengaturan
      * Selalu tampilkan form pengaturan kategori/komponen, dipakai guru
      * untuk MENAMBAH atau MENGUBAH komponen nilai yang sudah ada
@@ -102,7 +107,7 @@ class Nilai extends BaseController
         ]);
     }
 
-   public function form($idJadwal)
+    public function form($idJadwal)
     {
         $guru = $this->getGuruLogin();
         $jadwal = $this->getJadwalMilikSaya($idJadwal, $guru);
@@ -135,6 +140,14 @@ class Nilai extends BaseController
         $komponenList = $this->komponenModel->where('id_pengaturan', $pengaturan['id_pengaturan'])
             ->orderBy('urutan', 'ASC')->findAll();
 
+        $kategoriList = $this->kategoriModel->getByPengaturan($pengaturan['id_pengaturan']);
+
+        // Kelompokkan komponen berdasarkan kategorinya, supaya view bisa render per-tab
+        $komponenPerKategori = [];
+        foreach ($komponenList as $komp) {
+            $komponenPerKategori[$komp['id_kategori']][] = $komp;
+        }
+
         $tahunAjaranModel = new TahunAjaranModel();
         $tahunAktif = $tahunAjaranModel->getActive();
 
@@ -152,14 +165,16 @@ class Nilai extends BaseController
         }
 
         return view('guru/nilai/input', [
-            'jadwal'       => $jadwal,
-            'pengaturan'   => $pengaturan,
-            'komponenList' => $komponenList,
-            'siswaList'    => $siswaList,
-            'nilaiMap'     => $nilaiMap,
+            'jadwal'              => $jadwal,
+            'pengaturan'          => $pengaturan,
+            'komponenList'        => $komponenList,
+            'kategoriList'        => $kategoriList,
+            'komponenPerKategori' => $komponenPerKategori,
+            'siswaList'           => $siswaList,
+            'nilaiMap'            => $nilaiMap,
         ]);
     }
-    
+
     /**
      * v1.0: sekarang juga nangkep & simpen link_referensi per komponen (opsional, boleh kosong).
      */
@@ -186,14 +201,14 @@ class Nilai extends BaseController
             return redirect()->back()->withInput()->with('errors', ['kosong' => 'Kategori & komponen nilai wajib diisi.']);
         }
 
-        $totalBobotKategori = 0;
-
+        // v3.0: kategori sekarang independen — total bobot kategori TIDAK wajib 100%.
+        // Nilai akhir dihitung pakai rata-rata berbobot yang dinormalisasi otomatis
+        // (lihat hitungRekap()), jadi guru bebas nambah kategori baru kapan saja
+        // tanpa perlu mengatur ulang bobot kategori yang sudah ada.
         foreach ($kategoriData as $kat) {
             if (empty($kat['nama']) || $kat['bobot'] === '' || empty($kat['komponen'])) {
                 return redirect()->back()->withInput()->with('errors', ['kosong' => 'Setiap kategori wajib punya nama, bobot, dan minimal 1 komponen.']);
             }
-
-            $totalBobotKategori += (float) $kat['bobot'];
 
             $totalBobotKomponen = 0;
             foreach ($kat['komponen'] as $komp) {
@@ -208,12 +223,6 @@ class Nilai extends BaseController
                     'bobot' => "Total bobot komponen dalam kategori \"{$kat['nama']}\" harus 100%, saat ini {$totalBobotKomponen}%."
                 ]);
             }
-        }
-
-        if ($totalBobotKategori != 100) {
-            return redirect()->back()->withInput()->with('errors', [
-                'bobot' => "Total bobot kategori harus 100%, saat ini {$totalBobotKategori}%."
-            ]);
         }
 
         $db = \Config\Database::connect();
@@ -257,6 +266,7 @@ class Nilai extends BaseController
                     'id_kategori'    => $idKategori,
                     'nama_komponen'  => $komp['nama'],
                     'link_referensi' => $komp['link'] ?? null,
+                    'keterangan'     => $komp['keterangan'] ?? null,
                     'bobot'          => $komp['bobot'],
                     'urutan'         => $urutan++,
                 ]);
@@ -269,11 +279,27 @@ class Nilai extends BaseController
             return redirect()->back()->with('errors', ['gagal' => 'Terjadi kesalahan, pengaturan tidak tersimpan.']);
         }
 
+        // Catat riwayat perubahan (v1.1 - format key:value biar mudah diparse di view)
+        $daftarKategoriStr = [];
+        foreach ($kategoriData as $kat) {
+            $namaKomponen = array_column($kat['komponen'], 'nama');
+            $daftarKategoriStr[] = "{$kat['nama']} (bobot {$kat['bobot']}) [" . implode(', ', $namaKomponen) . "]";
+        }
+        $ringkasan = "Jadwal:{$idJadwal}|Kelas:{$jadwal['nama_kelas']}|Mapel:{$jadwal['nama_mapel']}"
+            . "|KKM:{$kkm}|Kategori:" . implode(';;', $daftarKategoriStr);
+
+        $this->auditLogModel->catat(
+            session()->get('id_user'),
+            $guru['nama'],
+            'Atur Nilai',
+            $ringkasan
+        );
+
         return redirect()->to('/guru/nilai/form/' . $idJadwal)
             ->with('success', 'Pengaturan kategori, komponen & bobot nilai tersimpan.');
     }
 
-    public function simpan($idJadwal)
+   public function simpan($idJadwal)
     {
         $guru = $this->getGuruLogin();
         $jadwal = $this->getJadwalMilikSaya($idJadwal, $guru);
@@ -316,7 +342,128 @@ class Nilai extends BaseController
             return redirect()->back()->with('errors', ['gagal' => 'Terjadi kesalahan, nilai tidak tersimpan.']);
         }
 
+        $this->kirimNotifNilaiJikaLengkap($guru, $jadwal, array_keys($nilai));
+
         return redirect()->to('/guru/nilai/form/' . $idJadwal)->with('success', 'Nilai berhasil disimpan.');
+    }
+
+    /**
+     * Setelah simpan, cek per siswa: kalau SEMUA komponen nilai untuk pengaturan ini
+     * sudah terisi, hitung nilai akhir & kirim notif WA ke ortu (sekali saja, dedupe via ref_key).
+     * Best-effort — kegagalan kirim tidak menggagalkan proses simpan nilai.
+     */
+    protected function kirimNotifNilaiJikaLengkap($guru, array $jadwal, array $idSiswaList): void
+    {
+        $semesterAktif = $this->semesterModel->getActive();
+        $pengaturan = $this->pengaturanModel->getPengaturan(
+            (int) $guru['id_guru'],
+            (int) $jadwal['id_kelas'],
+            (int) $jadwal['id_mapel'],
+            (int) $semesterAktif['id_semester']
+        );
+
+        if (!$pengaturan) {
+            return;
+        }
+
+        $komponenList = $this->komponenModel->where('id_pengaturan', $pengaturan['id_pengaturan'])->findAll();
+        $kategoriList = $this->kategoriModel->getByPengaturan($pengaturan['id_pengaturan']);
+        $idKomponenList = array_column($komponenList, 'id_komponen');
+
+        if (empty($idKomponenList)) {
+            return;
+        }
+
+        $siswaModel = new SiswaModel();
+        $wa = new WhatsappService();
+
+        foreach ($idSiswaList as $idSiswa) {
+            $nilaiRows = $this->nilaiModel->where('id_siswa', $idSiswa)
+                ->whereIn('id_komponen', $idKomponenList)->findAll();
+
+            $terisi = array_column($nilaiRows, 'nilai', 'id_komponen');
+
+            // Belum lengkap kalau ada komponen yang belum ada nilainya
+            $lengkap = count($terisi) === count($idKomponenList);
+            if (!$lengkap) {
+                continue;
+            }
+
+            $nilaiAkhir = $this->hitungNilaiAkhirSiswa($komponenList, $kategoriList, $terisi);
+            $status = $nilaiAkhir >= $pengaturan['kkm'] ? 'Tuntas' : 'Belum Tuntas';
+
+            $siswa = $siswaModel->find($idSiswa);
+            if (!$siswa) {
+                continue;
+            }
+
+            $pesan = "Yth. Orang Tua/Wali dari {$siswa['nama']},\n"
+                . "Nilai akhir ananda untuk mata pelajaran {$jadwal['nama_mapel']} sudah keluar.\n"
+                . "Nilai Akhir: {$nilaiAkhir} ({$status})\n\n"
+                . "Terima kasih.";
+
+            $refKey = "nilai-{$pengaturan['id_pengaturan']}-{$idSiswa}";
+            $wa->kirimKeOrtu($siswa, 'nilai', $pesan, $refKey);
+        }
+    }
+
+    /**
+     * Hitung nilai akhir 1 siswa dari nilai per komponen yang sudah terisi lengkap.
+     * Logikanya sama dengan hitungRekap(), tapi untuk 1 siswa saja & tanpa query nilai ulang.
+     */
+    protected function hitungNilaiAkhirSiswa(array $komponenList, array $kategoriList, array $nilaiPerKomponen): float
+    {
+        $komponenPerKategori = [];
+        foreach ($komponenList as $komp) {
+            $komponenPerKategori[$komp['id_kategori']][] = $komp;
+        }
+
+        $totalNilaiTerbobot = 0;
+        $totalBobot = 0;
+
+        foreach ($kategoriList as $kat) {
+            $komponenDalamKategori = $komponenPerKategori[$kat['id_kategori']] ?? [];
+
+            $nilaiKategori = 0;
+            foreach ($komponenDalamKategori as $komp) {
+                $nilaiKomponen = $nilaiPerKomponen[$komp['id_komponen']] ?? 0;
+                $nilaiKategori += $nilaiKomponen * ((float) $komp['bobot'] / 100);
+            }
+
+            $bobotKategori = (float) $kat['bobot'];
+            $totalNilaiTerbobot += $nilaiKategori * $bobotKategori;
+            $totalBobot += $bobotKategori;
+        }
+
+        return $totalBobot > 0 ? round($totalNilaiTerbobot / $totalBobot, 2) : 0;
+    }
+    
+    /**
+     * GET /guru/nilai/form/(:num)/riwayat
+     * Tampilkan riwayat perubahan pengaturan kategori/komponen untuk jadwal ini,
+     * diambil dari audit_log (aksi = 'Atur Nilai'), difilter berdasarkan id_jadwal
+     * yang dititipkan di dalam teks keterangan.
+     */
+    public function riwayat($idJadwal)
+    {
+        $guru = $this->getGuruLogin();
+        $jadwal = $this->getJadwalMilikSaya($idJadwal, $guru);
+
+        if (!$jadwal) {
+            return redirect()->to('/guru/dashboard')->with('errors', ['403' => 'Jadwal ini bukan milik Anda.']);
+        }
+
+        $riwayatList = $this->auditLogModel
+            ->where('user_id', session()->get('id_user'))
+            ->where('aksi', 'Atur Nilai')
+            ->like('keterangan', "Jadwal:{$idJadwal}|", 'after')
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
+
+        return view('guru/nilai/riwayat', [
+            'jadwal'      => $jadwal,
+            'riwayatList' => $riwayatList,
+        ]);
     }
 
     public function rekap($idJadwal)
@@ -363,6 +510,57 @@ class Nilai extends BaseController
     }
 
     /**
+     * GET /guru/nilai/rekap/(:num)/export/pdf
+     * Export rekap nilai akhir kelas milik guru yang login ke PDF.
+     */
+    public function exportPdf($idJadwal)
+    {
+        $guru = $this->getGuruLogin();
+        $jadwal = $this->getJadwalMilikSaya($idJadwal, $guru);
+
+        if (!$jadwal) {
+            return redirect()->to('/guru/dashboard')->with('errors', ['403' => 'Jadwal ini bukan milik Anda.']);
+        }
+
+        $semesterAktif = $this->semesterModel->getActive();
+
+        $pengaturan = $this->pengaturanModel->getPengaturan(
+            (int) $guru['id_guru'],
+            (int) $jadwal['id_kelas'],
+            (int) $jadwal['id_mapel'],
+            (int) $semesterAktif['id_semester']
+        );
+
+        if (!$pengaturan) {
+            return redirect()->to('/guru/nilai/form/' . $idJadwal)
+                ->with('errors', ['belum' => 'Atur komponen & bobot dulu sebelum export rekap.']);
+        }
+
+        $komponenList = $this->komponenModel->where('id_pengaturan', $pengaturan['id_pengaturan'])->findAll();
+        $kategoriList = $this->kategoriModel->getByPengaturan($pengaturan['id_pengaturan']);
+
+        $tahunAjaranModel = new TahunAjaranModel();
+        $tahunAktif = $tahunAjaranModel->getActive();
+
+        $kelasSiswaModel = new KelasSiswaModel();
+        $siswaList = $tahunAktif
+            ? $kelasSiswaModel->getSiswaByKelas($jadwal['id_kelas'], $tahunAktif['id_tahun_ajaran'])
+            : [];
+
+        $rekap = $this->hitungRekap($pengaturan, $kategoriList, $komponenList, $siswaList);
+
+        $html = view('guru/nilai/pdf', [
+            'jadwal'     => $jadwal,
+            'pengaturan' => $pengaturan,
+            'rekap'      => $rekap,
+        ]);
+
+        $mpdf = new \Mpdf\Mpdf(['mode' => 'utf-8', 'format' => 'A4']);
+        $mpdf->SetTitle('Rekap Nilai');
+        $mpdf->WriteHTML($html);
+        $mpdf->Output('rekap-nilai_' . $jadwal['nama_kelas'] . '_' . $jadwal['nama_mapel'] . '.pdf', 'D');
+    }
+    /**
      * v2.0: nilai akhir dihitung 2 tahap sesuai struktur Kategori → Komponen.
      * Tahap 1: nilai per kategori = Σ (nilai komponen × bobot komponen dalam kategori / 100)
      * Tahap 2: nilai akhir       = Σ (nilai kategori × bobot kategori / 100)
@@ -387,7 +585,9 @@ class Nilai extends BaseController
         $hasil = [];
         foreach ($siswaList as $s) {
             $idSiswa = $s['id_siswa'];
-            $nilaiAkhir = 0;
+
+            $totalNilaiTerbobot = 0;
+            $totalBobot = 0;
 
             foreach ($kategoriList as $kat) {
                 $komponenDalamKategori = $komponenPerKategori[$kat['id_kategori']] ?? [];
@@ -398,8 +598,14 @@ class Nilai extends BaseController
                     $nilaiKategori += $nilaiKomponen * ((float) $komp['bobot'] / 100);
                 }
 
-                $nilaiAkhir += $nilaiKategori * ((float) $kat['bobot'] / 100);
+                $bobotKategori = (float) $kat['bobot'];
+                $totalNilaiTerbobot += $nilaiKategori * $bobotKategori;
+                $totalBobot += $bobotKategori;
             }
+
+            // v3.0: normalisasi otomatis — gak peduli total bobot kategori 100% atau tidak,
+            // hasilnya tetap rata-rata berbobot yang proporsional & masuk skala 0-100.
+            $nilaiAkhir = $totalBobot > 0 ? ($totalNilaiTerbobot / $totalBobot) : 0;
 
             $hasil[] = [
                 'nama_siswa'  => $s['nama'],

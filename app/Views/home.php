@@ -27,40 +27,19 @@
                 </div>
 
                 <div class="berita-utama-list">
-                    <?php // foreach ($berita_utama as $b): ?>
-                    <a href="#" class="berita-card">
-                        <img src="<?= base_url('assets/images/berita/contoh.jpg') ?>" alt="">
+                    <?php foreach ($berita_utama as $b): ?>
+                    <a href="<?= base_url('berita/' . $b['slug']) ?>" class="berita-card">
+                        <img src="<?= $b['gambar'] ? base_url('assets/images/berita/' . $b['gambar']) : base_url('assets/images/berita/default.jpg') ?>" alt="">
                         <div class="berita-card-body">
-                            <span class="berita-kategori">Akademik</span>
-                            <h3>Judul berita contoh di sini</h3>
-                            <span class="berita-meta">10 Juli 2026</span>
+                            <span class="berita-kategori"><?= esc($b['kategori']) ?></span>
+                            <h3><?= esc($b['judul']) ?></h3>
+                            <span class="berita-meta"><?= date('d F Y', strtotime($b['tanggal_publish'])) ?></span>
                         </div>
                     </a>
-                    <a href="#" class="berita-card">
-                        <img src="<?= base_url('assets/images/berita/contoh2.jpg') ?>" alt="">
-                        <div class="berita-card-body">
-                            <span class="berita-kategori">Prestasi</span>
-                            <h3>Judul berita kedua di sini</h3>
-                            <span class="berita-meta">9 Juli 2026</span>
-                        </div>
-                    </a>
-                    <a href="#" class="berita-card">
-                        <img src="<?= base_url('assets/images/berita/contoh3.jpg') ?>" alt="">
-                        <div class="berita-card-body">
-                            <span class="berita-kategori">Kegiatan</span>
-                            <h3>Judul berita ketiga di sini</h3>
-                            <span class="berita-meta">8 Juli 2026</span>
-                        </div>
-                    </a>
-                    <a href="#" class="berita-card">
-                        <img src="<?= base_url('assets/images/berita/contoh4.jpg') ?>" alt="">
-                        <div class="berita-card-body">
-                            <span class="berita-kategori">Umum</span>
-                            <h3>Judul berita keempat di sini</h3>
-                            <span class="berita-meta">7 Juli 2026</span>
-                        </div>
-                    </a>
-                    <?php // endforeach; ?>
+                    <?php endforeach; ?>
+                    <?php if (empty($berita_utama)): ?>
+                    <p>Belum ada berita.</p>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -81,40 +60,19 @@
                 </div>
 
                 <div class="berita-list">
-                    <?php // foreach ($berita_terbaru as $b): ?>
-                    <a href="#" class="berita-list-item">
-                        <img src="<?= base_url('assets/images/berita/contoh.jpg') ?>" alt="">
+                    <?php foreach ($berita_terbaru as $b): ?>
+                    <a href="<?= base_url('berita/' . $b['slug']) ?>" class="berita-list-item">
+                        <img src="<?= $b['gambar'] ? base_url('assets/images/berita/' . $b['gambar']) : base_url('assets/images/berita/default.jpg') ?>" alt="">
                         <div class="berita-list-body">
-                            <span class="berita-kategori">Akademik</span>
-                            <h3>Judul berita terbaru contoh di sini</h3>
-                            <span class="berita-meta">10 Juli 2026</span>
+                            <span class="berita-kategori"><?= esc($b['kategori']) ?></span>
+                            <h3><?= esc($b['judul']) ?></h3>
+                            <span class="berita-meta"><?= date('d F Y', strtotime($b['tanggal_publish'])) ?></span>
                         </div>
                     </a>
-                    <a href="#" class="berita-list-item">
-                        <img src="<?= base_url('assets/images/berita/contoh2.jpg') ?>" alt="">
-                        <div class="berita-list-body">
-                            <span class="berita-kategori">Umum</span>
-                            <h3>Judul berita terbaru kedua</h3>
-                            <span class="berita-meta">9 Juli 2026</span>
-                        </div>
-                    </a>
-                    <a href="#" class="berita-list-item">
-                        <img src="<?= base_url('assets/images/berita/contoh3.jpg') ?>" alt="">
-                        <div class="berita-list-body">
-                            <span class="berita-kategori">Prestasi</span>
-                            <h3>Judul berita terbaru ketiga</h3>
-                            <span class="berita-meta">8 Juli 2026</span>
-                        </div>
-                    </a>
-                    <a href="#" class="berita-list-item">
-                        <img src="<?= base_url('assets/images/berita/contoh4.jpg') ?>" alt="">
-                        <div class="berita-list-body">
-                            <span class="berita-kategori">Kegiatan</span>
-                            <h3>Judul berita terbaru keempat</h3>
-                            <span class="berita-meta">7 Juli 2026</span>
-                        </div>
-                    </a>
-                    <?php // endforeach; ?>
+                    <?php endforeach; ?>
+                    <?php if (empty($berita_terbaru)): ?>
+                    <p>Belum ada berita terbaru.</p>
+                    <?php endif; ?>
                 </div>
             </div>
 

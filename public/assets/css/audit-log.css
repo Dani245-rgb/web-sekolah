@@ -29,3 +29,69 @@
     background-color: #f0f0f0;
     border-color: #bbb;
 }
+
+.audit-filter-form {
+    margin-bottom: 16px;
+}
+
+.audit-filter-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.audit-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.audit-filter-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+}
+
+.audit-filter-group select,
+.audit-filter-group input[type="text"],
+.audit-filter-group input[type="date"] {
+    padding: 6px 10px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    font-size: 13px;
+    min-width: 160px;
+}
+
+.audit-filter-actions {
+    flex-direction: row;
+    gap: 8px;
+}
+
+.audit-export-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.btn-outline-danger {
+    border: 1px solid #d64545;
+    color: #d64545;
+    background: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-outline-success {
+    border: 1px solid #2f9e5e;
+    color: #2f9e5e;
+    background: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}

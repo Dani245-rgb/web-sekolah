@@ -117,114 +117,119 @@ class Jadwal extends BaseController
     }
 
     public function edit($id)
-{
-    $jadwal = $this->jadwalModel->find($id);
-    if (!$jadwal) {
-        return redirect()->to('/admin/jadwal')->with('errors', ['404' => 'Jadwal tidak ditemukan.']);
+    {
+        $jadwal = $this->jadwalModel->find($id);
+        if (!$jadwal) {
+            return redirect()->to('/admin/jadwal')->with('errors', ['404' => 'Jadwal tidak ditemukan.']);
+        }
+
+        $data['jadwal']  = $jadwal;
+        $data['kelas']   = $this->kelasModel->where('status', 'Aktif')->orderBy('nama_kelas', 'ASC')->findAll();
+        $data['mapel']   = $this->mapelModel->where('status', 'Aktif')->orderBy('nama_mapel', 'ASC')->findAll();
+        $data['guru']    = $this->guruModel->orderBy('nama', 'ASC')->findAll();
+        $data['ruangan'] = $this->ruanganModel->where('status', 'Aktif')->orderBy('nama_ruangan', 'ASC')->findAll();
+
+        return view('admin/jadwal/edit', $data);
     }
 
-    $data['jadwal']  = $jadwal;
-    $data['kelas']   = $this->kelasModel->where('status', 'Aktif')->orderBy('nama_kelas', 'ASC')->findAll();
-    $data['mapel']   = $this->mapelModel->where('status', 'Aktif')->orderBy('nama_mapel', 'ASC')->findAll();
-    $data['guru']    = $this->guruModel->orderBy('nama', 'ASC')->findAll();
-    $data['ruangan'] = $this->ruanganModel->where('status', 'Aktif')->orderBy('nama_ruangan', 'ASC')->findAll();
+    public function update($id)
+    {
+        $jadwal = $this->jadwalModel->find($id);
+        if (!$jadwal) {
+            return redirect()->to('/admin/jadwal')->with('errors', ['404' => 'Jadwal tidak ditemukan.']);
+        }
 
-    return view('admin/jadwal/edit', $data);
-}
+        $rules = [
+            'id_kelas'    => 'required|is_natural_no_zero',
+            'id_mapel'    => 'required|is_natural_no_zero',
+            'id_guru'     => 'required|is_natural_no_zero',
+            'id_ruangan'  => 'required|is_natural_no_zero',
+            'hari'        => 'required|in_list[Senin,Selasa,Rabu,Kamis,Jumat,Sabtu]',
+            'jam_mulai'   => 'required',
+            'jam_selesai' => 'required',
+        ];
 
-public function update($id)
-{
-    $jadwal = $this->jadwalModel->find($id);
-    if (!$jadwal) {
-        return redirect()->to('/admin/jadwal')->with('errors', ['404' => 'Jadwal tidak ditemukan.']);
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $data = [
+            'id_semester' => $jadwal['id_semester'],
+            'id_kelas'    => $this->request->getPost('id_kelas'),
+            'id_mapel'    => $this->request->getPost('id_mapel'),
+            'id_guru'     => $this->request->getPost('id_guru'),
+            'id_ruangan'  => $this->request->getPost('id_ruangan'),
+            'hari'        => $this->request->getPost('hari'),
+            'jam_mulai'   => $this->request->getPost('jam_mulai'),
+            'jam_selesai' => $this->request->getPost('jam_selesai'),
+        ];
+
+        if (strtotime($data['jam_selesai']) <= strtotime($data['jam_mulai'])) {
+            return redirect()->back()->withInput()->with('errors', ['jam' => 'Jam selesai harus lebih besar dari jam mulai.']);
+        }
+
+        $bentrok = $this->jadwalModel->cekBentrok($data, (int) $id);
+        if (!empty($bentrok)) {
+            return redirect()->back()->withInput()->with('errors', ['bentrok' => implode(' ', $bentrok)]);
+        }
+
+        $this->jadwalModel->update($id, $data);
+
+        return redirect()->to('/admin/jadwal')->with('success', 'Jadwal berhasil diperbarui.');
     }
 
-    $rules = [
-        'id_kelas'    => 'required|is_natural_no_zero',
-        'id_mapel'    => 'required|is_natural_no_zero',
-        'id_guru'     => 'required|is_natural_no_zero',
-        'id_ruangan'  => 'required|is_natural_no_zero',
-        'hari'        => 'required|in_list[Senin,Selasa,Rabu,Kamis,Jumat,Sabtu]',
-        'jam_mulai'   => 'required',
-        'jam_selesai' => 'required',
-    ];
+    public function delete($id)
+    {
+        $jadwal = $this->jadwalModel->find($id);
+        if (!$jadwal) {
+            return redirect()->to('/admin/jadwal')->with('errors', ['404' => 'Jadwal tidak ditemukan.']);
+        }
 
-    if (!$this->validate($rules)) {
-        return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        $this->jadwalModel->delete($id);
+
+        return redirect()->to('/admin/jadwal')->with('success', 'Jadwal berhasil dihapus.');
     }
-
-    $data = [
-        'id_semester' => $jadwal['id_semester'],
-        'id_kelas'    => $this->request->getPost('id_kelas'),
-        'id_mapel'    => $this->request->getPost('id_mapel'),
-        'id_guru'     => $this->request->getPost('id_guru'),
-        'id_ruangan'  => $this->request->getPost('id_ruangan'),
-        'hari'        => $this->request->getPost('hari'),
-        'jam_mulai'   => $this->request->getPost('jam_mulai'),
-        'jam_selesai' => $this->request->getPost('jam_selesai'),
-    ];
-
-    if (strtotime($data['jam_selesai']) <= strtotime($data['jam_mulai'])) {
-        return redirect()->back()->withInput()->with('errors', ['jam' => 'Jam selesai harus lebih besar dari jam mulai.']);
-    }
-
-    $bentrok = $this->jadwalModel->cekBentrok($data, (int) $id);
-    if (!empty($bentrok)) {
-        return redirect()->back()->withInput()->with('errors', ['bentrok' => implode(' ', $bentrok)]);
-    }
-
-    $this->jadwalModel->update($id, $data);
-
-    return redirect()->to('/admin/jadwal')->with('success', 'Jadwal berhasil diperbarui.');
-}
-
-public function delete($id)
-{
-    $jadwal = $this->jadwalModel->find($id);
-    if (!$jadwal) {
-        return redirect()->to('/admin/jadwal')->with('errors', ['404' => 'Jadwal tidak ditemukan.']);
-    }
-
-    $this->jadwalModel->delete($id);
-
-    return redirect()->to('/admin/jadwal')->with('success', 'Jadwal berhasil dihapus.');
-}
 
     // ---------- Import Excel (dengan Preview) ----------
 
     public function template()
-{
-    $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('Template Jadwal');
-    $sheet->fromArray(['Hari', 'Jam Mulai (HH:MM)', 'Jam Selesai (HH:MM)', 'Nama Kelas', 'Kode Mapel', 'NIP Guru', 'Nama Ruangan'], null, 'A1');
-    $sheet->fromArray(['Senin', '07:00', '08:30', 'XI TJKT 1', 'indonesia', '45234564', 'R1'], null, 'A2');
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template Jadwal');
+        $sheet->fromArray(['Hari', 'Jam Mulai (HH:MM)', 'Jam Selesai (HH:MM)', 'Nama Kelas', 'Kode Mapel', 'NIP Guru', 'Nama Ruangan'], null, 'A1');
+        $sheet->fromArray(['Senin', '07:00', '08:30', 'XI TJKT 1', 'indonesia', '45234564', 'R1'], null, 'A2');
 
-    $ref = $spreadsheet->createSheet();
-    $ref->setTitle('Referensi');
-    $ref->fromArray(['Kode Mapel', 'Nama Mapel'], null, 'A1');
-    $row = 2;
-    foreach ($this->mapelModel->where('status', 'Aktif')->findAll() as $m) {
-        $ref->setCellValue("A{$row}", $m['kode_mapel']); $ref->setCellValue("B{$row}", $m['nama_mapel']); $row++;
-    }
-    $ref->fromArray(['NIP Guru', 'Nama Guru'], null, 'D1');
-    $row = 2;
-    foreach ($this->guruModel->findAll() as $g) {
-        $ref->setCellValue("D{$row}", $g['nip']); $ref->setCellValue("E{$row}", $g['nama']); $row++;
-    }
-    $ref->fromArray(['Nama Ruangan'], null, 'G1');
-    $row = 2;
-    foreach ($this->ruanganModel->where('status', 'Aktif')->findAll() as $r) {
-        $ref->setCellValue("G{$row}", $r['nama_ruangan']); $row++;
-    }
+        $ref = $spreadsheet->createSheet();
+        $ref->setTitle('Referensi');
+        $ref->fromArray(['Kode Mapel', 'Nama Mapel'], null, 'A1');
+        $row = 2;
+        foreach ($this->mapelModel->where('status', 'Aktif')->findAll() as $m) {
+            $ref->setCellValue("A{$row}", $m['kode_mapel']);
+            $ref->setCellValue("B{$row}", $m['nama_mapel']);
+            $row++;
+        }
+        $ref->fromArray(['NIP Guru', 'Nama Guru'], null, 'D1');
+        $row = 2;
+        foreach ($this->guruModel->findAll() as $g) {
+            $ref->setCellValue("D{$row}", $g['nip']);
+            $ref->setCellValue("E{$row}", $g['nama']);
+            $row++;
+        }
+        $ref->fromArray(['Nama Ruangan'], null, 'G1');
+        $row = 2;
+        foreach ($this->ruanganModel->where('status', 'Aktif')->findAll() as $r) {
+            $ref->setCellValue("G{$row}", $r['nama_ruangan']);
+            $row++;
+        }
 
-    $spreadsheet->setActiveSheetIndex(0);
-    $writer = new Xlsx($spreadsheet);
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="template_jadwal.xlsx"');
-    $writer->save('php://output');
-    exit;
-}
+        $spreadsheet->setActiveSheetIndex(0);
+        $writer = new Xlsx($spreadsheet);
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="template_jadwal.xlsx"');
+        $writer->save('php://output');
+        exit;
+    }
     public function importForm()
     {
         return view('admin/jadwal/import');
@@ -313,7 +318,7 @@ public function delete($id)
             $kelas = $this->kelasModel->where('nama_kelas', trim((string)$namaKelas))->first();
             if (!$kelas) $errorBaris[] = "Kelas '{$namaKelas}' tidak ditemukan";
 
-           $mapel = $this->mapelModel->where('kode_mapel', trim((string)$kodeMapel))->first();
+            $mapel = $this->mapelModel->where('kode_mapel', trim((string)$kodeMapel))->first();
             if (!$mapel) $errorBaris[] = "Kode mapel '{$kodeMapel}' tidak ditemukan";
 
             $guru = $this->guruModel->where('nip', trim((string)$nip))->first();
@@ -351,29 +356,64 @@ public function delete($id)
         return $hasil;
     }
 
-    public function exportExcel()
-{
-    $semesterAktif = $this->semesterModel->getActive();
-    $jadwal = $this->jadwalModel->getAllWithRelasi($semesterAktif['id_semester']);
+    public function exportPdf()
+    {
+        $semesterAktif = $this->semesterModel->getActive();
+        if (!$semesterAktif) {
+            return redirect()->to('/admin/dashboard')->with('errors', ['semester' => 'Belum ada Semester Aktif.']);
+        }
 
-    $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('Jadwal Pelajaran');
-    $sheet->fromArray(['Hari', 'Jam Mulai', 'Jam Selesai', 'Kelas', 'Jurusan', 'Mapel', 'Guru', 'Ruangan', 'Status'], null, 'A1');
+        $filter = [
+            'id_jurusan' => $this->request->getGet('id_jurusan'),
+            'id_kelas'   => $this->request->getGet('id_kelas'),
+            'hari'       => $this->request->getGet('hari'),
+            'keyword'    => $this->request->getGet('keyword'),
+        ];
 
-    $row = 2;
-    foreach ($jadwal as $j) {
-        $sheet->fromArray([
-            $j['hari'], substr($j['jam_mulai'], 0, 5), substr($j['jam_selesai'], 0, 5),
-            $j['nama_kelas'], $j['nama_jurusan'] ?? '-', $j['nama_mapel'], $j['nama_guru'], $j['nama_ruangan'], $j['status'],
-        ], null, "A{$row}");
-        $row++;
+        $jadwal = $this->jadwalModel->getAllWithRelasi($semesterAktif['id_semester'], $filter);
+
+        $html = view('admin/jadwal/pdf', [
+            'jadwal'        => $jadwal,
+            'semesterAktif' => $semesterAktif,
+            'filter'        => $filter,
+        ]);
+
+        $mpdf = new \Mpdf\Mpdf(['mode' => 'utf-8', 'format' => 'A4-L']);
+        $mpdf->SetTitle('Jadwal Pelajaran');
+        $mpdf->WriteHTML($html);
+        $mpdf->Output('jadwal_' . date('Y-m-d') . '.pdf', 'D');
     }
 
-    $writer = new Xlsx($spreadsheet);
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="jadwal_' . date('Y-m-d') . '.xlsx"');
-    $writer->save('php://output');
-    exit;
-}
+    public function exportExcel()
+    {
+        $semesterAktif = $this->semesterModel->getActive();
+        $jadwal = $this->jadwalModel->getAllWithRelasi($semesterAktif['id_semester']);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Jadwal Pelajaran');
+        $sheet->fromArray(['Hari', 'Jam Mulai', 'Jam Selesai', 'Kelas', 'Jurusan', 'Mapel', 'Guru', 'Ruangan', 'Status'], null, 'A1');
+
+        $row = 2;
+        foreach ($jadwal as $j) {
+            $sheet->fromArray([
+                $j['hari'],
+                substr($j['jam_mulai'], 0, 5),
+                substr($j['jam_selesai'], 0, 5),
+                $j['nama_kelas'],
+                $j['nama_jurusan'] ?? '-',
+                $j['nama_mapel'],
+                $j['nama_guru'],
+                $j['nama_ruangan'],
+                $j['status'],
+            ], null, "A{$row}");
+            $row++;
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="jadwal_' . date('Y-m-d') . '.xlsx"');
+        $writer->save('php://output');
+        exit;
+    }
 }

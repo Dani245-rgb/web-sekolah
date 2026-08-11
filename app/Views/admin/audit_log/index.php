@@ -9,6 +9,55 @@
 </div>
 
 <div class="card">
+    <form method="get" action="<?= base_url('admin/audit-log') ?>" class="audit-filter-form">
+        <div class="audit-filter-row">
+            <div class="audit-filter-group">
+                <label>Aksi</label>
+                <select name="aksi">
+                    <option value="">Semua Aksi</option>
+                    <?php foreach ($daftarAksi as $a): ?>
+                        <option value="<?= esc($a) ?>" <?= ($filter['aksi'] ?? '') === $a ? 'selected' : '' ?>>
+                            <?= esc($a) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="audit-filter-group">
+                <label>User</label>
+                <input type="text" name="username" value="<?= esc($filter['username'] ?? '') ?>" placeholder="Cari nama user...">
+            </div>
+
+            <div class="audit-filter-group">
+                <label>Dari Tanggal</label>
+                <input type="date" name="dari" value="<?= esc($filter['dari'] ?? '') ?>">
+            </div>
+
+            <div class="audit-filter-group">
+                <label>Sampai Tanggal</label>
+                <input type="date" name="sampai" value="<?= esc($filter['sampai'] ?? '') ?>">
+            </div>
+
+            <div class="audit-filter-group audit-filter-actions">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="<?= base_url('admin/audit-log') ?>" class="btn btn-secondary">Reset</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="audit-export-row">
+        <?php
+            $queryString = http_build_query(array_filter($filter));
+            $qs = $queryString ? '?' . $queryString : '';
+        ?>
+        <a href="<?= base_url('admin/audit-log/export/pdf' . $qs) ?>" class="btn btn-outline-danger">
+            📄 Export PDF
+        </a>
+        <a href="<?= base_url('admin/audit-log/export/excel' . $qs) ?>" class="btn btn-outline-success">
+            📊 Export Excel
+        </a>
+    </div>
+
     <table class="table">
         <thead>
             <tr>
@@ -28,7 +77,7 @@
             </tr>
             <?php endforeach; ?>
             <?php if (empty($logs)): ?>
-            <tr><td colspan="6" class="text-center">Belum ada log.</td></tr>
+            <tr><td colspan="6" class="text-center">Belum ada log yang cocok dengan filter.</td></tr>
             <?php endif; ?>
         </tbody>
     </table>

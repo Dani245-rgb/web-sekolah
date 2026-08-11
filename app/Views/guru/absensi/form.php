@@ -54,8 +54,9 @@
             </tbody>
         </table>
 
-        <div class="absensi-actions">
+  <div class="absensi-actions">
             <button type="submit" class="btn btn-primary">Simpan Absensi</button>
+            <a href="<?= base_url('guru/absensi/riwayat/' . $jadwal['id_jadwal']) ?>" class="btn btn-secondary">Riwayat</a>
             <a href="<?= base_url('guru/dashboard') ?>" class="btn btn-secondary">Kembali</a>
         </div>
     </form>

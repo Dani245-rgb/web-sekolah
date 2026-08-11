@@ -19,30 +19,49 @@
             <input type="date" name="tgl_selesai" value="<?= esc($tglSelesai) ?>">
         </div>
         <button type="submit" class="btn btn-primary">Filter</button>
+       <a href="<?= base_url('admin/rekap-absensi/siswa/detail/' . $siswa['id_siswa'] . '/export/pdf?tgl_mulai=' . $tglMulai . '&tgl_selesai=' . $tglSelesai) ?>"
+            class="btn btn-outline-danger">📄 Export PDF</a>
+        <a href="<?= base_url('admin/rekap-absensi/siswa/detail/' . $siswa['id_siswa'] . '/export/excel?tgl_mulai=' . $tglMulai . '&tgl_selesai=' . $tglSelesai) ?>"
+            class="btn btn-outline-success">📊 Export Excel</a>
     </form>
 
     <div style="display:flex; gap:16px; margin-bottom:20px;">
-        <div class="card-widget" style="flex:1; text-align:center;"><div style="font-size:24px; color:#00b894; font-weight:700;"><?= $rekap['Hadir'] ?></div>Hadir</div>
-        <div class="card-widget" style="flex:1; text-align:center;"><div style="font-size:24px; color:#0984e3; font-weight:700;"><?= $rekap['Izin'] ?></div>Izin</div>
-        <div class="card-widget" style="flex:1; text-align:center;"><div style="font-size:24px; color:#e17055; font-weight:700;"><?= $rekap['Sakit'] ?></div>Sakit</div>
-        <div class="card-widget" style="flex:1; text-align:center;"><div style="font-size:24px; color:#d63031; font-weight:700;"><?= $rekap['Alfa'] ?></div>Alfa</div>
+        <div class="card-widget" style="flex:1; text-align:center;">
+            <div style="font-size:24px; color:#00b894; font-weight:700;"><?= $rekap['Hadir'] ?></div>Hadir
+        </div>
+        <div class="card-widget" style="flex:1; text-align:center;">
+            <div style="font-size:24px; color:#0984e3; font-weight:700;"><?= $rekap['Izin'] ?></div>Izin
+        </div>
+        <div class="card-widget" style="flex:1; text-align:center;">
+            <div style="font-size:24px; color:#e17055; font-weight:700;"><?= $rekap['Sakit'] ?></div>Sakit
+        </div>
+        <div class="card-widget" style="flex:1; text-align:center;">
+            <div style="font-size:24px; color:#d63031; font-weight:700;"><?= $rekap['Alfa'] ?></div>Alfa
+        </div>
     </div>
 
     <table class="absensi-table">
         <thead>
-            <tr><th>Tanggal</th><th>Mapel</th><th>Status</th><th>Keterangan</th></tr>
+            <tr>
+                <th>Tanggal</th>
+                <th>Mapel</th>
+                <th>Status</th>
+                <th>Keterangan</th>
+            </tr>
         </thead>
         <tbody>
             <?php foreach ($detail as $d): ?>
-            <tr>
-                <td><?= esc($d['tanggal']) ?></td>
-                <td><?= esc($d['nama_mapel']) ?></td>
-                <td><?= esc($d['status']) ?></td>
-                <td><?= esc($d['keterangan'] ?: '-') ?></td>
-            </tr>
+                <tr>
+                    <td><?= esc($d['tanggal']) ?></td>
+                    <td><?= esc($d['nama_mapel']) ?></td>
+                    <td><?= esc($d['status']) ?></td>
+                    <td><?= esc($d['keterangan'] ?: '-') ?></td>
+                </tr>
             <?php endforeach; ?>
             <?php if (empty($detail)): ?>
-            <tr><td colspan="4" class="absensi-empty">Belum ada absensi di rentang tanggal ini.</td></tr>
+                <tr>
+                    <td colspan="4" class="absensi-empty">Belum ada absensi di rentang tanggal ini.</td>
+                </tr>
             <?php endif; ?>
         </tbody>
     </table>
