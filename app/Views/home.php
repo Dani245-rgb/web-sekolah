@@ -28,17 +28,17 @@
 
                 <div class="berita-utama-list">
                     <?php foreach ($berita_utama as $b): ?>
-                    <a href="<?= base_url('berita/' . $b['slug']) ?>" class="berita-card">
-                        <img src="<?= $b['gambar'] ? base_url('assets/images/berita/' . $b['gambar']) : base_url('assets/images/berita/default.jpg') ?>" alt="">
-                        <div class="berita-card-body">
-                            <span class="berita-kategori"><?= esc($b['kategori']) ?></span>
-                            <h3><?= esc($b['judul']) ?></h3>
-                            <span class="berita-meta"><?= date('d F Y', strtotime($b['tanggal_publish'])) ?></span>
-                        </div>
-                    </a>
+                        <a href="<?= base_url('berita/' . $b['slug']) ?>" class="berita-card">
+                            <img src="<?= $b['gambar'] ? base_url('assets/images/berita/' . $b['gambar']) : base_url('assets/images/berita/default.jpg') ?>" alt="">
+                            <div class="berita-card-body">
+                                <span class="berita-kategori"><?= esc($b['kategori']) ?></span>
+                                <h3><?= esc($b['judul']) ?></h3>
+                                <span class="berita-meta"><?= date('d F Y', strtotime($b['tanggal_publish'])) ?></span>
+                            </div>
+                        </a>
                     <?php endforeach; ?>
                     <?php if (empty($berita_utama)): ?>
-                    <p>Belum ada berita.</p>
+                        <p>Belum ada berita.</p>
                     <?php endif; ?>
                 </div>
             </div>
@@ -61,17 +61,17 @@
 
                 <div class="berita-list">
                     <?php foreach ($berita_terbaru as $b): ?>
-                    <a href="<?= base_url('berita/' . $b['slug']) ?>" class="berita-list-item">
-                        <img src="<?= $b['gambar'] ? base_url('assets/images/berita/' . $b['gambar']) : base_url('assets/images/berita/default.jpg') ?>" alt="">
-                        <div class="berita-list-body">
-                            <span class="berita-kategori"><?= esc($b['kategori']) ?></span>
-                            <h3><?= esc($b['judul']) ?></h3>
-                            <span class="berita-meta"><?= date('d F Y', strtotime($b['tanggal_publish'])) ?></span>
-                        </div>
-                    </a>
+                        <a href="<?= base_url('berita/' . $b['slug']) ?>" class="berita-list-item">
+                            <img src="<?= $b['gambar'] ? base_url('assets/images/berita/' . $b['gambar']) : base_url('assets/images/berita/default.jpg') ?>" alt="">
+                            <div class="berita-list-body">
+                                <span class="berita-kategori"><?= esc($b['kategori']) ?></span>
+                                <h3><?= esc($b['judul']) ?></h3>
+                                <span class="berita-meta"><?= date('d F Y', strtotime($b['tanggal_publish'])) ?></span>
+                            </div>
+                        </a>
                     <?php endforeach; ?>
                     <?php if (empty($berita_terbaru)): ?>
-                    <p>Belum ada berita terbaru.</p>
+                        <p>Belum ada berita terbaru.</p>
                     <?php endif; ?>
                 </div>
             </div>
@@ -82,32 +82,23 @@
                     <h3>Agenda Sekolah</h3>
                 </div>
                 <ul class="agenda-list">
-                    <?php // foreach ($agenda as $a): ?>
-                    <li>
-                        <a href="#">
-                            <div class="agenda-tanggal">
-                                <span class="tgl">20</span>
-                                <span class="bln">Jul</span>
-                            </div>
-                            <div class="agenda-info">
-                                <h4>Rapat Wali Murid</h4>
-                                <span>08.00 - Aula Sekolah</span>
-                            </div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#">
-                            <div class="agenda-tanggal">
-                                <span class="tgl">25</span>
-                                <span class="bln">Jul</span>
-                            </div>
-                            <div class="agenda-info">
-                                <h4>MPLS Siswa Baru</h4>
-                                <span>07.00 - Lapangan</span>
-                            </div>
-                        </a>
-                    </li>
-                    <?php // endforeach; ?>
+                    <?php foreach ($agenda as $a): ?>
+                        <li>
+                            <a href="#">
+                                <div class="agenda-tanggal">
+                                    <span class="tgl"><?= date('d', strtotime($a['tanggal'])) ?></span>
+                                    <span class="bln"><?= date('M', strtotime($a['tanggal'])) ?></span>
+                                </div>
+                                <div class="agenda-info">
+                                    <h4><?= esc($a['judul']) ?></h4>
+                                    <span><?= esc($a['waktu']) ?><?= $a['lokasi'] ? ' - ' . esc($a['lokasi']) : '' ?></span>
+                                </div>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                    <?php if (empty($agenda)): ?>
+                        <li><span class="text-muted">Belum ada agenda mendatang.</span></li>
+                    <?php endif; ?>
                 </ul>
                 <a href="<?= base_url('agenda') ?>" class="widget-info-more">
                     Lihat Semua <i class="fa-solid fa-arrow-right"></i>
@@ -127,20 +118,14 @@
                     </a>
                 </div>
                 <div class="galeri-grid">
-                    <?php // foreach ($galeri as $g): ?>
-                    <a href="#" class="galeri-item">
-                        <img src="<?= base_url('assets/images/galeri/1.jpg') ?>" alt="Kegiatan sekolah 1">
-                    </a>
-                    <a href="#" class="galeri-item">
-                        <img src="<?= base_url('assets/images/galeri/2.jpg') ?>" alt="Kegiatan sekolah 2">
-                    </a>
-                    <a href="#" class="galeri-item">
-                        <img src="<?= base_url('assets/images/galeri/3.jpg') ?>" alt="Kegiatan sekolah 3">
-                    </a>
-                    <a href="#" class="galeri-item">
-                        <img src="<?= base_url('assets/images/galeri/4.jpg') ?>" alt="Kegiatan sekolah 4">
-                    </a>
-                    <?php // endforeach; ?>
+                    <?php foreach ($galeri as $g): ?>
+                        <a href="<?= base_url('galeri#' . $g['id']) ?>" class="galeri-item">
+                            <img src="<?= base_url('uploads/galeri/' . $g['foto']) ?>" alt="<?= esc($g['judul']) ?>">
+                        </a>
+                    <?php endforeach; ?>
+                    <?php if (empty($galeri)): ?>
+                        <p>Belum ada foto galeri.</p>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -150,41 +135,17 @@
                     <h3>Ekstrakurikuler</h3>
                 </div>
                 <div class="ekskul-grid">
-                    <?php // foreach ($ekskul as $e): ?>
-                    <a href="#" class="ekskul-item">
-                        <i class="fa-solid fa-futbol" aria-hidden="true"></i>
-                        <span>Futsal</span>
-                    </a>
-                    <a href="#" class="ekskul-item">
-                        <i class="fa-solid fa-music" aria-hidden="true"></i>
-                        <span>Hadroh</span>
-                    </a>
-                    <a href="#" class="ekskul-item">
-                        <i class="fa-solid fa-scroll" aria-hidden="true"></i>
-                        <span>Pramuka</span>
-                    </a>
-                    <a href="#" class="ekskul-item">
-                        <i class="fa-solid fa-book-quran" aria-hidden="true"></i>
-                        <span>Tahfidz</span>
-                    </a>
-                    <a href="#" class="ekskul-item">
-                        <i class="fa-solid fa-basketball" aria-hidden="true"></i>
-                        <span>Basket</span>
-                    </a>
-                    <a href="#" class="ekskul-item">
-                        <i class="fa-solid fa-drum" aria-hidden="true"></i>
-                        <span>Marching Band</span>
-                    </a>
-                    <a href="#" class="ekskul-item">
-                        <i class="fa-solid fa-palette" aria-hidden="true"></i>
-                        <span>Seni Rupa</span>
-                    </a>
-                    <a href="#" class="ekskul-item">
-                        <i class="fa-solid fa-laptop-code" aria-hidden="true"></i>
-                        <span>Robotik</span>
-                    </a>
-                    <?php // endforeach; ?>
+                    <?php foreach ($ekskul as $e): ?>
+                        <a href="#" class="ekskul-item">
+                            <img src="<?= base_url('uploads/ekstrakurikuler/' . $e['foto']) ?>" alt="<?= esc($e['nama']) ?>" style="width:32px;height:32px;object-fit:cover;border-radius:6px;">
+                            <span><?= esc($e['nama']) ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                    <?php if (empty($ekskul)): ?>
+                        <p class="text-muted">Belum ada ekstrakurikuler.</p>
+                    <?php endif; ?>
                 </div>
+
                 <a href="<?= base_url('ekstrakurikuler') ?>" class="widget-info-more">
                     Lihat Semua <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 </a>
@@ -204,202 +165,104 @@
             </div>
 
             <div class="prestasi-grid">
-                <?php // foreach ($prestasi as $p): ?>
-                <div class="prestasi-card">
-                    <div class="prestasi-card-img">
-                        <img src="<?= base_url('assets/images/prestasi/1.jpg') ?>"
-                            alt="Juara 1 Lomba Barista Tingkat Provinsi">
-                        <span class="prestasi-badge">Provinsi</span>
-                        <div class="prestasi-card-icon"><i class="fa-solid fa-trophy"></i></div>
+                <?php foreach ($prestasi as $p): ?>
+                    <div class="prestasi-card">
+                        <div class="prestasi-card-img">
+                            <img src="<?= base_url('uploads/prestasi/' . $p['foto']) ?>"
+                                alt="<?= esc($p['judul']) ?>">
+                            <span class="prestasi-badge"><?= esc($p['tingkat']) ?></span>
+                            <div class="prestasi-card-icon"><i class="fa-solid fa-trophy"></i></div>
+                        </div>
+                        <div class="prestasi-card-body">
+                            <h4><?= esc($p['judul']) ?></h4>
+                            <p><?= esc($p['tim']) ?> &middot; <?= date('F Y', strtotime($p['tanggal'])) ?></p>
+                        </div>
                     </div>
-                    <div class="prestasi-card-body">
-                        <h4>Juara 1 Lomba Barista Tingkat Provinsi</h4>
-                        <p>Tim Tata Boga &middot; Juli 2026</p>
-                    </div>
-                </div>
-
-                <div class="prestasi-card">
-                    <div class="prestasi-card-img">
-                        <img src="<?= base_url('assets/images/prestasi/2.jpg') ?>"
-                            alt="Juara 2 LKS Rekayasa Perangkat Lunak">
-                        <span class="prestasi-badge">Nasional</span>
-                        <div class="prestasi-card-icon"><i class="fa-solid fa-trophy"></i></div>
-                    </div>
-                    <div class="prestasi-card-body">
-                        <h4>Juara 2 LKS Rekayasa Perangkat Lunak</h4>
-                        <p>Tim RPL &middot; Juni 2026</p>
-                    </div>
-                </div>
-
-                <div class="prestasi-card">
-                    <div class="prestasi-card-img">
-                        <img src="<?= base_url('assets/images/prestasi/3.jpg') ?>"
-                            alt="Juara 1 Lomba Debat Bahasa Inggris">
-                        <span class="prestasi-badge">Kabupaten</span>
-                        <div class="prestasi-card-icon"><i class="fa-solid fa-trophy"></i></div>
-                    </div>
-                    <div class="prestasi-card-body">
-                        <h4>Juara 1 Lomba Debat Bahasa Inggris</h4>
-                        <p>Tim Bahasa &middot; Mei 2026</p>
-                    </div>
-                </div>
-                <?php // endforeach; ?>
-            </div>
-        </div>
-
-        <!-- ============================= -->
-        <!-- Partner Industri -->
-        <!-- ============================= -->
-        <div class="partner-section">
-            <div class="section-heading">
-                <h2>Partner Industri</h2>
-                <a href="<?= base_url('partner') ?>" class="lihat-semua">
-                    Lihat Semua <i class="fa-solid fa-arrow-right"></i>
-                </a>
+                <?php endforeach; ?>
+                <?php if (empty($prestasi)): ?>
+                    <p>Belum ada prestasi.</p>
+                <?php endif; ?>
             </div>
 
-            <div class="partner-info-marquee">
-                <div class="partner-info-track">
-                    <?php // foreach ($partner as $p): ?>
-                    <a href="<?= base_url('partner/detail/pt-mitra-industri-satu') ?>" class="partner-info-card">
-                        <img src="<?= base_url('assets/images/partner/foto-1.jpg') ?>" alt="PT Mitra Industri Satu">
-                        <div class="partner-info-body">
-                            <h4>PT Mitra Industri Satu</h4>
-                            <p>Perusahaan manufaktur elektronik yang menjadi mitra magang siswa jurusan RPL dan TKJ
-                                sejak 2021.</p>
-                        </div>
-                    </a>
-
-                    <a href="<?= base_url('partner/detail/cv-karya-teknologi') ?>" class="partner-info-card">
-                        <img src="<?= base_url('assets/images/partner/foto-2.jpg') ?>" alt="CV Karya Teknologi">
-                        <div class="partner-info-body">
-                            <h4>CV Karya Teknologi</h4>
-                            <p>Bergerak di bidang jasa perbaikan komputer dan jaringan, rutin menerima siswa PKL setiap
-                                semester.</p>
-                        </div>
-                    </a>
-
-                    <a href="<?= base_url('partner/detail/pt-boga-sejahtera') ?>" class="partner-info-card">
-                        <img src="<?= base_url('assets/images/partner/foto-3.jpg') ?>" alt="PT Boga Sejahtera">
-                        <div class="partner-info-body">
-                            <h4>PT Boga Sejahtera</h4>
-                            <p>Industri kuliner skala menengah, tempat praktik kerja lapangan bagi siswa jurusan Tata
-                                Boga.</p>
-                        </div>
-                    </a>
-
-                    <a href="<?= base_url('partner/detail/pt-digital-nusantara') ?>" class="partner-info-card">
-                        <img src="<?= base_url('assets/images/partner/foto-4.jpg') ?>" alt="PT Digital Nusantara">
-                        <div class="partner-info-body">
-                            <h4>PT Digital Nusantara</h4>
-                            <p>Perusahaan pengembangan aplikasi yang membuka program magang berbayar untuk siswa RPL.
-                            </p>
-                        </div>
-                    </a>
-
-                    <a href="<?= base_url('partner/detail/cv-mandiri-perkasa') ?>" class="partner-info-card">
-                        <img src="<?= base_url('assets/images/partner/foto-5.jpg') ?>" alt="CV Mandiri Perkasa">
-                        <div class="partner-info-body">
-                            <h4>CV Mandiri Perkasa</h4>
-                            <p>Bergerak di bidang otomotif, menjadi tempat pelatihan kerja siswa jurusan Teknik
-                                Kendaraan.</p>
-                        </div>
-                    </a>
-
-                    <!-- duplikat set, untuk loop mulus -->
-                    <a href="<?= base_url('partner/detail/pt-mitra-industri-satu') ?>" class="partner-info-card"
-                        aria-hidden="true" tabindex="-1">
-                        <img src="<?= base_url('assets/images/partner/foto-1.jpg') ?>" alt="">
-                        <div class="partner-info-body">
-                            <h4>PT Mitra Industri Satu</h4>
-                            <p>Perusahaan manufaktur elektronik yang menjadi mitra magang siswa jurusan RPL dan TKJ
-                                sejak 2021.</p>
-                        </div>
-                    </a>
-                    <a href="<?= base_url('partner/detail/cv-karya-teknologi') ?>" class="partner-info-card"
-                        aria-hidden="true" tabindex="-1">
-                        <img src="<?= base_url('assets/images/partner/foto-2.jpg') ?>" alt="">
-                        <div class="partner-info-body">
-                            <h4>CV Karya Teknologi</h4>
-                            <p>Bergerak di bidang jasa perbaikan komputer dan jaringan, rutin menerima siswa PKL setiap
-                                semester.</p>
-                        </div>
-                    </a>
-                    <a href="<?= base_url('partner/detail/pt-boga-sejahtera') ?>" class="partner-info-card"
-                        aria-hidden="true" tabindex="-1">
-                        <img src="<?= base_url('assets/images/partner/foto-3.jpg') ?>" alt="">
-                        <div class="partner-info-body">
-                            <h4>PT Boga Sejahtera</h4>
-                            <p>Industri kuliner skala menengah, tempat praktik kerja lapangan bagi siswa jurusan Tata
-                                Boga.</p>
-                        </div>
-                    </a>
-                    <a href="<?= base_url('partner/detail/pt-digital-nusantara') ?>" class="partner-info-card"
-                        aria-hidden="true" tabindex="-1">
-                        <img src="<?= base_url('assets/images/partner/foto-4.jpg') ?>" alt="">
-                        <div class="partner-info-body">
-                            <h4>PT Digital Nusantara</h4>
-                            <p>Perusahaan pengembangan aplikasi yang membuka program magang berbayar untuk siswa RPL.
-                            </p>
-                        </div>
-                    </a>
-                    <a href="<?= base_url('partner/detail/cv-mandiri-perkasa') ?>" class="partner-info-card"
-                        aria-hidden="true" tabindex="-1">
-                        <img src="<?= base_url('assets/images/partner/foto-5.jpg') ?>" alt="">
-                        <div class="partner-info-body">
-                            <h4>CV Mandiri Perkasa</h4>
-                            <p>Bergerak di bidang otomotif, menjadi tempat pelatihan kerja siswa jurusan Teknik
-                                Kendaraan.</p>
-                        </div>
-                    </a>
-                    <?php // endforeach; ?>
-                </div>
-            </div>
-        </div>
-
-        <!-- ============================= -->
-        <!-- Peta Lokasi & Kontak Cepat -->
-        <!-- ============================= -->
-        <div class="lokasi-section">
-            <div class="section-heading">
-                <h2>Lokasi &amp; Kontak Cepat</h2>
-            </div>
-            <div class="lokasi-split">
-                <div class="lokasi-map">
-                    <iframe src="https://www.google.com/maps?q=SMK+Attaufiqiyyah&output=embed" loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade" title="Peta lokasi SMK Attaufiqiyyah">
-                    </iframe>
-                </div>
-                <div class="kontak-cepat">
-                    <div class="kontak-item">
-                        <div class="kontak-icon"><i class="fa-solid fa-location-dot"></i></div>
-                        <div>
-                            <h4>Alamat</h4>
-                            <p>Jl. Contoh No. 123, Kec. Contoh, Kab. Contoh</p>
-                        </div>
-                    </div>
-                    <div class="kontak-item">
-                        <div class="kontak-icon"><i class="fa-solid fa-phone"></i></div>
-                        <div>
-                            <h4>Telepon</h4>
-                            <p>(021) 1234-5678</p>
-                        </div>
-                    </div>
-                    <div class="kontak-item">
-                        <div class="kontak-icon"><i class="fa-solid fa-envelope"></i></div>
-                        <div>
-                            <h4>Email</h4>
-                            <p>info@smkattaufiqiyyah.sch.id</p>
-                        </div>
-                    </div>
-                    <a href="https://wa.me/6281234567890" target="_blank" rel="noopener" class="btn-wa-cepat">
-                        <i class="fa-brands fa-whatsapp"></i> Chat via WhatsApp
+            <!-- ============================= -->
+            <!-- Partner Industri -->
+            <!-- ============================= -->
+            <div class="partner-section">
+                <div class="section-heading">
+                    <h2>Partner Industri</h2>
+                    <a href="<?= base_url('partner') ?>" class="lihat-semua">
+                        Lihat Semua <i class="fa-solid fa-arrow-right"></i>
                     </a>
                 </div>
-            </div>
-        </div>
 
-    </div>
+                <div class="partner-info-marquee">
+                    <div class="partner-info-track">
+                        <?php foreach ($partner as $p): ?>
+                            <a href="<?= base_url('partner/detail/' . $p['slug']) ?>" class="partner-info-card">
+                                <img src="<?= base_url('uploads/partner/' . $p['foto']) ?>" alt="<?= esc($p['nama']) ?>">
+                                <div class="partner-info-body">
+                                    <h4><?= esc($p['nama']) ?></h4>
+                                    <p><?= esc(character_limiter($p['deskripsi'], 100)) ?></p>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
+                        <?php // duplikat untuk efek marquee tak terputus, kalau perlu bisa foreach lagi 
+                        ?>
+                        <?php foreach ($partner as $p): ?>
+                            <a href="<?= base_url('partner/detail/' . $p['slug']) ?>" class="partner-info-card" aria-hidden="true" tabindex="-1">
+                                <img src="<?= base_url('uploads/partner/' . $p['foto']) ?>" alt="">
+                                <div class="partner-info-body">
+                                    <h4><?= esc($p['nama']) ?></h4>
+                                    <p><?= esc(character_limiter($p['deskripsi'], 100)) ?></p>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <!-- ============================= -->
+                <!-- Peta Lokasi & Kontak Cepat -->
+                <!-- ============================= -->
+                <div class="lokasi-section">
+                    <div class="section-heading">
+                        <h2>Lokasi &amp; Kontak Cepat</h2>
+                    </div>
+                    <div class="lokasi-split">
+                        <div class="lokasi-map">
+                            <iframe src="https://www.google.com/maps?q=SMK+Attaufiqiyyah&output=embed" loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade" title="Peta lokasi SMK Attaufiqiyyah">
+                            </iframe>
+                        </div>
+                        <div class="kontak-cepat">
+                            <div class="kontak-item">
+                                <div class="kontak-icon"><i class="fa-solid fa-location-dot"></i></div>
+                                <div>
+                                    <h4>Alamat</h4>
+                                    <p>Jl. Contoh No. 123, Kec. Contoh, Kab. Contoh</p>
+                                </div>
+                            </div>
+                            <div class="kontak-item">
+                                <div class="kontak-icon"><i class="fa-solid fa-phone"></i></div>
+                                <div>
+                                    <h4>Telepon</h4>
+                                    <p>(021) 1234-5678</p>
+                                </div>
+                            </div>
+                            <div class="kontak-item">
+                                <div class="kontak-icon"><i class="fa-solid fa-envelope"></i></div>
+                                <div>
+                                    <h4>Email</h4>
+                                    <p>info@smkattaufiqiyyah.sch.id</p>
+                                </div>
+                            </div>
+                            <a href="https://wa.me/6281234567890" target="_blank" rel="noopener" class="btn-wa-cepat">
+                                <i class="fa-brands fa-whatsapp"></i> Chat via WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
 </main>
 
 <?= $this->endSection() ?>

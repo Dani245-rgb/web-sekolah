@@ -7,47 +7,19 @@
             <h3>Informasi Sekolah</h3>
         </div>
 
+
         <ul class="info-list">
-            <?php // foreach ($informasi as $i): 
-            ?>
-            <li>
-                <a href="#">
-                    <span class="info-dot"></span>
-                    PPDB 2026 Dibuka
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <span class="info-dot"></span>
-                    Libur Semester
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <span class="info-dot"></span>
-                    Jadwal MPLS
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <span class="info-dot"></span>
-                    Pengambilan Rapor
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <span class="info-dot"></span>
-                    Lomba Barista
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <span class="info-dot"></span>
-                    Kelulusan
-                </a>
-            </li>
-            <?php // endforeach; 
-            ?>
+            <?php foreach ($informasi as $i): ?>
+                <li>
+                    <a href="<?= base_url('pengumuman/' . $i['slug']) ?>">
+                        <span class="info-dot"></span>
+                        <?= esc($i['judul']) ?>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+            <?php if (empty($informasi)): ?>
+                <li><span class="text-muted">Belum ada informasi.</span></li>
+            <?php endif; ?>
         </ul>
 
         <a href="<?= base_url('pengumuman') ?>" class="widget-info-more">

@@ -143,6 +143,65 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('nilai/rekap/(:num)', 'Admin\RekapNilai::detail/$1');
     $routes->get('nilai/rekap/(:num)/export/pdf', 'Admin\RekapNilai::exportPdf/$1');
     $routes->get('nilai/rekap/(:num)/export/excel', 'Admin\RekapNilai::exportExcel/$1');
+
+    // Galeri
+    $routes->get('galeri', 'Admin\Galeri::index');
+    $routes->get('galeri/create', 'Admin\Galeri::create');
+    $routes->post('galeri/store', 'Admin\Galeri::store');
+    $routes->get('galeri/edit/(:num)', 'Admin\Galeri::edit/$1');
+    $routes->post('galeri/update/(:num)', 'Admin\Galeri::update/$1');
+    $routes->post('galeri/delete/(:num)', 'Admin\Galeri::delete/$1');
+
+    // Pengumuman
+    $routes->get('pengumuman', 'Admin\Pengumuman::index');
+    $routes->get('pengumuman/create', 'Admin\Pengumuman::create');
+    $routes->post('pengumuman/store', 'Admin\Pengumuman::store');
+    $routes->get('pengumuman/edit/(:num)', 'Admin\Pengumuman::edit/$1');
+    $routes->post('pengumuman/update/(:num)', 'Admin\Pengumuman::update/$1');
+    $routes->post('pengumuman/delete/(:num)', 'Admin\Pengumuman::delete/$1');
+
+    // Prestasi
+    $routes->get('prestasi', 'Admin\Prestasi::index');
+    $routes->get('prestasi/create', 'Admin\Prestasi::create');
+    $routes->post('prestasi/store', 'Admin\Prestasi::store');
+    $routes->get('prestasi/edit/(:num)', 'Admin\Prestasi::edit/$1');
+    $routes->post('prestasi/update/(:num)', 'Admin\Prestasi::update/$1');
+    $routes->post('prestasi/delete/(:num)', 'Admin\Prestasi::delete/$1');
+
+    // Agenda
+    $routes->get('agenda', 'Admin\Agenda::index');
+    $routes->get('agenda/create', 'Admin\Agenda::create');
+    $routes->post('agenda/store', 'Admin\Agenda::store');
+    $routes->get('agenda/edit/(:num)', 'Admin\Agenda::edit/$1');
+    $routes->post('agenda/update/(:num)', 'Admin\Agenda::update/$1');
+    $routes->post('agenda/delete/(:num)', 'Admin\Agenda::delete/$1');
+
+    // Ekstrakurikuler
+    $routes->get('ekstrakurikuler', 'Admin\Ekstrakurikuler::index');
+    $routes->get('ekstrakurikuler/create', 'Admin\Ekstrakurikuler::create');
+    $routes->post('ekstrakurikuler/store', 'Admin\Ekstrakurikuler::store');
+    $routes->get('ekstrakurikuler/edit/(:num)', 'Admin\Ekstrakurikuler::edit/$1');
+    $routes->post('ekstrakurikuler/update/(:num)', 'Admin\Ekstrakurikuler::update/$1');
+    $routes->post('ekstrakurikuler/delete/(:num)', 'Admin\Ekstrakurikuler::delete/$1');
+
+    // Partner
+    $routes->get('partner', 'Admin\Partner::index');
+    $routes->get('partner/create', 'Admin\Partner::create');
+    $routes->post('partner/store', 'Admin\Partner::store');
+    $routes->get('partner/edit/(:num)', 'Admin\Partner::edit/$1');
+    $routes->post('partner/update/(:num)', 'Admin\Partner::update/$1');
+    $routes->post('partner/delete/(:num)', 'Admin\Partner::delete/$1');
+
+    // PPDB
+    $routes->get('ppdb', 'Admin\PpdbAdmin::index');
+    $routes->get('ppdb/detail/(:num)', 'Admin\PpdbAdmin::detail/$1');
+    $routes->post('ppdb/update-status/(:num)', 'Admin\PpdbAdmin::updateStatus/$1');
+    $routes->post('ppdb/delete/(:num)', 'Admin\PpdbAdmin::delete/$1');
+
+    // Kontak
+    $routes->get('kontak', 'Admin\KontakAdmin::index');
+    $routes->get('kontak/detail/(:num)', 'Admin\KontakAdmin::detail/$1');
+    $routes->post('kontak/delete/(:num)', 'Admin\KontakAdmin::delete/$1');
 });
 
 $routes->group('guru', ['filter' => 'roleAuth:Guru'], function ($routes) {
@@ -180,5 +239,31 @@ $routes->post('profil/gantipasswordsubmit', 'Profil::gantipasswordsubmit', ['fil
 
 $routes->get('logout', 'Auth\Logout::index', ['filter' => 'auth']);
 
+// Berita
 $routes->get('berita', 'Berita::index');
 $routes->get('berita/(:segment)', 'Berita::detail/$1');
+
+// pengumuman
+$routes->get('pengumuman', 'Pengumuman::index');
+$routes->get('pengumuman/(:segment)', 'Pengumuman::detail/$1');
+
+// prestasi
+$routes->get('prestasi', 'Prestasi::index');
+
+// Agenda
+$routes->get('agenda', 'Agenda::index');
+
+// Ekstrakulikuler
+$routes->get('ekstrakurikuler', 'Ekstrakurikuler::index');
+
+// Parnet industri
+$routes->get('partner', 'Partner::index');
+$routes->get('partner/detail/(:segment)', 'Partner::detail/$1');
+
+// Ppdb
+$routes->get('ppdb', 'Ppdb::index');
+$routes->post('ppdb/daftar', 'Ppdb::daftar');
+
+// Kontak
+$routes->get('kontak', 'Kontak::index');
+$routes->post('kontak/kirim', 'Kontak::kirim');

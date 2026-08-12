@@ -70,7 +70,9 @@
             <option value="utama" <?= ($berita['posisi'] ?? '') === 'utama' ? 'selected' : '' ?>>Berita Utama</option>
             <option value="hero" <?= ($berita['posisi'] ?? '') === 'hero' ? 'selected' : '' ?>>Hero (Banner Utama)</option>
             <option value="populer" <?= ($berita['posisi'] ?? '') === 'populer' ? 'selected' : '' ?>>Widget: (Populer)</option>
-            <option value="hits" <?= ($berita['posisi'] ?? '') === 'hits' ? 'selected' : '' ?>>Widget: (Hits)</option>
+            <option value="hits" <?= ($berita['posisi'] ?? '') === 'hits' ? 'selected' : '' ?>>Widget: (Hits)
+                
+            </option>
         </select>
     </div>
 

@@ -65,6 +65,22 @@
                 <p class="menu-label">WEBSITE</p>
                 <a href="<?= base_url('admin/berita') ?>"
                     class="<?= strpos(uri_string(), 'admin/berita') === 0 ? 'active' : '' ?>">Berita</a>
+                <a href="<?= base_url('admin/galeri') ?>"
+                    class="<?= strpos(uri_string(), 'admin/galeri') === 0 ? 'active' : '' ?>">Galeri</a>
+                <a href="<?= base_url('admin/pengumuman') ?>"
+                    class="<?= strpos(uri_string(), 'admin/pengumuman') === 0 ? 'active' : '' ?>">Pengumuman</a>
+                <a href="<?= base_url('admin/prestasi') ?>"
+                    class="<?= strpos(uri_string(), 'admin/prestasi') === 0 ? 'active' : '' ?>">Prestasi</a>
+                <a href="<?= base_url('admin/agenda') ?>"
+                    class="<?= strpos(uri_string(), 'admin/agenda') === 0 ? 'active' : '' ?>">Agenda</a>
+                <a href="<?= base_url('admin/ekstrakurikuler') ?>"
+                    class="<?= strpos(uri_string(), 'admin/ekstrakurikuler') === 0 ? 'active' : '' ?>">Ekstrakurikuler</a>
+                <a href="<?= base_url('admin/partner') ?>"
+                    class="<?= strpos(uri_string(), 'admin/partner') === 0 ? 'active' : '' ?>">Industri Mitra</a>
+                <a href="<?= base_url('admin/ppdb') ?>"
+                    class="<?= strpos(uri_string(), 'admin/ppdb') === 0 ? 'active' : '' ?>">PPDB</a>
+                <a href="<?= base_url('admin/kontak') ?>"
+                    class="<?= strpos(uri_string(), 'admin/kontak') === 0 ? 'active' : '' ?>">Pesan Masuk</a>
 
                 <p class="menu-label">USER MANAGEMENT</p>
                 <a href="<?= base_url('admin/user') ?>"
