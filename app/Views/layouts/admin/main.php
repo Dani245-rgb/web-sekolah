@@ -81,12 +81,25 @@
                     class="<?= strpos(uri_string(), 'admin/ppdb') === 0 ? 'active' : '' ?>">PPDB</a>
                 <a href="<?= base_url('admin/kontak') ?>"
                     class="<?= strpos(uri_string(), 'admin/kontak') === 0 ? 'active' : '' ?>">Pesan Masuk</a>
+                <a href="<?= base_url('admin/kalender-akademik') ?>"
+                    class="<?= strpos(uri_string(), 'admin/kalender-akademik') === 0 ? 'active' : '' ?>">Kalender Akademik</a>
+                <a href="<?= base_url('admin/profil-sekolah/sejarah') ?>"
+                    class="<?= strpos(uri_string(), 'admin/profil-sekolah') === 0 ? 'active' : '' ?>">Profil Sekolah</a>
+                <a href="<?= base_url('admin/organisasi') ?>"
+                    class="<?= strpos(uri_string(), 'admin/organisasi') === 0 ? 'active' : '' ?>">Organisasi Sekolah</a>
+
 
                 <p class="menu-label">USER MANAGEMENT</p>
-                <a href="<?= base_url('admin/user') ?>"
-                    class="<?= strpos(uri_string(), 'admin/user') === 0 ? 'active' : '' ?>">User</a>
+                <a href="<?= base_url('admin/user/admin') ?>"
+                    class="<?= uri_string() === 'admin/user' || uri_string() === 'admin/user/admin' ? 'active' : '' ?>">Admin</a>
+                <a href="<?= base_url('admin/user/guru') ?>"
+                    class="<?= uri_string() === 'admin/user/guru' ? 'active' : '' ?>">Guru</a>
+                <a href="<?= base_url('admin/user/siswa') ?>"
+                    class="<?= uri_string() === 'admin/user/siswa' ? 'active' : '' ?>">Siswa</a>
                 <a href="<?= base_url('admin/audit-log') ?>"
                     class="<?= strpos(uri_string(), 'admin/audit-log') === 0 ? 'active' : '' ?>">Audit Log</a>
+                <a href="<?= base_url('admin/role-permission') ?>"
+                    class="<?= strpos(uri_string(), 'admin/role-permission') === 0 ? 'active' : '' ?>">Role & Permission</a>
             </nav>
         </aside>
 

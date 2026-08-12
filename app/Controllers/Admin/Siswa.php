@@ -256,32 +256,4 @@ class Siswa extends BaseController
         return redirect()->to('/admin/siswa')->with('success', 'Data siswa berhasil dihapus.');
     }
 
-    public function resetPassword($id)
-{
-    $siswa = $this->siswaModel->find($id);
-    if (!$siswa) {
-        return redirect()->to('/admin/siswa')->with('error', 'Siswa tidak ditemukan.');
-    }
-
-    $passwordBaru = date('dmY', strtotime($siswa['tanggal_lahir']));
-
-    $userModel = new \App\Models\UserModel();
-    $userModel->update($siswa['user_id'], [
-        'password'             => password_hash($passwordBaru, PASSWORD_DEFAULT),
-        'must_change_password' => true,
-        'login_attempts'       => 0,
-        'locked_until'         => null,
-    ]);
-
-    $auditLogModel = new \App\Models\AuditLogModel();
-    $auditLogModel->catat(
-        session()->get('id_user'),
-        session()->get('username'),
-        'reset_password_admin',
-        "Reset password siswa {$siswa['nama']} (NIS {$siswa['nis']})."
-    );
-
-    return redirect()->to('/admin/siswa')
-        ->with('success', "Password {$siswa['nama']} berhasil direset ke tanggal lahir ({$passwordBaru}). Siswa wajib ganti password saat login berikutnya.");
-}
 }

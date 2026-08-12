@@ -29,7 +29,6 @@
                 </a>
                 <ul class="dropdown-menu">
                     <li><a href="<?= base_url('akademik/guru') ?>"> Guru & Staff </a></li>
-                    <li><a href="<?= base_url('akademik/jurusan') ?>"> Jurusan </a></li>
                     <li><a href="<?= base_url('akademik/jadwal') ?>"> Jadwal </a></li>
                     <li><a href="<?= base_url('akademik/kalender') ?>"> Kalender Akademik </a></li>
                 </ul>
@@ -41,13 +40,16 @@
                     <i class="fa-solid fa-chevron-down"></i>
                 </a>
                 <ul class="dropdown-menu">
-                    <li><a href="<?= base_url('berita/pengumuman') ?>"> Pengumuman </a></li>
-                    <li><a href="<?= base_url('berita/prestasi') ?>"> Prestasi </a></li>
-                    <li><a href="<?= base_url('berita/kegiatan') ?>"> Kegiatan </a></li>
+                    <li><a href="<?= base_url('berita') ?>"> Semua Berita </a></li>
+                    <li><a href="<?= base_url('pengumuman') ?>"> Pengumuman </a></li>
+                    <li><a href="<?= base_url('prestasi') ?>"> Prestasi </a></li>
+                    <li><a href="<?= base_url('agenda') ?>"> Agenda </a></li>
                 </ul>
             </li>
 
             <li><a href="<?= base_url('galeri') ?>"> Galeri </a></li>
+            <li><a href="<?= base_url('ekstrakurikuler') ?>"> Ekstrakurikuler </a></li>
+            <li><a href="<?= base_url('partner') ?>"> Industri Mitra </a></li>
             <li><a href="<?= base_url('ppdb') ?>"> PPDB </a></li>
             <li><a href="<?= base_url('kontak') ?>"> Kontak </a></li>
         </ul>

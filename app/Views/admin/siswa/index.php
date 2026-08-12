@@ -65,9 +65,6 @@
                 <td>
                     <a href="<?= base_url('admin/siswa/edit/' . $s['id_siswa']) ?>"
                         class="btn btn-sm btn-warning">Edit</a>
-                    <a href="<?= base_url('admin/siswa/resetpassword/' . $s['id_siswa']) ?>" class="btn btn-sm btn-info"
-                        onclick="return confirm('Reset password siswa ini ke tanggal lahir? Siswa wajib ganti password saat login berikutnya.')">Reset
-                        Password</a>
                     <a href="<?= base_url('admin/siswa/delete/' . $s['id_siswa']) ?>" class="btn btn-sm btn-danger"
                         onclick="return confirm('Yakin hapus data siswa ini secara permanen?')">Hapus</a>
                 </td>

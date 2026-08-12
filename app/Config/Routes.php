@@ -67,9 +67,6 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->post('siswa/import/proses/(:num)', 'Admin\ImportSiswa::proses/$1');
     $routes->get('siswa/import/status/(:num)', 'Admin\ImportSiswa::status/$1');
 
-    // Reset Password Siswa (oleh Admin)
-    $routes->get('siswa/resetpassword/(:num)', 'Admin\Siswa::resetPassword/$1');
-
     // Audit Log
     $routes->get('audit-log', 'Admin\AuditLog::index');
     $routes->get('audit-log/export/pdf', 'Admin\AuditLog::exportPdf');
@@ -202,6 +199,47 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('kontak', 'Admin\KontakAdmin::index');
     $routes->get('kontak/detail/(:num)', 'Admin\KontakAdmin::detail/$1');
     $routes->post('kontak/delete/(:num)', 'Admin\KontakAdmin::delete/$1');
+
+    // Kalender Akademik
+    $routes->get('kalender-akademik', 'Admin\KalenderAkademik::index');
+    $routes->get('kalender-akademik/create', 'Admin\KalenderAkademik::create');
+    $routes->post('kalender-akademik/store', 'Admin\KalenderAkademik::store');
+    $routes->get('kalender-akademik/edit/(:num)', 'Admin\KalenderAkademik::edit/$1');
+    $routes->post('kalender-akademik/update/(:num)', 'Admin\KalenderAkademik::update/$1');
+    $routes->post('kalender-akademik/delete/(:num)', 'Admin\KalenderAkademik::delete/$1');
+
+    // Profil Sekolah (konten statis)
+    $routes->get('profil-sekolah/sejarah', 'Admin\ProfilSekolah::sejarah');
+    $routes->get('profil-sekolah/visi-misi', 'Admin\ProfilSekolah::visiMisi');
+    $routes->post('profil-sekolah/update-teks/(:segment)', 'Admin\ProfilSekolah::updateTeks/$1');
+    $routes->get('profil-sekolah/kepala-sekolah', 'Admin\ProfilSekolah::kepalaSekolah');
+    $routes->post('profil-sekolah/update-kepala-sekolah', 'Admin\ProfilSekolah::updateKepalaSekolah');
+
+    // Organisasi
+    $routes->get('organisasi', 'Admin\Organisasi::index');
+    $routes->get('organisasi/create', 'Admin\Organisasi::create');
+    $routes->post('organisasi/store', 'Admin\Organisasi::store');
+    $routes->get('organisasi/edit/(:num)', 'Admin\Organisasi::edit/$1');
+    $routes->post('organisasi/update/(:num)', 'Admin\Organisasi::update/$1');
+    $routes->post('organisasi/delete/(:num)', 'Admin\Organisasi::delete/$1');
+
+    // Anggota Organisasi (nested)
+    $routes->get('organisasi/(:num)/anggota', 'Admin\AnggotaOrganisasi::index/$1');
+    $routes->get('organisasi/(:num)/anggota/create', 'Admin\AnggotaOrganisasi::create/$1');
+    $routes->post('organisasi/(:num)/anggota/store', 'Admin\AnggotaOrganisasi::store/$1');
+    $routes->get('organisasi/(:num)/anggota/edit/(:num)', 'Admin\AnggotaOrganisasi::edit/$1/$2');
+    $routes->post('organisasi/(:num)/anggota/update/(:num)', 'Admin\AnggotaOrganisasi::update/$1/$2');
+    $routes->post('organisasi/(:num)/anggota/delete/(:num)', 'Admin\AnggotaOrganisasi::delete/$1/$2');
+
+    $routes->get('user', 'Admin\User::index');
+    $routes->get('user/admin', 'Admin\User::index/admin');
+    $routes->get('user/guru', 'Admin\User::index/guru');
+    $routes->get('user/siswa', 'Admin\User::index/siswa');
+    $routes->get('role-permission', 'Admin\RolePermission::index');
+    $routes->get('user/create-admin', 'Admin\User::createAdmin');
+    $routes->post('user/store-admin', 'Admin\User::storeAdmin');
+    $routes->post('user/unlock/(:num)', 'Admin\User::unlock/$1');
+    $routes->post('user/reset-password/(:num)', 'Admin\User::resetPassword/$1');
 });
 
 $routes->group('guru', ['filter' => 'roleAuth:Guru'], function ($routes) {
@@ -253,6 +291,9 @@ $routes->get('prestasi', 'Prestasi::index');
 // Agenda
 $routes->get('agenda', 'Agenda::index');
 
+// Galeri
+$routes->get('galeri', 'Galeri::index');
+
 // Ekstrakulikuler
 $routes->get('ekstrakurikuler', 'Ekstrakurikuler::index');
 
@@ -267,3 +308,18 @@ $routes->post('ppdb/daftar', 'Ppdb::daftar');
 // Kontak
 $routes->get('kontak', 'Kontak::index');
 $routes->post('kontak/kirim', 'Kontak::kirim');
+
+// Akademik - Guru & Staff
+$routes->get('akademik/guru', 'GuruPublik::index');
+
+// Akademik - Jadwal
+$routes->get('akademik/jadwal', 'JadwalPublik::index');
+
+// Akademik - Kalender Akademik
+$routes->get('akademik/kalender', 'KalenderAkademikPublik::index');
+
+// Profil
+$routes->get('profil/sejarah', 'ProfilPublik::sejarah');
+$routes->get('profil/visi-misi', 'ProfilPublik::visiMisi');
+$routes->get('profil/struktur', 'ProfilPublik::struktur');
+$routes->get('profil/kepala-sekolah', 'ProfilPublik::kepalaSekolah');
