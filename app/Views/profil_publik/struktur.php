@@ -10,31 +10,36 @@
         </div>
 
         <?php foreach ($organisasi as $org): ?>
-        <div style="margin-bottom:40px;">
+        <div class="organisasi-block">
             <h3><?= esc($org['nama']) ?></h3>
             <?php if ($org['deskripsi']): ?>
-            <p style="color:#64748b;"><?= esc($org['deskripsi']) ?></p>
+            <p class="organisasi-desc"><?= esc($org['deskripsi']) ?></p>
             <?php endif; ?>
 
-            <div class="row">
+            <div class="organisasi-grid">
                 <?php foreach ($org['anggota'] as $a): ?>
-                <div class="col-md-3 mb-4" style="width:22%;display:inline-block;vertical-align:top;margin-right:1%;text-align:center;">
-                    <img src="<?= $a['foto'] ? base_url('uploads/organisasi/' . $a['foto']) : base_url('assets/images/default-avatar.png') ?>"
-                         style="width:100px;height:100px;object-fit:cover;border-radius:50%;margin:0 auto 8px;">
-                    <h6 style="margin:0;"><?= esc($a['nama']) ?></h6>
-                    <p style="color:#64748b;margin:0;"><?= esc($a['jabatan']) ?></p>
+                <div class="organisasi-card">
+                    <img src="<?= $a['foto'] ? base_url('uploads/organisasi/' . $a['foto']) : base_url('assets/images/default-avatar.png') ?>" alt="<?= esc($a['nama']) ?>">
+                    <h6><?= esc($a['nama']) ?></h6>
+                    <p><?= esc($a['jabatan']) ?></p>
                 </div>
                 <?php endforeach; ?>
 
                 <?php if (empty($org['anggota'])): ?>
-                <p class="text-muted">Belum ada anggota.</p>
+                <div class="empty-state">
+                    <i class="bi bi-people"></i>
+                    <p>Belum ada anggota.</p>
+                </div>
                 <?php endif; ?>
             </div>
         </div>
         <?php endforeach; ?>
 
         <?php if (empty($organisasi)): ?>
-        <p>Belum ada data organisasi.</p>
+        <div class="empty-state">
+            <i class="bi bi-diagram-3"></i>
+            <p>Belum ada data organisasi.</p>
+        </div>
         <?php endif; ?>
 
     </div>

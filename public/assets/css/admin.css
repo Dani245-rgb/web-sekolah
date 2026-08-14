@@ -10,7 +10,8 @@ body {
 
 .admin-wrapper {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -18,7 +19,10 @@ body {
   background: #1e2a3a;
   color: #fff;
   flex-shrink: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
+
 .sidebar-brand {
   padding: 20px;
   font-weight: bold;
@@ -50,12 +54,21 @@ body {
   padding: 10px 0;
 }
 .sidebar-menu a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 10px 20px;
   color: #c9d2dc;
   text-decoration: none;
   font-size: 14px;
 }
+.sidebar-menu a i {
+  font-size: 15px;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 .sidebar-menu a:hover,
 .sidebar-menu a.active {
   background: #2c3b4e;
@@ -73,7 +86,10 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
 }
+
 .topbar {
   display: flex;
   justify-content: space-between;

@@ -32,7 +32,7 @@ class Ppdb extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $this->ppdbModel->insert([
+        $idPendaftar = $this->ppdbModel->insert([
             'nama_lengkap'    => $this->request->getPost('nama_lengkap'),
             'tempat_lahir'    => $this->request->getPost('tempat_lahir'),
             'tanggal_lahir'   => $this->request->getPost('tanggal_lahir'),
@@ -43,6 +43,14 @@ class Ppdb extends BaseController
             'email'           => $this->request->getPost('email'),
             'alamat'          => $this->request->getPost('alamat'),
         ]);
+
+        (new \App\Models\NotifikasiModel())->buat(
+            null,
+            'Pendaftar PPDB Baru',
+            'ppdb_baru',
+            'Ada pendaftar baru: ' . $this->request->getPost('nama_lengkap'),
+            '/admin/ppdb/detail/' . $idPendaftar
+        );
 
         return redirect()->to('/ppdb')->with('success', 'Pendaftaran berhasil dikirim! Kami akan menghubungi Anda segera.');
     }

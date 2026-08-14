@@ -236,6 +236,34 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('user/guru', 'Admin\User::index/guru');
     $routes->get('user/siswa', 'Admin\User::index/siswa');
     $routes->get('role-permission', 'Admin\RolePermission::index');
+
+    // Backup Database
+    $routes->get('backup-database', 'Admin\BackupDatabase::index');
+    $routes->post('backup-database/create', 'Admin\BackupDatabase::create');
+    $routes->get('backup-database/download/(:segment)', 'Admin\BackupDatabase::download/$1');
+    $routes->post('backup-database/delete/(:segment)', 'Admin\BackupDatabase::delete/$1');
+
+    // Pengaturan
+    $routes->get('pengaturan', 'Admin\Pengaturan::index');
+    $routes->post('pengaturan/update', 'Admin\Pengaturan::update');
+
+    // Laporan Siswa
+    $routes->get('laporan-siswa', 'Admin\LaporanSiswa::index');
+    $routes->get('laporan-siswa/export/excel', 'Admin\LaporanSiswa::exportExcel');
+
+    // Laporan Akademik
+    $routes->get('laporan-akademik', 'Admin\LaporanAkademik::index');
+
+    // Notifikasi
+    $routes->get('notifikasi', 'Admin\Notifikasi::index');
+    $routes->get('notifikasi/poll', 'Admin\Notifikasi::poll');
+    $routes->post('notifikasi/baca/(:num)', 'Admin\Notifikasi::baca/$1');
+    $routes->post('notifikasi/baca-semua', 'Admin\Notifikasi::bacaSemua');
+
+    $routes->post('backup-database/create', 'Admin\BackupDatabase::create');
+    $routes->get('backup-database/download/(:segment)', 'Admin\BackupDatabase::download/$1');
+    $routes->post('backup-database/delete/(:segment)', 'Admin\BackupDatabase::delete/$1');
+
     $routes->get('user/create-admin', 'Admin\User::createAdmin');
     $routes->post('user/store-admin', 'Admin\User::storeAdmin');
     $routes->post('user/unlock/(:num)', 'Admin\User::unlock/$1');

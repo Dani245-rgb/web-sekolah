@@ -24,6 +24,9 @@
         <a href="<?= base_url('admin/siswa/import') ?>" class="btn btn-secondary">📊 Import Excel</a>
 
         <form action="<?= base_url('admin/siswa') ?>" method="get" class="search-form">
+            <?php if (!empty($jurusanFilter)): ?>
+                <input type="hidden" name="jurusan" value="<?= esc($jurusanFilter) ?>">
+            <?php endif; ?>
             <input type="text" name="cari" placeholder="Cari siswa..." value="<?= esc($keyword) ?>">
             <button type="submit"><i class="icon-search"></i></button>
         </form>
@@ -36,6 +39,17 @@
     </div>
     <?php endif; ?>
 
+    <?php if (!empty($daftarJurusan)): ?>
+    <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="<?= base_url('admin/siswa' . (!empty($keyword) ? '?cari=' . urlencode($keyword) : '')) ?>"
+            class="btn btn-sm <?= empty($jurusanFilter) ? 'btn-primary' : 'btn-secondary' ?>">Semua Jurusan</a>
+        <?php foreach ($daftarJurusan as $j): ?>
+            <a href="<?= base_url('admin/siswa?jurusan=' . urlencode($j['jurusan']) . (!empty($keyword) ? '&cari=' . urlencode($keyword) : '')) ?>"
+                class="btn btn-sm <?= $jurusanFilter === $j['jurusan'] ? 'btn-primary' : 'btn-secondary' ?>"><?= esc($j['jurusan']) ?></a>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
     <table class="table">
         <thead>
             <tr>
@@ -44,6 +58,7 @@
                 <th>Nama</th>
                 <th>JK</th>
                 <th>Kelas</th>
+                <th>Jurusan</th>
                 <th>Status</th>
                 <th>Aksi</th>
             </tr>
@@ -57,6 +72,7 @@
                 <td><strong><?= esc($s['nama']) ?></strong></td>
                 <td><?= esc($s['jenis_kelamin']) ?></td>
                 <td><?= esc($s['nama_kelas'] ?? '-') ?></td>
+                <td><?= esc($s['jurusan'] ?? '-') ?></td>
                 <td>
                     <span class="badge <?= $s['status'] === 'Aktif' ? 'badge-success' : 'badge-danger' ?>">
                         <?= esc($s['status']) ?>
@@ -73,7 +89,7 @@
 
             <?php if (empty($siswa)): ?>
             <tr>
-                <td colspan="7" class="text-center">Belum ada data siswa.</td>
+                <td colspan="8" class="text-center">Belum ada data siswa.</td>
             </tr>
             <?php endif; ?>
         </tbody>

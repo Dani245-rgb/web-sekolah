@@ -50,8 +50,15 @@ class Login extends BaseController
                     $update['locked_until']   = date('Y-m-d H:i:s', time() + 15 * MINUTE);
                     $update['login_attempts'] = 0;
                     $auditLogModel->catat($calon['id_user'], $username, 'akun_terkunci', 'Terkunci 15 menit setelah 5x gagal berturut-turut.');
-                }
 
+                    (new \App\Models\NotifikasiModel())->buat(
+                        null,
+                        'Akun Terkunci',
+                        'akun_terkunci',
+                        "Akun {$username} terkunci setelah 5x gagal login berturut-turut.",
+                        '/admin/user'
+                    );
+                }
                 $userModel->update($calon['id_user'], $update);
             }
 

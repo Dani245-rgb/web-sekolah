@@ -1,32 +1,43 @@
-<?php if (session()->getFlashdata('errors')): ?>
-<div class="alert alert-error">
-    <?php foreach (session()->getFlashdata('errors') as $error): ?>
-    <div><?= esc($error) ?></div>
-    <?php endforeach; ?>
-</div>
-<?php endif; ?>
-
-<?php if (session()->getFlashdata('info')): ?>
-<div class="alert alert-error" style="background:#EAF7EA; color:#2E7D32; border-color:#B8E0B8;">
-    <?= esc(session()->getFlashdata('info')) ?>
-</div>
-<?php endif; ?>
-
-
+<?php
+$pengaturanModelLogin = new \App\Models\PengaturanModel();
+$pengaturanLogin      = $pengaturanModelLogin->getPengaturan();
+$namaSekolahLogin     = $pengaturanLogin['nama_sekolah'] ?? 'Website Sekolah';
+?>
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
-    <title>Login - Website Sekolah</title>
+    <title>Login - <?= esc($namaSekolahLogin) ?></title>
+    <?php if (!empty($pengaturanLogin['favicon'])): ?>
+        <link rel="icon" type="image/png" href="<?= base_url('assets/uploads/sekolah/' . $pengaturanLogin['favicon']) ?>">
+    <?php endif; ?>
     <link rel="stylesheet" href="<?= base_url('assets/css/auth.css') ?>">
 </head>
 
 <body>
-    <div class="login-container">
+    <main class="login-main" style="min-height:100vh;">
         <div class="login-box">
-            <img src="<?= base_url('assets/images/logo-sekolah.png') ?>" alt="Logo Sekolah" class="login-logo">
-            <h2>Masuk ke Akun Anda</h2>
+            <?php if (!empty($pengaturanLogin['logo'])): ?>
+                <img src="<?= base_url('assets/uploads/sekolah/' . $pengaturanLogin['logo']) ?>" alt="Logo Sekolah" style="height:48px;display:block;margin:0 auto 20px;">
+            <?php endif; ?>
+
+            <h2 style="text-align:center;"><?= esc($namaSekolahLogin) ?></h2>
+            <p class="login-subtitle" style="text-align:center;">Masuk ke Akun Anda</p>
+
+            <?php if (session()->getFlashdata('errors')): ?>
+            <div class="alert alert-error">
+                <?php foreach (session()->getFlashdata('errors') as $error): ?>
+                <div><?= esc($error) ?></div>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('info')): ?>
+            <div class="alert alert-error" style="background:#EAF7EA; color:#2E7D32; border-color:#B8E0B8;">
+                <?= esc(session()->getFlashdata('info')) ?>
+            </div>
+            <?php endif; ?>
 
             <?php if (session()->getFlashdata('error')): ?>
             <div class="alert alert-error">
@@ -55,7 +66,7 @@
                 <button type="submit" class="btn-login">Masuk</button>
             </form>
         </div>
-    </div>
+    </main>
 </body>
 
 </html>

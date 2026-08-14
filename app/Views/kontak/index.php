@@ -31,30 +31,32 @@
             </div>
 
             <div class="kontak-cepat">
-                <form action="<?= base_url('kontak/kirim') ?>" method="post">
+                <form action="<?= base_url('kontak/kirim') ?>" method="post" class="form-kontak">
                     <?= csrf_field() ?>
 
-                    <div class="mb-3">
+                    <div class="form-kontak-group">
                         <label>Nama</label>
-                        <input type="text" name="nama" class="form-control" value="<?= old('nama') ?>" required>
+                        <input type="text" name="nama" value="<?= old('nama') ?>" required>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="form-kontak-group">
                         <label>Email</label>
-                        <input type="email" name="email" class="form-control" value="<?= old('email') ?>" required>
+                        <input type="email" name="email" value="<?= old('email') ?>" required>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="form-kontak-group">
                         <label>Subjek</label>
-                        <input type="text" name="subjek" class="form-control" value="<?= old('subjek') ?>">
+                        <input type="text" name="subjek" value="<?= old('subjek') ?>">
                     </div>
 
-                    <div class="mb-3">
+                    <div class="form-kontak-group">
                         <label>Pesan</label>
-                        <textarea name="pesan" class="form-control" rows="5" required><?= old('pesan') ?></textarea>
+                        <textarea name="pesan" rows="5" required><?= old('pesan') ?></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-primary">Kirim Pesan</button>
+                    <button type="submit" class="btn-wa-cepat" style="background:var(--emas);">
+                        <i class="bi bi-send"></i> Kirim Pesan
+                    </button>
                 </form>
             </div>
         </div>

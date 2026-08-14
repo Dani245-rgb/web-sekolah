@@ -32,6 +32,8 @@ class Home extends BaseController
             'prestasi'       => $prestasiModel->getPublished(3),
             'partner'        => $partnerModel->getPublished(5),
             'ekskul'         => $ekskulModel->getPublished(8),
+            'topTags'        => ['LKS', 'PPDB', 'Prestasi', 'Kerjasama', 'OSIS'],
+            'tickerBerita'   => $beritaModel->getTerbaru(8),
         ]);
     }
 }

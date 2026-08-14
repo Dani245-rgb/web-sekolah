@@ -36,9 +36,10 @@ class SiswaModel extends Model
     ];
 
     // Join ke kelas saat ini (berdasarkan tahun ajaran yang sedang Aktif)
+    // Sekarang ikut ambil kolom jurusan supaya bisa difilter per jurusan
     public function getAllWithKelas(int $idTahunAktif = 0)
     {
-        return $this->select('siswa.*, kelas.nama_kelas')
+        return $this->select('siswa.*, kelas.nama_kelas, kelas.jurusan')
                     ->join('kelas_siswa', "kelas_siswa.id_siswa = siswa.id_siswa AND kelas_siswa.id_tahun_ajaran = {$idTahunAktif}", 'left')
                     ->join('kelas', 'kelas.id_kelas = kelas_siswa.id_kelas', 'left')
                     ->orderBy('siswa.nama', 'ASC');

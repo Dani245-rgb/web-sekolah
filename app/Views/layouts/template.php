@@ -8,6 +8,8 @@
 
 <?= view('layouts/navbar') ?>
 
+<?= view('layouts/ticker') ?>
+
 <?= $this->renderSection('content') ?>
 
 <?= view('layouts/footer') ?>

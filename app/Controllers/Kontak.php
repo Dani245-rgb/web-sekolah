@@ -30,12 +30,20 @@ class Kontak extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $this->kontakModel->insert([
+        $idPesan = $this->kontakModel->insert([
             'nama'   => $this->request->getPost('nama'),
             'email'  => $this->request->getPost('email'),
             'subjek' => $this->request->getPost('subjek'),
             'pesan'  => $this->request->getPost('pesan'),
         ]);
+
+        (new \App\Models\NotifikasiModel())->buat(
+            null,
+            'Pesan Masuk Baru',
+            'pesan_masuk',
+            'Pesan dari ' . $this->request->getPost('nama') . ': ' . $this->request->getPost('subjek'),
+            '/admin/kontak/detail/' . $idPesan
+        );
 
         return redirect()->to('/kontak')->with('success', 'Pesan Anda berhasil dikirim. Terima kasih!');
     }

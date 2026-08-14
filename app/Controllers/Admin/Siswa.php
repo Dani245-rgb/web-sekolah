@@ -27,11 +27,13 @@ class Siswa extends BaseController
 
     public function index()
     {
-        $keyword    = $this->request->getGet('cari');
-        $tahunAktif = $this->tahunAjaranModel->getActive();
-        $idTahunAktif = $tahunAktif['id_tahun_ajaran'] ?? 0;
+        $keyword       = $this->request->getGet('cari');
+        $jurusanFilter = $this->request->getGet('jurusan');
+        $tahunAktif    = $this->tahunAjaranModel->getActive();
+        $idTahunAktif  = $tahunAktif['id_tahun_ajaran'] ?? 0;
 
         $builder = $this->siswaModel->getAllWithKelas($idTahunAktif);
+
         if ($keyword) {
             $builder->groupStart()
                 ->like('siswa.nama', $keyword)
@@ -40,10 +42,25 @@ class Siswa extends BaseController
                 ->groupEnd();
         }
 
-        $data['siswa']       = $builder->paginate(50, 'siswa');
-        $data['pager']       = $this->siswaModel->pager;
-        $data['keyword']     = $keyword;
-        $data['tahunAktif']  = $tahunAktif;
+        if (!empty($jurusanFilter)) {
+            $builder->where('kelas.jurusan', $jurusanFilter);
+        }
+
+        // Ambil daftar jurusan yang benar-benar ada di tabel kelas, untuk tombol filter
+        $daftarJurusan = $this->kelasModel
+            ->distinct()
+            ->select('jurusan')
+            ->where('jurusan IS NOT NULL')
+            ->where('jurusan !=', '')
+            ->orderBy('jurusan', 'ASC')
+            ->findAll();
+
+        $data['siswa']          = $builder->paginate(50, 'siswa');
+        $data['pager']          = $this->siswaModel->pager;
+        $data['keyword']        = $keyword;
+        $data['tahunAktif']     = $tahunAktif;
+        $data['daftarJurusan']  = $daftarJurusan;
+        $data['jurusanFilter']  = $jurusanFilter;
 
         return view('admin/siswa/index', $data);
     }

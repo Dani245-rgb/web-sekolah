@@ -3,7 +3,7 @@
         <div class="footer-grid">
             <div class="footer-item">
                 <div class="footer-logo">
-                    <img src="<?= base_url('assets/images/logo.png') ?>" alt="Logo">
+                    <img src="<?= base_url('assets/images/logo/logo.png') ?>" alt="Logo">
                     <div>
                         <h3>SMK Attaufiqiyyah</h3>
                         <p>Sekolah Menengah Kejuruan</p>
@@ -11,10 +11,10 @@
                 </div>
                 <p>Mencetak lulusan yang kompeten, berakhlak mulia, dan siap kerja.</p>
                 <div class="footer-social">
-                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#"><i class="fa-brands fa-tiktok"></i></a>
-                    <a href="#"><i class="fa-brands fa-youtube"></i></a>
+                    <a href="#"><i class="bi bi-facebook"></i></a>
+                    <a href="#"><i class="bi bi-instagram"></i></a>
+                    <a href="#"><i class="bi bi-tiktok"></i></a>
+                    <a href="#"><i class="bi bi-youtube"></i></a>
                 </div>
             </div>
 

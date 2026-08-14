@@ -57,7 +57,7 @@
         <div class="nav-actions">
             <div class="search-box">
                 <button type="submit">
-                    <i class="fas fa-search"></i>
+                    <i class="bi bi-search"></i>
                 </button>
                 <input type="text" placeholder="Cari...">
             </div>

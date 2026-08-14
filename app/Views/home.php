@@ -22,12 +22,12 @@
                 <div class="section-heading" style="margin-top: 24px;">
                     <h2>Berita Utama</h2>
                     <a href="<?= base_url('berita') ?>" class="lihat-semua">
-                        Lihat Semua <i class="fa-solid fa-arrow-right"></i>
+                        Lihat Semua <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
 
                 <div class="berita-utama-list">
-                    <?php foreach ($berita_utama as $b): ?>
+                    <?php foreach (array_slice($berita_utama, 0, 4) as $b): ?>
                         <a href="<?= base_url('berita/' . $b['slug']) ?>" class="berita-card">
                             <img src="<?= $b['gambar'] ? base_url('assets/images/berita/' . $b['gambar']) : base_url('assets/images/berita/default.jpg') ?>" alt="">
                             <div class="berita-card-body">
@@ -55,15 +55,15 @@
                 <div class="section-heading">
                     <h2>Berita Terbaru</h2>
                     <a href="<?= base_url('berita') ?>" class="lihat-semua">
-                        Lihat Semua <i class="fa-solid fa-arrow-right"></i>
+                        Lihat Semua <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
 
-                <div class="berita-list">
-                    <?php foreach ($berita_terbaru as $b): ?>
-                        <a href="<?= base_url('berita/' . $b['slug']) ?>" class="berita-list-item">
+                <div class="berita-terbaru-grid">
+                    <?php foreach (array_slice($berita_terbaru, 0, 6) as $b): ?>
+                        <a href="<?= base_url('berita/' . $b['slug']) ?>" class="berita-card">
                             <img src="<?= $b['gambar'] ? base_url('assets/images/berita/' . $b['gambar']) : base_url('assets/images/berita/default.jpg') ?>" alt="">
-                            <div class="berita-list-body">
+                            <div class="berita-card-body">
                                 <span class="berita-kategori"><?= esc($b['kategori']) ?></span>
                                 <h3><?= esc($b['judul']) ?></h3>
                                 <span class="berita-meta"><?= date('d F Y', strtotime($b['tanggal_publish'])) ?></span>
@@ -78,7 +78,7 @@
 
             <div class="widget-agenda">
                 <div class="widget-info-header">
-                    <i class="fa-solid fa-calendar-days"></i>
+                    <i class="bi bi-calendar-event-fill"></i>
                     <h3>Agenda Sekolah</h3>
                 </div>
                 <ul class="agenda-list">
@@ -101,7 +101,7 @@
                     <?php endif; ?>
                 </ul>
                 <a href="<?= base_url('agenda') ?>" class="widget-info-more">
-                    Lihat Semua <i class="fa-solid fa-arrow-right"></i>
+                    Lihat Semua <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -114,7 +114,7 @@
                 <div class="section-heading">
                     <h2>Galeri Kegiatan</h2>
                     <a href="<?= base_url('galeri') ?>" class="lihat-semua">
-                        Lihat Semua <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        Lihat Semua <i class="bi bi-arrow-right" aria-hidden="true"></i>
                     </a>
                 </div>
                 <div class="galeri-grid">
@@ -131,7 +131,7 @@
 
             <div class="widget-ekskul">
                 <div class="widget-info-header">
-                    <i class="fa-solid fa-people-group" aria-hidden="true"></i>
+                    <i class="bi bi-people-fill" aria-hidden="true"></i>
                     <h3>Ekstrakurikuler</h3>
                 </div>
                 <div class="ekskul-grid">
@@ -147,7 +147,7 @@
                 </div>
 
                 <a href="<?= base_url('ekstrakurikuler') ?>" class="widget-info-more">
-                    Lihat Semua <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    Lihat Semua <i class="bi bi-arrow-right" aria-hidden="true"></i>
                 </a>
             </div>
         </div>
@@ -160,7 +160,7 @@
             <div class="section-heading">
                 <h2>Prestasi Sekolah</h2>
                 <a href="<?= base_url('prestasi') ?>" class="lihat-semua">
-                    Lihat Semua <i class="fa-solid fa-arrow-right"></i>
+                    Lihat Semua <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
 
@@ -171,7 +171,7 @@
                             <img src="<?= base_url('uploads/prestasi/' . $p['foto']) ?>"
                                 alt="<?= esc($p['judul']) ?>">
                             <span class="prestasi-badge"><?= esc($p['tingkat']) ?></span>
-                            <div class="prestasi-card-icon"><i class="fa-solid fa-trophy"></i></div>
+                            <div class="prestasi-card-icon"><i class="bi bi-trophy-fill"></i></div>
                         </div>
                         <div class="prestasi-card-body">
                             <h4><?= esc($p['judul']) ?></h4>
@@ -191,7 +191,7 @@
                 <div class="section-heading">
                     <h2>Partner Industri</h2>
                     <a href="<?= base_url('partner') ?>" class="lihat-semua">
-                        Lihat Semua <i class="fa-solid fa-arrow-right"></i>
+                        Lihat Semua <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
 
@@ -235,28 +235,28 @@
                         </div>
                         <div class="kontak-cepat">
                             <div class="kontak-item">
-                                <div class="kontak-icon"><i class="fa-solid fa-location-dot"></i></div>
+                                <div class="kontak-icon"><i class="bi bi-geo-alt-fill"></i></div>
                                 <div>
                                     <h4>Alamat</h4>
                                     <p>Jl. Contoh No. 123, Kec. Contoh, Kab. Contoh</p>
                                 </div>
                             </div>
                             <div class="kontak-item">
-                                <div class="kontak-icon"><i class="fa-solid fa-phone"></i></div>
+                                <div class="kontak-icon"><i class="bi bi-telephone-fill"></i></div>
                                 <div>
                                     <h4>Telepon</h4>
                                     <p>(021) 1234-5678</p>
                                 </div>
                             </div>
                             <div class="kontak-item">
-                                <div class="kontak-icon"><i class="fa-solid fa-envelope"></i></div>
+                                <div class="kontak-icon"><i class="bi bi-envelope-fill"></i></div>
                                 <div>
                                     <h4>Email</h4>
                                     <p>info@smkattaufiqiyyah.sch.id</p>
                                 </div>
                             </div>
                             <a href="https://wa.me/6281234567890" target="_blank" rel="noopener" class="btn-wa-cepat">
-                                <i class="fa-brands fa-whatsapp"></i> Chat via WhatsApp
+                                <i class="bi bi-whatsapp"></i> Chat via WhatsApp
                             </a>
                         </div>
                     </div>
