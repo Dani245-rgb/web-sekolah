@@ -14,7 +14,7 @@ class GuruModel extends Model
 
     protected $allowedFields = [
         'user_id', 'nip', 'nuptk', 'nama', 'tempat_lahir', 'tanggal_lahir',
-        'jenis_kelamin', 'jabatan', 'no_hp', 'email', 'foto', 'status',
+        'jenis_kelamin', 'jabatan', 'no_hp', 'email', 'foto', 'status', 'is_bk',
     ];
 
     protected $validationRules = [
@@ -44,5 +44,13 @@ class GuruModel extends Model
                     ->join('users', 'users.id_user = guru.user_id')
                     ->where('id_guru', $id_guru)
                     ->first();
+    }
+
+        public function getGuruBk()
+    {
+        return $this->where('is_bk', 1)
+                    ->where('status', 'Aktif')
+                    ->orderBy('nama', 'ASC')
+                    ->findAll();
     }
 }

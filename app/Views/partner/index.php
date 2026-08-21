@@ -11,10 +11,14 @@
         <div class="partner-info-track" style="flex-wrap: wrap;">
             <?php foreach ($partner as $p): ?>
             <a href="<?= base_url('partner/detail/' . $p['slug']) ?>" class="partner-info-card">
-                <img src="<?= base_url('uploads/partner/' . $p['foto']) ?>" alt="<?= esc($p['nama']) ?>">
+                <?php if (!empty($p['foto'])): ?>
+                    <img src="<?= base_url('uploads/partner/' . $p['foto']) ?>" alt="<?= esc($p['nama']) ?>">
+                <?php else: ?>
+                    <div class="galeri-item-placeholder"><?= esc($p['nama']) ?></div>
+                <?php endif; ?>
                 <div class="partner-info-body">
                     <h4><?= esc($p['nama']) ?></h4>
-                    <p><?= esc(character_limiter($p['deskripsi'], 100)) ?></p>
+                    <p><?= esc(character_limiter($p['deskripsi'] ?? '', 100)) ?></p>
                 </div>
             </a>
             <?php endforeach; ?>

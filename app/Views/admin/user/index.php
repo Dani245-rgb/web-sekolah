@@ -59,7 +59,8 @@
                     <td>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
                             <?php if ((int) $u['id_user'] !== (int) session()->get('id_user')): ?>
-                                <form action="<?= base_url('admin/user/reset-password/' . $u['id_user']) ?>" method="post" onsubmit="return confirm('Reset password akun ini?');">
+                                <form action="<?= base_url('admin/user/reset-password/' . $u['id_user']) ?>" method="post"
+                                    onsubmit="return konfirmasiResetPassword(this, '<?= esc($u['username'], 'js') ?>')">
                                     <?= csrf_field() ?>
                                     <button type="submit" class="btn btn-sm btn-secondary">Reset Password</button>
                                 </form>
@@ -90,5 +91,24 @@
 <div class="pagination-wrapper">
     <?= $pager->links($pagerGroup, 'default_full') ?>
 </div>
+
+<script>
+function konfirmasiResetPassword(form, username) {
+    const ketik = prompt(
+        `Password akun "${username}" akan direset ke password acak baru, dan akun wajib ganti password saat login berikutnya.\n\nKetik ulang username "${username}" untuk melanjutkan:`
+    );
+
+    if (ketik === null) {
+        return false;
+    }
+
+    if (ketik.trim() !== username) {
+        alert('Username yang diketik tidak cocok. Reset password dibatalkan.');
+        return false;
+    }
+
+    return true;
+}
+</script>
 
 <?= $this->endSection() ?>

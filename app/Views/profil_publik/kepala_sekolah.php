@@ -7,7 +7,7 @@
 
         <div class="section-heading">
             <h2>Kepala Sekolah</h2>
-        </div>
+    </div>
 
         <?php if ($item && $item['nama']): ?>
         <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">

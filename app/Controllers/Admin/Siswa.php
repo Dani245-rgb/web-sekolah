@@ -118,14 +118,21 @@ class Siswa extends BaseController
         }
 
         $db = Database::connect();
-        $db->transStart();
 
         $userId = $this->userModel->insert([
-            'username' => $nis,
-            'password' => password_hash($passwordAwal, PASSWORD_DEFAULT),
-            'role_id'  => 3,
-            'status'   => 'Aktif',
+            'username'             => $nis,
+            'password'             => password_hash($passwordAwal, PASSWORD_DEFAULT),
+            'role_id'              => 3,
+            'status'               => 'Aktif',
+            'must_change_password' => true,
         ]);
+
+        if (!$userId) {
+            $db->transRollback();
+            $errors = $this->userModel->errors();
+            $pesanError = $errors ? implode('; ', $errors) : 'Gagal membuat akun user.';
+            return redirect()->back()->withInput()->with('errors', ['user' => $pesanError]);
+        }
 
         $idSiswa = $this->siswaModel->skipValidation(true)->insert([
             'user_id'        => $userId,
@@ -146,7 +153,7 @@ class Siswa extends BaseController
             'status'         => 'Aktif',
         ]);
 
-       $sudahAda = $db->table('kelas_siswa')
+        $sudahAda = $db->table('kelas_siswa')
             ->where('id_siswa', $idSiswa)
             ->where('id_tahun_ajaran', $tahunAktif['id_tahun_ajaran'])
             ->countAllResults();
@@ -256,7 +263,8 @@ class Siswa extends BaseController
         $db = Database::connect();
         $db->transStart();
 
-        $db->table('kelas_siswa')->where('id_siswa', $id_siswa)->delete();
+        // Soft delete: data siswa & akun login dipindah ke "tong sampah", bukan dihapus permanen.
+        // Foto TIDAK dihapus dari server, disimpan sampai nanti dihapus permanen dari Recycle Bin.
         $this->siswaModel->delete($id_siswa);
         $this->userModel->delete($siswaData['user_id']);
 
@@ -266,11 +274,73 @@ class Siswa extends BaseController
             return redirect()->to('/admin/siswa')->with('errors', ['db' => 'Gagal menghapus data siswa.']);
         }
 
+        return redirect()->to('/admin/siswa')->with('success', 'Data siswa dipindahkan ke tong sampah. Bisa dipulihkan kapan saja dari menu Recycle Bin.');
+    }
+
+    /**
+     * Tampilkan daftar siswa yang sudah di-soft-delete (tong sampah).
+     */
+    public function trash()
+    {
+        $data['siswaTerhapus'] = $this->siswaModel->onlyDeleted()
+            ->orderBy('deleted_at', 'DESC')
+            ->findAll();
+
+        return view('admin/siswa/trash', $data);
+    }
+
+    /**
+     * Pulihkan siswa dari tong sampah.
+     */
+    public function restore($id_siswa)
+    {
+        $siswaData = $this->siswaModel->onlyDeleted()->find($id_siswa);
+        if (!$siswaData) {
+            return redirect()->to('/admin/siswa/trash')->with('errors', ['404' => 'Data tidak ditemukan di tong sampah.']);
+        }
+
+        $db = Database::connect();
+        $db->transStart();
+
+        $this->siswaModel->update($id_siswa, ['deleted_at' => null]);
+        $this->userModel->update($siswaData['user_id'], ['deleted_at' => null]);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->to('/admin/siswa/trash')->with('errors', ['db' => 'Gagal memulihkan data siswa.']);
+        }
+
+        return redirect()->to('/admin/siswa/trash')->with('success', "Siswa {$siswaData['nama']} berhasil dipulihkan.");
+    }
+
+    /**
+     * Hapus permanen siswa dari tong sampah (tidak bisa dibatalkan).
+     */
+    public function forceDelete($id_siswa)
+    {
+        $siswaData = $this->siswaModel->onlyDeleted()->find($id_siswa);
+        if (!$siswaData) {
+            return redirect()->to('/admin/siswa/trash')->with('errors', ['404' => 'Data tidak ditemukan di tong sampah.']);
+        }
+
+        $db = Database::connect();
+        $db->transStart();
+
+        $db->table('kelas_siswa')->where('id_siswa', $id_siswa)->delete();
+        $this->siswaModel->delete($id_siswa, true);   // true = hard delete permanen
+        $this->userModel->delete($siswaData['user_id'], true);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->to('/admin/siswa/trash')->with('errors', ['db' => 'Gagal menghapus data siswa secara permanen.']);
+        }
+
         if (!empty($siswaData['foto']) && file_exists(FCPATH . 'uploads/siswa/' . $siswaData['foto'])) {
             unlink(FCPATH . 'uploads/siswa/' . $siswaData['foto']);
         }
 
-        return redirect()->to('/admin/siswa')->with('success', 'Data siswa berhasil dihapus.');
+        return redirect()->to('/admin/siswa/trash')->with('success', 'Data siswa dihapus permanen.');
     }
-
 }

@@ -114,8 +114,17 @@ class Alumni extends BaseController
             return redirect()->to('/admin/alumni')->with('errors', ['404' => 'Data tidak ditemukan.']);
         }
 
+        $db = \Config\Database::connect();
+        $db->transStart();
+
         $this->siswaModel->update($alumni['id_siswa'], ['status' => 'Aktif']);
         $this->alumniModel->delete($idAlumni);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->to('/admin/alumni')->with('errors', ['gagal' => 'Terjadi kesalahan, pembatalan gagal.']);
+        }
 
         return redirect()->to('/admin/alumni')->with('success', 'Kelulusan dibatalkan, siswa kembali Aktif.');
     }

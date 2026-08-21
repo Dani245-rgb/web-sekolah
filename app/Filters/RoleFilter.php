@@ -10,13 +10,16 @@ class RoleFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        // 1. Belum login sama sekali
-        if (!session()->get('logged_in')) {
-            return redirect()->to('/login')
-                              ->with('errors', ['login' => 'Silakan login terlebih dahulu.']);
+        // Pakai ulang AuthFilter buat cek login dasar
+        $authFilter = new AuthFilter();
+        $authResult = $authFilter->before($request, $arguments);
+
+        // Kalau AuthFilter sudah nge-redirect (berarti belum login), langsung stop di sini
+        if ($authResult !== null) {
+            return $authResult;
         }
 
-        // 2. Sudah login, tapi role-nya gak sesuai yang diizinkan di route ini
+        // Baru cek role-nya
         $userRole = session()->get('role');
 
         if ($arguments && !in_array($userRole, $arguments, true)) {

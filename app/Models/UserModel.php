@@ -19,6 +19,7 @@ class UserModel extends Model
     ];
     protected $returnType    = 'array';
     protected $useTimestamps = true;
+    protected $useSoftDeletes = true;
 
     /**
      * Cari user berdasarkan username, sekaligus ambil nama role-nya.
@@ -44,12 +45,12 @@ class UserModel extends Model
             return null;
         }
 
-        if ($user['status'] !== 'Aktif') {
-            return null; // akun dinonaktifkan (misal siswa sudah lulus/pindah)
-        }
-
         if (!password_verify($password, $user['password'])) {
             return null;
+        }
+
+        if ($user['status'] !== 'Aktif') {
+            return 'inactive'; // password benar, tapi akun nonaktif
         }
 
         return $user;

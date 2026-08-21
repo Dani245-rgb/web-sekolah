@@ -41,7 +41,7 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
             </div>
 
             <nav class="sidebar-menu">
-               <a href="<?= base_url('admin/dashboard') ?>"
+                <a href="<?= base_url('admin/dashboard') ?>"
                     class="<?= uri_string() === 'admin/dashboard' ? 'active' : '' ?>">
                     <i class="bi bi-house-door"></i> Dashboard
                 </a>
@@ -74,6 +74,12 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                     class="<?= strpos(uri_string(), 'admin/riwayat-kelas') === 0 ? 'active' : '' ?>"><i class="bi bi-clock-history"></i> Riwayat Kelas</a>
 
                 <p class="menu-label">WEBSITE</p>
+                <a href="<?= base_url('admin/bk-artikel') ?>"
+                    class="<?= strpos(uri_string(), 'admin/bk-artikel') === 0 ? 'active' : '' ?>"><i class="bi bi-heart-pulse"></i> Artikel BK</a>
+                <a href="<?= base_url('admin/unduhan') ?>"
+                    class="<?= strpos(uri_string(), 'admin/unduhan') === 0 ? 'active' : '' ?>"><i class="bi bi-download"></i> Pusat Unduhan</a>
+                <a href="<?= base_url('admin/jurusan') ?>"
+                    class="<?= strpos(uri_string(), 'admin/jurusan') === 0 ? 'active' : '' ?>"><i class="bi bi-diagram-3-fill"></i> Jurusan</a>
                 <a href="<?= base_url('admin/berita') ?>"
                     class="<?= strpos(uri_string(), 'admin/berita') === 0 ? 'active' : '' ?>"><i class="bi bi-newspaper"></i> Berita</a>
                 <a href="<?= base_url('admin/galeri') ?>"

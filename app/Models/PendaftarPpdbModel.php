@@ -23,7 +23,13 @@ class PendaftarPpdbModel extends Model
         'nama_lengkap'    => 'required|min_length[3]|max_length[255]',
         'jenis_kelamin'   => 'required|in_list[Laki-laki,Perempuan]',
         'jurusan_pilihan' => 'required',
-        'no_hp'           => 'required|min_length[9]|max_length[20]',
+        'no_hp'           => 'required|min_length[9]|max_length[20]|is_unique[pendaftar_ppdb.no_hp]',
         'email'           => 'permit_empty|valid_email',
+    ];
+
+    protected $validationMessages = [
+        'no_hp' => [
+            'is_unique' => 'Nomor HP ini sudah pernah digunakan untuk mendaftar. Jika ini bukan Anda yang mendaftar, silakan hubungi pihak sekolah.',
+        ],
     ];
 }

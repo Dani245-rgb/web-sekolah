@@ -11,11 +11,25 @@ class SiswaModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useTimestamps    = true;
+    protected $useSoftDeletes   = true;
 
     protected $allowedFields = [
-        'user_id', 'nis', 'nisn', 'nama', 'tempat_lahir', 'tanggal_lahir',
-        'jenis_kelamin', 'agama', 'alamat', 'nama_ayah', 'nama_ibu',
-        'pekerjaan_ortu', 'no_hp_ortu', 'email', 'foto', 'status',
+        'user_id',
+        'nis',
+        'nisn',
+        'nama',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'jenis_kelamin',
+        'agama',
+        'alamat',
+        'nama_ayah',
+        'nama_ibu',
+        'pekerjaan_ortu',
+        'no_hp_ortu',
+        'email',
+        'foto',
+        'status',
     ];
 
     protected $validationRules = [
@@ -40,9 +54,9 @@ class SiswaModel extends Model
     public function getAllWithKelas(int $idTahunAktif = 0)
     {
         return $this->select('siswa.*, kelas.nama_kelas, kelas.jurusan')
-                    ->join('kelas_siswa', "kelas_siswa.id_siswa = siswa.id_siswa AND kelas_siswa.id_tahun_ajaran = {$idTahunAktif}", 'left')
-                    ->join('kelas', 'kelas.id_kelas = kelas_siswa.id_kelas', 'left')
-                    ->orderBy('siswa.nama', 'ASC');
+            ->join('kelas_siswa', "kelas_siswa.id_siswa = siswa.id_siswa AND kelas_siswa.id_tahun_ajaran = {$idTahunAktif}", 'left')
+            ->join('kelas', 'kelas.id_kelas = kelas_siswa.id_kelas', 'left')
+            ->orderBy('siswa.nama', 'ASC');
     }
 
     // Cek apakah siswa punya relasi ke modul lain (Nilai, Absensi, dll)

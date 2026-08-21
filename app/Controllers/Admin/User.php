@@ -55,7 +55,7 @@ class User extends BaseController
 
         $rules = [
             'username' => 'required|min_length[4]|is_unique[users.username]',
-            'password' => 'required|min_length[6]',
+            'password' => 'required|strongPassword',
         ];
 
         if (!$this->validate($rules)) {
@@ -76,6 +76,10 @@ class User extends BaseController
 
     public function unlock($id)
     {
+        if ((int) $id === (int) session()->get('id_user')) {
+            return redirect()->to('/admin/user')->with('error', 'Tidak bisa unlock akun sendiri lewat sini.');
+        }
+
         $user = $this->userModel->find($id);
         if (!$user) {
             return redirect()->to('/admin/user')->with('error', 'Akun tidak ditemukan.');

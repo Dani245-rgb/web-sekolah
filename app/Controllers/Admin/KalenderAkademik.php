@@ -29,15 +29,24 @@ class KalenderAkademik extends BaseController
     public function store()
     {
         $rules = [
-            'kegiatan'      => 'required|min_length[3]|max_length[255]',
-            'tanggal_mulai' => 'required|valid_date',
-            'semester'      => 'required|in_list[Ganjil,Genap]',
-            'tahun_ajaran'  => 'required',
-            'status'        => 'required|in_list[Published,Draft]',
+            'kegiatan'        => 'required|min_length[3]|max_length[255]',
+            'tanggal_mulai'   => 'required|valid_date',
+            'tanggal_selesai' => 'permit_empty|valid_date',
+            'semester'        => 'required|in_list[Ganjil,Genap]',
+            'tahun_ajaran'    => 'required',
+            'status'          => 'required|in_list[Published,Draft]',
         ];
 
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $tanggalMulai   = $this->request->getPost('tanggal_mulai');
+        $tanggalSelesai = $this->request->getPost('tanggal_selesai');
+
+        if (!empty($tanggalSelesai) && strtotime($tanggalSelesai) < strtotime($tanggalMulai)) {
+            return redirect()->back()->withInput()
+                ->with('errors', ['tanggal' => 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.']);
         }
 
         $this->kalenderModel->insert([
@@ -72,15 +81,24 @@ class KalenderAkademik extends BaseController
         }
 
         $rules = [
-            'kegiatan'      => 'required|min_length[3]|max_length[255]',
-            'tanggal_mulai' => 'required|valid_date',
-            'semester'      => 'required|in_list[Ganjil,Genap]',
-            'tahun_ajaran'  => 'required',
-            'status'        => 'required|in_list[Published,Draft]',
+            'kegiatan'        => 'required|min_length[3]|max_length[255]',
+            'tanggal_mulai'   => 'required|valid_date',
+            'tanggal_selesai' => 'permit_empty|valid_date',
+            'semester'        => 'required|in_list[Ganjil,Genap]',
+            'tahun_ajaran'    => 'required',
+            'status'          => 'required|in_list[Published,Draft]',
         ];
 
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $tanggalMulai   = $this->request->getPost('tanggal_mulai');
+        $tanggalSelesai = $this->request->getPost('tanggal_selesai');
+
+        if (!empty($tanggalSelesai) && strtotime($tanggalSelesai) < strtotime($tanggalMulai)) {
+            return redirect()->back()->withInput()
+                ->with('errors', ['tanggal' => 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.']);
         }
 
         $this->kalenderModel->update($id, [

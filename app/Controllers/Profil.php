@@ -16,7 +16,7 @@ class Profil extends BaseController
     {
         $validation = $this->validate([
             'password_lama'       => 'required',
-            'password_baru'       => 'required|min_length[6]',
+            'password_baru'       => 'required|strongPassword',
             'konfirmasi_password' => 'required|matches[password_baru]',
         ]);
 

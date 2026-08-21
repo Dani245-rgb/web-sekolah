@@ -28,6 +28,7 @@
                     <i class="fa-solid fa-chevron-down"></i>
                 </a>
                 <ul class="dropdown-menu">
+                    <li><a href="<?= base_url('akademik/jurusan') ?>"> Jurusan </a></li>
                     <li><a href="<?= base_url('akademik/guru') ?>"> Guru & Staff </a></li>
                     <li><a href="<?= base_url('akademik/jadwal') ?>"> Jadwal </a></li>
                     <li><a href="<?= base_url('akademik/kalender') ?>"> Kalender Akademik </a></li>
@@ -47,11 +48,24 @@
                 </ul>
             </li>
 
+            <li class="dropdown">
+                <a href="#">
+                    Layanan BK
+                    <i class="fa-solid fa-chevron-down"></i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="<?= base_url('bk/kesehatan-mental') ?>"> Kesehatan Mental </a></li>
+                    <li><a href="<?= base_url('bk/karier') ?>"> Karier & Studi Lanjut </a></li>
+                    <li><a href="<?= base_url('bk/tes-minat') ?>"> Tes Minat & Bakat </a></li>
+                </ul>
+            </li>
+
             <li><a href="<?= base_url('galeri') ?>"> Galeri </a></li>
             <li><a href="<?= base_url('ekstrakurikuler') ?>"> Ekstrakurikuler </a></li>
             <li><a href="<?= base_url('partner') ?>"> Industri Mitra </a></li>
             <li><a href="<?= base_url('ppdb') ?>"> PPDB </a></li>
             <li><a href="<?= base_url('kontak') ?>"> Kontak </a></li>
+            <li><a href="<?= base_url('unduhan') ?>">Download</a></li>
         </ul>
 
         <div class="nav-actions">

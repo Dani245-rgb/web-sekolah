@@ -28,29 +28,51 @@
     </thead>
     <tbody>
         <?php foreach ($organisasi as $o): ?>
-        <tr>
-            <td><?= esc($o['nama']) ?></td>
-            <td><?= esc($o['deskripsi'] ? character_limiter($o['deskripsi'], 60) : '-') ?></td>
-            <td>
-                <span class="badge <?= $o['status'] === 'Published' ? 'bg-success' : 'bg-warning' ?>">
-                    <?= esc($o['status']) ?>
-                </span>
-            </td>
-            <td class="d-flex gap-2">
-                <a href="<?= base_url('admin/organisasi/' . $o['id'] . '/anggota') ?>" class="btn btn-sm btn-outline-primary">Kelola Anggota</a>
-                <a href="<?= base_url('admin/organisasi/edit/' . $o['id']) ?>" class="btn btn-sm btn-outline-primary">Edit</a>
-                <form action="<?= base_url('admin/organisasi/delete/' . $o['id']) ?>" method="post" onsubmit="return confirm('Hapus organisasi ini beserta semua anggotanya?');">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
-                </form>
-            </td>
-        </tr>
+            <tr>
+                <td><?= esc($o['nama']) ?></td>
+                <td><?= esc($o['deskripsi'] ? character_limiter($o['deskripsi'], 60) : '-') ?></td>
+                <td>
+                    <span class="badge <?= $o['status'] === 'Published' ? 'bg-success' : 'bg-warning' ?>">
+                        <?= esc($o['status']) ?>
+                    </span>
+                </td>
+                <td class="d-flex gap-2">
+                    <a href="<?= base_url('admin/organisasi/' . $o['id'] . '/anggota') ?>" class="btn btn-sm btn-outline-primary">Kelola Anggota</a>
+                    <a href="<?= base_url('admin/organisasi/edit/' . $o['id']) ?>" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <form action="<?= base_url('admin/organisasi/delete/' . $o['id']) ?>" method="post"
+                        onsubmit="return konfirmasiHapusOrganisasi(this, '<?= esc($o['nama'], 'js') ?>')">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                    </form>
+                </td>
+            </tr>
         <?php endforeach; ?>
 
         <?php if (empty($organisasi)): ?>
-        <tr><td colspan="4" class="text-muted">Belum ada organisasi.</td></tr>
+            <tr>
+                <td colspan="4" class="text-muted">Belum ada organisasi.</td>
+            </tr>
         <?php endif; ?>
     </tbody>
 </table>
+
+<script>
+    function konfirmasiHapusOrganisasi(form, namaOrganisasi) {
+        const ketik = prompt(
+            `PERINGATAN: Organisasi "${namaOrganisasi}" beserta SEMUA anggotanya akan dihapus permanen dan tidak bisa dikembalikan.\n\nKetik ulang nama organisasi persis "${namaOrganisasi}" untuk melanjutkan:`
+        );
+
+        if (ketik === null) {
+            return false;
+        }
+
+        if (ketik.trim() !== namaOrganisasi) {
+            alert('Nama yang diketik tidak cocok. Penghapusan dibatalkan.');
+            return false;
+        }
+
+        return true;
+    }
+</script>
 
 <?= $this->endSection() ?>

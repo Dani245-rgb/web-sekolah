@@ -48,7 +48,7 @@ class Berita extends BaseController
             'konten'   => 'required',
             'status'   => 'required|in_list[Draft,Published]',
             'posisi'   => 'required|in_list[hero,utama,biasa,populer,hits]',
-            'gambar'   => 'permit_empty|is_image[gambar]|max_size[gambar,2048]',
+            'gambar'   => 'permit_empty|is_image[gambar]|max_size[gambar,2048]|mime_in[gambar,image/jpg,image/jpeg,image/png]',
         ];
 
         if (!$this->validate($rules)) {
@@ -105,8 +105,8 @@ class Berita extends BaseController
             'kategori' => 'required|in_list[Akademik,Prestasi,Kegiatan,Umum]',
             'konten'   => 'required',
             'status'   => 'required|in_list[Draft,Published]',
-            'posisi'   => 'required|in_list[hero,utama,biasa]',
-            'gambar'   => 'permit_empty|is_image[gambar]|max_size[gambar,2048]',
+            'posisi'   => 'required|in_list[hero,utama,biasa,populer,hits]',
+            'gambar'   => 'permit_empty|is_image[gambar]|max_size[gambar,2048]|mime_in[gambar,image/jpg,image/jpeg,image/png]',
         ];
 
         if (!$this->validate($rules)) {

@@ -12,7 +12,11 @@
         <div class="galeri-grid">
             <?php foreach ($ekskul as $e): ?>
             <a href="#" class="galeri-item">
-                <img src="<?= base_url('uploads/ekstrakurikuler/' . $e['foto']) ?>" alt="<?= esc($e['nama']) ?>">
+                <?php if (!empty($e['foto'])): ?>
+                    <img src="<?= base_url('uploads/ekstrakurikuler/' . $e['foto']) ?>" alt="<?= esc($e['nama']) ?>">
+                <?php else: ?>
+                    <div class="galeri-item-placeholder"><?= esc($e['nama']) ?></div>
+                <?php endif; ?>
             </a>
             <?php endforeach; ?>
 

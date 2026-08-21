@@ -76,6 +76,16 @@ class LaporanAkademik extends BaseController
 
             $siswa = $siswaModel->find($idSiswa);
 
+            if (!$siswa) {
+                return [
+                    'daftarSiswa'  => $daftarSiswa,
+                    'idSiswaAktif' => null,
+                    'tglMulai'     => $tglMulai,
+                    'tglSelesai'   => $tglSelesai,
+                    'detail'       => null,
+                ];
+            }
+
             $nilaiPerMapel = $db->table('nilai_siswa')
                 ->select('mapel.nama_mapel, AVG(nilai_siswa.nilai) as rata')
                 ->join('komponen_nilai', 'komponen_nilai.id_komponen = nilai_siswa.id_komponen')

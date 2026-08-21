@@ -1,0 +1,68 @@
+.jurusan-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.jurusan-page-header h4 {
+    margin: 0;
+}
+
+.jurusan-foto-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.jurusan-foto-kosong {
+    color: #94a3b8;
+}
+
+/* Tombol aksi tabel (Edit/Hapus) */
+table .btn-outline-primary,
+table .btn-outline-danger {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+    text-decoration: none;
+    border: none;
+    color: #fff;
+}
+
+table .btn-outline-primary {
+    background-color: #f0ad4e;
+}
+
+table .btn-outline-primary:hover {
+    background-color: #ec9c2d;
+}
+
+table .btn-outline-danger {
+    background-color: #e74c3c;
+}
+
+table .btn-outline-danger:hover {
+    background-color: #d63c2c;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+}
+
+.table th,
+.table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table th {
+    background-color: #f8fafc;
+    font-weight: 600;
+    color: #475569;
+}

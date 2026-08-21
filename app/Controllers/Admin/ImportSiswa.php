@@ -22,7 +22,7 @@ class ImportSiswa extends BaseController
     protected KelasModel $kelasModel;
     protected TahunAjaranModel $tahunAjaranModel;
 
-    protected int $batchSize = 200;
+    protected int $batchSize = 500;
 
     public function __construct()
     {
@@ -47,7 +47,6 @@ class ImportSiswa extends BaseController
     {
         $data['jobBelumSelesai'] = $this->importLogModel->getJobBelumSelesai();
         return view('admin/siswa/import', $data);
-
     }
 
     // Download template kosong
@@ -57,17 +56,39 @@ class ImportSiswa extends BaseController
         $sheet = $spreadsheet->getActiveSheet();
 
         $header = [
-            'NIS', 'NISN', 'Nama', 'Tempat Lahir', 'Tanggal Lahir (YYYY-MM-DD)',
-            'Jenis Kelamin (L/P)', 'Agama', 'Alamat', 'Nama Ayah', 'Nama Ibu',
-            'Pekerjaan Ortu', 'No HP Ortu', 'Email', 'Kelas',
+            'NIS',
+            'NISN',
+            'Nama',
+            'Tempat Lahir',
+            'Tanggal Lahir (YYYY-MM-DD)',
+            'Jenis Kelamin (L/P)',
+            'Agama',
+            'Alamat',
+            'Nama Ayah',
+            'Nama Ibu',
+            'Pekerjaan Ortu',
+            'No HP Ortu',
+            'Email',
+            'Kelas',
         ];
         $sheet->fromArray($header, null, 'A1');
 
         // Contoh 1 baris biar admin ada gambaran
         $sheet->fromArray([
-            '2024001', '0012345678', 'Contoh Nama Siswa', 'Jakarta', '2009-05-17',
-            'L', 'Islam', 'Jl. Contoh No. 1', 'Nama Ayah', 'Nama Ibu',
-            'Wiraswasta', '081234567890', 'contoh@email.com', 'X TKJ 1',
+            '2024001',
+            '0012345678',
+            'Contoh Nama Siswa',
+            'Jakarta',
+            '2009-05-17',
+            'L',
+            'Islam',
+            'Jl. Contoh No. 1',
+            'Nama Ayah',
+            'Nama Ibu',
+            'Wiraswasta',
+            '081234567890',
+            'contoh@email.com',
+            'X TKJ 1',
         ], null, 'A2');
 
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
@@ -115,7 +136,7 @@ class ImportSiswa extends BaseController
             return $this->response->setJSON(['error' => 'File kosong atau tidak ada data setelah baris header.']);
         }
 
-  $idImportLog = $this->importLogModel->insert([
+        $idImportLog = $this->importLogModel->insert([
             'nama_file'     => $namaFileAsli,
             'path_file'     => $pathFile,
             'total_baris'   => $totalBaris,
@@ -132,6 +153,10 @@ class ImportSiswa extends BaseController
     // Proses 1 batch (dipanggil berulang oleh JS)
     public function proses($id_import_log)
     {
+        // Batas resource khusus untuk proses import (gak ganggu setting PHP global)
+        ini_set('max_execution_time', 300);
+        ini_set('memory_limit', '512M');
+
         $job = $this->importLogModel->find($id_import_log);
         if (!$job) {
             return $this->response->setJSON(['error' => 'Job import tidak ditemukan.']);
@@ -147,10 +172,15 @@ class ImportSiswa extends BaseController
             ], $this->csrfData()));
         }
 
-        if (!file_exists($job['path_file'])) {
-            $this->importLogModel->update($id_import_log, ['status' => 'Gagal']);
-            return $this->response->setJSON(['error' => 'File sumber sudah tidak ada di server.']);
+        if ($job['status'] === 'Diproses_Batch') {
+            return $this->response->setJSON(array_merge([
+                'sedang_diproses' => true,
+                'baris_selesai'   => $job['baris_selesai'],
+                'total_baris'     => $job['total_baris'],
+            ], $this->csrfData()));
         }
+
+        $this->importLogModel->update($id_import_log, ['status' => 'Diproses_Batch']);
 
         $offset = (int) $job['baris_selesai']; // 0-based, dihitung dari baris data (bukan termasuk header)
         $tahunAktif = $this->tahunAjaranModel->getActive();
@@ -206,7 +236,7 @@ class ImportSiswa extends BaseController
 
         $statusBaru = $barisSelesaiBaru >= $job['total_baris'] ? 'Selesai' : 'Proses';
 
-   $this->importLogModel->update($id_import_log, [
+        $this->importLogModel->update($id_import_log, [
             'baris_selesai' => $barisSelesaiBaru,
             'total_sukses'  => $job['total_sukses'] + $suksesBatch,
             'total_gagal'   => $job['total_gagal'] + $gagalBatch,
@@ -225,100 +255,107 @@ class ImportSiswa extends BaseController
 
     // Proses 1 baris siswa — transaksi sendiri, gagal di sini tidak pengaruhi baris lain
     protected function prosesSatuBaris(array $data, int $nomorBaris, array $tahunAktif): array
-{
-    // Validasi wajib
-    if (empty($data['nis']) || empty($data['nisn']) || empty($data['nama'])) {
-        return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: NIS/NISN/Nama kosong, dilewati."];
+    {
+        // Validasi wajib
+        if (empty($data['nis']) || empty($data['nisn']) || empty($data['nama'])) {
+            return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: NIS/NISN/Nama kosong, dilewati."];
+        }
+
+        if (!in_array($data['jenis_kelamin'], ['L', 'P'])) {
+            return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Jenis Kelamin '{$data['jenis_kelamin']}' tidak valid (harus L/P)."];
+        }
+
+        // Cek duplikat NIS/NISN
+        if ($this->siswaModel->where('nis', $data['nis'])->first()) {
+            return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: NIS '{$data['nis']}' sudah terdaftar, dilewati."];
+        }
+        if ($this->siswaModel->where('nisn', $data['nisn'])->first()) {
+            return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: NISN '{$data['nisn']}' sudah terdaftar, dilewati."];
+        }
+
+        // Cari kelas berdasarkan nama persis, di tahun ajaran aktif
+        $kelas = $this->kelasModel->where('nama_kelas', $data['kelas'])
+            ->where('id_tahun_ajaran', $tahunAktif['id_tahun_ajaran'])
+            ->first();
+        if (!$kelas) {
+            return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Kelas '{$data['kelas']}' tidak ditemukan di Tahun Ajaran Aktif."];
+        }
+
+        // Normalisasi tanggal lahir
+        $tanggalLahir = $this->normalisasiTanggal($data['tanggal_lahir']);
+        if (!$tanggalLahir) {
+            return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Format Tanggal Lahir tidak dikenali."];
+        }
+
+        $passwordAwal = date('dmY', strtotime($tanggalLahir));
+
+        $db = Database::connect();
+
+        try {
+            $db->transStart();
+
+            // --- Insert user ---
+            $userId = $this->userModel->skipValidation(true)->insert([
+                'username'             => $data['nis'],
+                'password'             => password_hash($passwordAwal, PASSWORD_DEFAULT),
+                'role_id'              => 3,
+                'status'               => 'Aktif',
+                'must_change_password' => true,
+            ]);
+
+            if (!$userId) {
+                $db->transRollback();
+                $errors = $this->userModel->errors();
+                $pesanError = $errors ? implode('; ', $errors) : ($db->error()['message'] ?? 'unknown error');
+                return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Gagal buat akun user - {$pesanError}"];
+            }
+
+            // --- Insert siswa ---
+            $idSiswa = $this->siswaModel->skipValidation(true)->insert([
+                'user_id'        => $userId,
+                'nis'            => $data['nis'],
+                'nisn'           => $data['nisn'],
+                'nama'           => $data['nama'],
+                'tempat_lahir'   => $data['tempat_lahir'],
+                'tanggal_lahir'  => $tanggalLahir,
+                'jenis_kelamin'  => $data['jenis_kelamin'],
+                'agama'          => $data['agama'],
+                'alamat'         => $data['alamat'],
+                'nama_ayah'      => $data['nama_ayah'],
+                'nama_ibu'       => $data['nama_ibu'],
+                'pekerjaan_ortu' => $data['pekerjaan_ortu'],
+                'no_hp_ortu'     => $data['no_hp_ortu'],
+                'email'          => $data['email'] ?: null,
+                'status'         => 'Aktif',
+            ]);
+
+            if (!$idSiswa) {
+                $db->transRollback();
+                $errors = $this->siswaModel->errors();
+                $pesanError = $errors ? implode('; ', $errors) : ($db->error()['message'] ?? 'unknown error');
+                return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Gagal buat data siswa - {$pesanError}"];
+            }
+
+            // --- Insert kelas_siswa ---
+            $db->table('kelas_siswa')->insert([
+                'id_kelas'        => $kelas['id_kelas'],
+                'id_siswa'        => $idSiswa,
+                'id_tahun_ajaran' => $tahunAktif['id_tahun_ajaran'],
+                'created_at'      => date('Y-m-d H:i:s'),
+            ]);
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Gagal insert ke database (transaksi rollback)."];
+            }
+
+            return ['sukses' => true, 'pesan' => ''];
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Terjadi error tak terduga - " . $e->getMessage()];
+        }
     }
-
-    if (!in_array($data['jenis_kelamin'], ['L', 'P'])) {
-        return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Jenis Kelamin '{$data['jenis_kelamin']}' tidak valid (harus L/P)."];
-    }
-
-    // Cek duplikat NIS/NISN
-    if ($this->siswaModel->where('nis', $data['nis'])->first()) {
-        return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: NIS '{$data['nis']}' sudah terdaftar, dilewati."];
-    }
-    if ($this->siswaModel->where('nisn', $data['nisn'])->first()) {
-        return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: NISN '{$data['nisn']}' sudah terdaftar, dilewati."];
-    }
-
-    // Cari kelas berdasarkan nama persis, di tahun ajaran aktif
-    $kelas = $this->kelasModel->where('nama_kelas', $data['kelas'])
-                               ->where('id_tahun_ajaran', $tahunAktif['id_tahun_ajaran'])
-                               ->first();
-    if (!$kelas) {
-        return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Kelas '{$data['kelas']}' tidak ditemukan di Tahun Ajaran Aktif."];
-    }
-
-    // Normalisasi tanggal lahir
-    $tanggalLahir = $this->normalisasiTanggal($data['tanggal_lahir']);
-    if (!$tanggalLahir) {
-        return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Format Tanggal Lahir tidak dikenali."];
-    }
-
-    $passwordAwal = date('dmY', strtotime($tanggalLahir));
-
-    $db = Database::connect();
-    $db->transStart();
-
-    // --- Insert user ---
-    $userId = $this->userModel->skipValidation(true)->insert([
-        'username' => $data['nis'],
-        'password' => password_hash($passwordAwal, PASSWORD_DEFAULT),
-        'role_id'  => 3,
-        'status'   => 'Aktif',
-    ]);
-
-    if (!$userId) {
-        $db->transRollback();
-        $errors = $this->userModel->errors();
-        $pesanError = $errors ? implode('; ', $errors) : ($db->error()['message'] ?? 'unknown error');
-        return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Gagal buat akun user - {$pesanError}"];
-    }
-
-    // --- Insert siswa ---
-    $idSiswa = $this->siswaModel->skipValidation(true)->insert([
-        'user_id'        => $userId,
-        'nis'            => $data['nis'],
-        'nisn'           => $data['nisn'],
-        'nama'           => $data['nama'],
-        'tempat_lahir'   => $data['tempat_lahir'],
-        'tanggal_lahir'  => $tanggalLahir,
-        'jenis_kelamin'  => $data['jenis_kelamin'],
-        'agama'          => $data['agama'],
-        'alamat'         => $data['alamat'],
-        'nama_ayah'      => $data['nama_ayah'],
-        'nama_ibu'       => $data['nama_ibu'],
-        'pekerjaan_ortu' => $data['pekerjaan_ortu'],
-        'no_hp_ortu'     => $data['no_hp_ortu'],
-        'email'          => $data['email'] ?: null,
-        'status'         => 'Aktif',
-    ]);
-
-    if (!$idSiswa) {
-        $db->transRollback();
-        $errors = $this->siswaModel->errors();
-        $pesanError = $errors ? implode('; ', $errors) : ($db->error()['message'] ?? 'unknown error');
-        return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Gagal buat data siswa - {$pesanError}"];
-    }
-
-    // --- Insert kelas_siswa ---
-    $db->table('kelas_siswa')->insert([
-        'id_kelas'        => $kelas['id_kelas'],
-        'id_siswa'        => $idSiswa,
-        'id_tahun_ajaran' => $tahunAktif['id_tahun_ajaran'],
-        'created_at'      => date('Y-m-d H:i:s'),
-    ]);
-
-    $db->transComplete();
-
-    if ($db->transStatus() === false) {
-        return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Gagal insert ke database (transaksi rollback)."];
-    }
-
-    return ['sukses' => true, 'pesan' => ''];
-}
 
     // Deteksi 3 kemungkinan format tanggal → convert ke Y-m-d
     protected function normalisasiTanggal($cell): ?string

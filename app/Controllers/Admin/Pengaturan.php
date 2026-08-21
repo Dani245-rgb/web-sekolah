@@ -24,6 +24,17 @@ class Pengaturan extends BaseController
     {
         $pengaturan = $this->model->getPengaturan();
 
+        $rules = [
+            'nama_sekolah' => 'required|min_length[3]|max_length[150]',
+            'email'        => 'permit_empty|valid_email',
+            'logo'         => 'permit_empty|is_image[logo]|mime_in[logo,image/jpg,image/jpeg,image/png,image/webp]|max_size[logo,2048]',
+            'favicon'      => 'permit_empty|is_image[favicon]|mime_in[favicon,image/jpg,image/jpeg,image/png]|max_size[favicon,512]',
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
         $dataUpdate = [
             'nama_sekolah' => $this->request->getPost('nama_sekolah'),
             'alamat'       => $this->request->getPost('alamat'),
@@ -35,7 +46,7 @@ class Pengaturan extends BaseController
         // Upload logo (kalau ada file baru)
         $logo = $this->request->getFile('logo');
         if ($logo && $logo->isValid() && !$logo->hasMoved()) {
-            $namaFile = $logo->getRandomName();
+            $namaFile = $logo->getRandomName() . '.' . $logo->getExtension();
             $logo->move(FCPATH . 'assets/uploads/sekolah', $namaFile);
             $dataUpdate['logo'] = $namaFile;
         }
@@ -43,7 +54,7 @@ class Pengaturan extends BaseController
         // Upload favicon (kalau ada file baru)
         $favicon = $this->request->getFile('favicon');
         if ($favicon && $favicon->isValid() && !$favicon->hasMoved()) {
-            $namaFileFavicon = $favicon->getRandomName();
+            $namaFileFavicon = $favicon->getRandomName() . '.' . $favicon->getExtension();
             $favicon->move(FCPATH . 'assets/uploads/sekolah', $namaFileFavicon);
             $dataUpdate['favicon'] = $namaFileFavicon;
         }

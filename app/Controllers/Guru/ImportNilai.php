@@ -7,6 +7,7 @@ use App\Libraries\Import\Nilai\NilaiRepository;
 use App\Libraries\Import\Nilai\NilaiValidator;
 use App\Libraries\Import\Nilai\NilaiImportService;
 use App\Libraries\Import\Nilai\NilaiRollbackService;
+use App\Models\GuruModel;
 use CodeIgniter\Files\File;
 
 class ImportNilai extends BaseController
@@ -20,11 +21,26 @@ class ImportNilai extends BaseController
         $this->rollbackService = new NilaiRollbackService($this->repo);
     }
 
+    protected function getGuruLogin()
+    {
+        $userId    = session()->get('id_user');
+        $guruModel = new GuruModel();
+        $guru      = $guruModel->where('user_id', $userId)->first();
+
+        if (!$guru) {
+            throw new \RuntimeException('DATA_GURU_TIDAK_DITEMUKAN');
+        }
+
+        return $guru;
+    }
+
     /**
      * Ambil id_kelas & id_tahun_ajaran dari id_komponen yang dipilih.
      */
     protected function resolveKonteks(int $idKomponen): array
     {
+        $guru = $this->getGuruLogin();
+
         $komponen = $this->repo->findKomponen($idKomponen);
         if (!$komponen) {
             throw new \RuntimeException('Komponen nilai tidak ditemukan');
@@ -37,6 +53,11 @@ class ImportNilai extends BaseController
 
         if (!$pengaturan) {
             throw new \RuntimeException('Pengaturan nilai tidak ditemukan');
+        }
+
+        // Cegah IDOR: komponen ini harus milik guru yang sedang login
+        if ((int) $pengaturan['id_guru'] !== (int) $guru['id_guru']) {
+            throw new \RuntimeException('Komponen nilai ini bukan milik Anda.');
         }
 
         $semester = $db->table('semester')
@@ -133,6 +154,10 @@ class ImportNilai extends BaseController
             return redirect()->back()->with('error', 'File tidak valid');
         }
 
+        if (!in_array($file->getClientExtension(), ['xlsx', 'xls'])) {
+            return redirect()->back()->with('error', 'File harus format .xlsx atau .xls');
+        }
+
         $konteks = $this->resolveKonteks($idKomponen);
 
         // Cari id_jadwal yang cocok (id_kelas + id_mapel + id_guru dari pengaturan_nilai)
@@ -225,14 +250,26 @@ class ImportNilai extends BaseController
      */
     public function rollback(int $idImportLog)
     {
+        try {
+            $guru = $this->getGuruLogin();
+        } catch (\RuntimeException $e) {
+            return redirect()->to('/logout')->with('errors', ['akun' => 'Data guru Anda tidak ditemukan. Silakan hubungi Admin.']);
+        }
         $idUser = session()->get('id_user');
+
+        // Cegah IDOR: pastikan log import ini milik guru yang login
+        $db = $this->repo->getDb();
+        $log = $db->table('import_log')->where('id_import_log', $idImportLog)->get()->getRowArray();
+
+        if (!$log || (int) $log['id_user'] !== (int) $idUser) {
+            return redirect()->back()->with('error', 'Riwayat import ini bukan milik Anda.');
+        }
 
         try {
             $laporan = $this->rollbackService->rollback($idImportLog, $idUser);
         } catch (\RuntimeException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
-
         $pesan = "{$laporan['berhasil']} baris berhasil di-rollback";
         if (!empty($laporan['dilewati'])) {
             $pesan .= ", " . count($laporan['dilewati']) . " baris dilewati (sudah diubah manual)";

@@ -8,6 +8,7 @@ use App\Models\KelasModel;
 use App\Models\SiswaModel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 class RekapAbsensi extends BaseController
 {
     public function index()
@@ -122,7 +123,7 @@ class RekapAbsensi extends BaseController
             'tglSelesai' => $tglSelesai,
         ]);
 
-       $mpdf = new \Mpdf\Mpdf(['mode' => 'utf-8', 'format' => 'A4']);
+        $mpdf = new \Mpdf\Mpdf(['mode' => 'utf-8', 'format' => 'A4']);
         $mpdf->SetTitle('Riwayat Absensi Siswa');
         $mpdf->WriteHTML($html);
         $mpdf->Output('riwayat-absensi_' . str_replace(' ', '-', $siswa['nama']) . '.pdf', 'D');
@@ -167,7 +168,13 @@ class RekapAbsensi extends BaseController
         foreach ($hasil as $i => $h) {
             $jam = substr($h['jam_mulai'], 0, 5) . '-' . substr($h['jam_selesai'], 0, 5);
             $sheet->fromArray([
-                $i + 1, $jam, $h['nama_mapel'], $h['nis'], $h['nama'], $h['status'], $h['keterangan'] ?? '-',
+                $i + 1,
+                $jam,
+                $h['nama_mapel'],
+                $h['nis'],
+                $h['nama'],
+                $h['status'],
+                $h['keterangan'] ?? '-',
             ], null, "A{$row}");
             $row++;
         }
@@ -216,13 +223,13 @@ class RekapAbsensi extends BaseController
         $sheet->setCellValue('A3', 'Periode');
         $sheet->setCellValue('B3', date('d-m-Y', strtotime($tglMulai)) . ' s/d ' . date('d-m-Y', strtotime($tglSelesai)));
         $sheet->setCellValue('A4', 'Hadir');
-        $sheet->setCellValue('B4', $rekap['Hadir']);
+        $sheet->setCellValue('B4', $rekap['Hadir'] ?? 0);
         $sheet->setCellValue('A5', 'Izin');
-        $sheet->setCellValue('B5', $rekap['Izin']);
+        $sheet->setCellValue('B5', $rekap['Izin'] ?? 0);
         $sheet->setCellValue('A6', 'Sakit');
-        $sheet->setCellValue('B6', $rekap['Sakit']);
+        $sheet->setCellValue('B6', $rekap['Sakit'] ?? 0);
         $sheet->setCellValue('A7', 'Alfa');
-        $sheet->setCellValue('B7', $rekap['Alfa']);
+        $sheet->setCellValue('B7', $rekap['Alfa'] ?? 0);
         $sheet->getStyle('A1:A7')->getFont()->setBold(true);
 
         $headerRow = 9;
@@ -235,7 +242,11 @@ class RekapAbsensi extends BaseController
         $row = $headerRow + 1;
         foreach ($detail as $i => $d) {
             $sheet->fromArray([
-                $i + 1, date('d-m-Y', strtotime($d['tanggal'])), $d['nama_mapel'], $d['status'], $d['keterangan'] ?? '-',
+                $i + 1,
+                date('d-m-Y', strtotime($d['tanggal'])),
+                $d['nama_mapel'],
+                $d['status'],
+                $d['keterangan'] ?? '-',
             ], null, "A{$row}");
             $row++;
         }

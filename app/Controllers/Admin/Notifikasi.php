@@ -37,16 +37,24 @@ class Notifikasi extends BaseController
 
     public function baca($idNotif)
     {
-        $this->model->tandaiDibaca($idNotif);
-        $notif = $this->model->find($idNotif);
+        $userId = session()->get('id_user');
+        $notif  = $this->model->find($idNotif);
 
-        if ($notif && !empty($notif['link'])) {
+        // Boleh ditandai kalau: milik sendiri, ATAU broadcast (user_id null, buat semua Admin)
+        $bolehAkses = $notif && ($notif['user_id'] === null || (int) $notif['user_id'] === (int) $userId);
+
+        if (!$bolehAkses) {
+            return redirect()->to('/admin/notifikasi')->with('error', 'Notifikasi tidak ditemukan.');
+        }
+
+        $this->model->tandaiDibaca($idNotif);
+
+        if (!empty($notif['link'])) {
             return redirect()->to($notif['link']);
         }
 
         return redirect()->to('/admin/notifikasi');
     }
-
     public function bacaSemua()
     {
         $this->model->tandaiSemuaDibaca(session()->get('id_user'));

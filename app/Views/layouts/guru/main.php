@@ -8,12 +8,16 @@ $namaGuru = $guru['nama'] ?? session()->get('username');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Guru - Website Sekolah</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/css/guru.css') ?>">
 </head>
 
 <body>
 
     <div class="topbar">
+        <button class="btn-toggle-sidebar" onclick="document.querySelector('.sidebar').classList.toggle('collapsed')">
+            <i class="bi bi-list"></i>
+        </button>
         <div class="brand">
             <img src="<?= base_url('assets/logo-sekolah.png') ?>" alt="Logo Sekolah"
                 onerror="this.style.display='none'">
@@ -28,26 +32,26 @@ $namaGuru = $guru['nama'] ?? session()->get('username');
 
     <div class="layout">
         <div class="sidebar">
-            <a href="<?= base_url('guru/dashboard') ?>" class="active">🏠 Dashboard</a>
-            <a href="#">👤 Profil</a>
-            <a href="#">🏫 Data Kelas</a>
-            <a href="#">📅 Jadwal</a>
-            <a href="<?= base_url('guru/dashboard') ?>#jadwal-hari-ini">📝 Input Nilai</a>
-            <a href="<?= base_url('guru/dashboard') ?>#jadwal-hari-ini">📋 Input Absensi</a>
-            <a href="#">📢 Pengumuman</a>
-            <a href="#">📰 Berita</a>
-            <a href="#">🗓️ Agenda</a>
+            <a href="<?= base_url('guru/dashboard') ?>" class="active"><i class="bi bi-house-door-fill"></i> <span class="label">Dashboard</span></a>
+            <a href="#"><i class="bi bi-person-circle"></i> <span class="label">Profil</span></a>
+            <a href="#"><i class="bi bi-building"></i> <span class="label">Data Kelas</span></a>
+            <a href="#"><i class="bi bi-calendar3"></i> <span class="label">Jadwal</span></a>
+            <a href="<?= base_url('guru/dashboard') ?>#jadwal-hari-ini"><i class="bi bi-pencil-square"></i> <span class="label">Input Nilai</span></a>
+            <a href="<?= base_url('guru/dashboard') ?>#jadwal-hari-ini"><i class="bi bi-clipboard-check"></i> <span class="label">Input Absensi</span></a>
+            <a href="#"><i class="bi bi-megaphone-fill"></i> <span class="label">Pengumuman</span></a>
+            <a href="#"><i class="bi bi-newspaper"></i> <span class="label">Berita</span></a>
+            <a href="#"><i class="bi bi-calendar-event"></i> <span class="label">Agenda</span></a>
             <hr>
-            <a href="<?= base_url('profil/gantipassword') ?>">🔑 Ganti Password</a>
-            <a href="<?= base_url('logout') ?>">🚪 Logout</a>
+            <a href="<?= base_url('profil/gantipassword') ?>"><i class="bi bi-key-fill"></i> <span class="label">Ganti Password</span></a>
+            <a href="<?= base_url('logout') ?>"><i class="bi bi-box-arrow-right"></i> <span class="label">Logout</span></a>
         </div>
 
         <div class="content">
             <?php if (session()->getFlashdata('success')): ?>
-            <div class="alert alert-success"><?= esc(session()->getFlashdata('success')) ?></div>
+                <div class="alert alert-success"><?= esc(session()->getFlashdata('success')) ?></div>
             <?php endif; ?>
             <?php if (session()->getFlashdata('warning')): ?>
-            <div class="alert alert-error"><?= esc(session()->getFlashdata('warning')) ?></div>
+                <div class="alert alert-error"><?= esc(session()->getFlashdata('warning')) ?></div>
             <?php endif; ?>
 
             <?= $this->renderSection('content') ?>

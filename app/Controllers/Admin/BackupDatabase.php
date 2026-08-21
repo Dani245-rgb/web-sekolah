@@ -10,6 +10,10 @@ class BackupDatabase extends BaseController
 
     public function __construct()
     {
+        if (!session()->get('is_superadmin')) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException('Halaman tidak ditemukan.');
+        }
+
         $this->backupPath = WRITEPATH . 'backup/';
 
         if (!is_dir($this->backupPath)) {
@@ -44,13 +48,19 @@ class BackupDatabase extends BaseController
         $database = $db->database;
         $port     = $db->port ?? 3306;
 
-        $filename = 'backup_' . $database . '_' . date('Y-m-d_His') . '.sql';
+        $filename = 'backup_' . preg_replace('/[^a-zA-Z0-9_-]/', '', $database) . '_' . date('Y-m-d_His') . '.sql';
         $filepath = $this->backupPath . $filename;
 
-// Command mysqldump
+        // Command mysqldump — semua argumen dibungkus escapeshellarg() untuk cegah command injection
         $mysqldumpPath = 'C:\\laragon\\bin\\mysql\\mysql-8.4.3-winx64\\bin\\mysqldump.exe';
-        $passwordPart  = $password !== '' ? "-p\"{$password}\"" : '';
-        $command = "\"{$mysqldumpPath}\" -h {$hostname} -P {$port} -u {$username} {$passwordPart} {$database} > \"{$filepath}\" 2>&1";
+        $passwordPart  = $password !== '' ? '-p' . escapeshellarg($password) : '';
+        $command = escapeshellarg($mysqldumpPath)
+            . ' -h ' . escapeshellarg($hostname)
+            . ' -P ' . escapeshellarg((string) $port)
+            . ' -u ' . escapeshellarg($username)
+            . ' ' . $passwordPart
+            . ' ' . escapeshellarg($database)
+            . ' > ' . escapeshellarg($filepath) . ' 2>&1';
 
         exec($command, $output, $resultCode);
 

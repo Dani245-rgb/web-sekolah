@@ -6,7 +6,7 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::index');
 
 $routes->get('login', 'Auth\Login::index');
-$routes->post('login', 'Auth\Login::authenticate');
+$routes->post('login', 'Auth\Login::authenticate', ['filter' => 'throttle:login,5,60']);
 
 // Wajib ganti password - berlaku SEMUA role, makanya di luar grup admin/guru/siswa
 $routes->get('auth/gantipassword', 'Auth\Login::gantipassword');
@@ -52,6 +52,14 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->post('mapel/update/(:num)', 'Admin\Mapel::update/$1');
     $routes->get('mapel/delete/(:num)', 'Admin\Mapel::delete/$1');
 
+    // Jurusan
+    $routes->get('jurusan', 'Admin\Jurusan::index');
+    $routes->get('jurusan/create', 'Admin\Jurusan::create');
+    $routes->post('jurusan/store', 'Admin\Jurusan::store');
+    $routes->get('jurusan/edit/(:num)', 'Admin\Jurusan::edit/$1');
+    $routes->post('jurusan/update/(:num)', 'Admin\Jurusan::update/$1');
+    $routes->get('jurusan/delete/(:num)', 'Admin\Jurusan::delete/$1');
+
     // Data Sekolah - Siswa
     $routes->get('siswa', 'Admin\Siswa::index');
     $routes->get('siswa/create', 'Admin\Siswa::create');
@@ -59,6 +67,9 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('siswa/edit/(:num)', 'Admin\Siswa::edit/$1');
     $routes->post('siswa/update/(:num)', 'Admin\Siswa::update/$1');
     $routes->get('siswa/delete/(:num)', 'Admin\Siswa::delete/$1');
+    $routes->get('siswa/trash', 'Admin\Siswa::trash');
+    $routes->post('siswa/restore/(:num)', 'Admin\Siswa::restore/$1');
+    $routes->post('siswa/force-delete/(:num)', 'Admin\Siswa::forceDelete/$1');
 
     // Import Siswa Massal
     $routes->get('siswa/import', 'Admin\ImportSiswa::index');
@@ -260,14 +271,26 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->post('notifikasi/baca/(:num)', 'Admin\Notifikasi::baca/$1');
     $routes->post('notifikasi/baca-semua', 'Admin\Notifikasi::bacaSemua');
 
-    $routes->post('backup-database/create', 'Admin\BackupDatabase::create');
-    $routes->get('backup-database/download/(:segment)', 'Admin\BackupDatabase::download/$1');
-    $routes->post('backup-database/delete/(:segment)', 'Admin\BackupDatabase::delete/$1');
-
     $routes->get('user/create-admin', 'Admin\User::createAdmin');
     $routes->post('user/store-admin', 'Admin\User::storeAdmin');
     $routes->post('user/unlock/(:num)', 'Admin\User::unlock/$1');
     $routes->post('user/reset-password/(:num)', 'Admin\User::resetPassword/$1');
+
+    // BK - Artikel
+    $routes->get('bk-artikel', 'Admin\BkArtikel::index');
+    $routes->get('bk-artikel/create', 'Admin\BkArtikel::create');
+    $routes->post('bk-artikel/store', 'Admin\BkArtikel::store');
+    $routes->get('bk-artikel/edit/(:num)', 'Admin\BkArtikel::edit/$1');
+    $routes->post('bk-artikel/update/(:num)', 'Admin\BkArtikel::update/$1');
+    $routes->get('bk-artikel/delete/(:num)', 'Admin\BkArtikel::delete/$1');
+
+        // Unduhan (Pusat Download)
+    $routes->get('unduhan', 'Admin\Unduhan::index');
+    $routes->get('unduhan/create', 'Admin\Unduhan::create');
+    $routes->post('unduhan/store', 'Admin\Unduhan::store');
+    $routes->get('unduhan/edit/(:num)', 'Admin\Unduhan::edit/$1');
+    $routes->post('unduhan/update/(:num)', 'Admin\Unduhan::update/$1');
+    $routes->get('unduhan/delete/(:num)', 'Admin\Unduhan::delete/$1');
 });
 
 $routes->group('guru', ['filter' => 'roleAuth:Guru'], function ($routes) {
@@ -331,11 +354,11 @@ $routes->get('partner/detail/(:segment)', 'Partner::detail/$1');
 
 // Ppdb
 $routes->get('ppdb', 'Ppdb::index');
-$routes->post('ppdb/daftar', 'Ppdb::daftar');
+$routes->post('ppdb/daftar', 'Ppdb::daftar', ['filter' => 'throttle:ppdb,3,120']);
 
 // Kontak
 $routes->get('kontak', 'Kontak::index');
-$routes->post('kontak/kirim', 'Kontak::kirim');
+$routes->post('kontak/kirim', 'Kontak::kirim', ['filter' => 'throttle:kontak,3,60']);
 
 // Akademik - Guru & Staff
 $routes->get('akademik/guru', 'GuruPublik::index');
@@ -346,8 +369,22 @@ $routes->get('akademik/jadwal', 'JadwalPublik::index');
 // Akademik - Kalender Akademik
 $routes->get('akademik/kalender', 'KalenderAkademikPublik::index');
 
+// Akademik - Jurusan
+$routes->get('akademik/jurusan', 'JurusanPublik::index');
+$routes->get('akademik/jurusan/(:segment)', 'JurusanPublik::detail/$1');
+
 // Profil
 $routes->get('profil/sejarah', 'ProfilPublik::sejarah');
 $routes->get('profil/visi-misi', 'ProfilPublik::visiMisi');
 $routes->get('profil/struktur', 'ProfilPublik::struktur');
 $routes->get('profil/kepala-sekolah', 'ProfilPublik::kepalaSekolah');
+
+// BK - Layanan Bimbingan Konseling
+$routes->get('bk/kesehatan-mental', 'BkArtikelPublik::kesehatanMental');
+$routes->get('bk/karier', 'BkArtikelPublik::karier');
+$routes->get('bk/tes-minat', 'BkArtikelPublik::tesMinat');
+$routes->get('bk/artikel/(:segment)', 'BkArtikelPublik::detail/$1');
+
+// Unduhan (Pusat Download)
+$routes->get('unduhan', 'UnduhanPublik::index');
+$routes->get('unduhan/download/(:num)', 'UnduhanPublik::download/$1');

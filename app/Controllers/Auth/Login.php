@@ -39,16 +39,32 @@ class Login extends BaseController
 
         $user = $userModel->verifyCredentials($username, $password);
 
+        // Kasus khusus: password benar, tapi akun nonaktif -> JANGAN hitung sebagai percobaan gagal
+        if ($user === 'inactive') {
+            $auditLogModel->catat($calon['id_user'], $username, 'login_ditolak_nonaktif', 'Password benar, tapi akun berstatus nonaktif.');
+            return redirect()->back()->withInput()
+                ->with('errors', ['login' => 'Akun ini sudah tidak aktif. Silakan hubungi Admin.']);
+        }
+
         if (!$user) {
             if ($calon) {
-                $attempts = $calon['login_attempts'] + 1;
-                $update   = ['login_attempts' => $attempts];
+                // Increment atomik di level database — hindari race condition
+                // kalau ada beberapa request login gagal masuk bersamaan
+                $userModel->where('id_user', $calon['id_user'])
+                    ->set('login_attempts', 'login_attempts + 1', false)
+                    ->update();
+
+                // Ambil ulang nilai terbaru SETELAH increment atomik di atas
+                $calonTerbaru = $userModel->find($calon['id_user']);
+                $attempts     = $calonTerbaru['login_attempts'];
 
                 $auditLogModel->catat($calon['id_user'], $username, 'login_gagal', "Percobaan ke-{$attempts}.");
 
                 if ($attempts >= 5) {
-                    $update['locked_until']   = date('Y-m-d H:i:s', time() + 15 * MINUTE);
-                    $update['login_attempts'] = 0;
+                    $userModel->update($calon['id_user'], [
+                        'locked_until'   => date('Y-m-d H:i:s', time() + 15 * MINUTE),
+                        'login_attempts' => 0,
+                    ]);
                     $auditLogModel->catat($calon['id_user'], $username, 'akun_terkunci', 'Terkunci 15 menit setelah 5x gagal berturut-turut.');
 
                     (new \App\Models\NotifikasiModel())->buat(
@@ -59,12 +75,12 @@ class Login extends BaseController
                         '/admin/user'
                     );
                 }
-                $userModel->update($calon['id_user'], $update);
             }
 
             return redirect()->back()->withInput()
                 ->with('errors', ['login' => 'Username atau password salah, atau akun tidak aktif.']);
         }
+
 
         $userModel->update($user['id_user'], ['login_attempts' => 0, 'locked_until' => null]);
         $auditLogModel->catat($user['id_user'], $user['username'], 'login_sukses', '');
@@ -97,7 +113,7 @@ class Login extends BaseController
     public function gantipasswordsubmit()
     {
         $validation = $this->validate([
-            'password_baru'       => 'required|min_length[6]',
+            'password_baru' => 'required|strongPassword',
             'konfirmasi_password' => 'required|matches[password_baru]',
         ]);
 

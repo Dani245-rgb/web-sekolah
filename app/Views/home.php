@@ -120,7 +120,11 @@
                 <div class="galeri-grid">
                     <?php foreach ($galeri as $g): ?>
                         <a href="<?= base_url('galeri#' . $g['id']) ?>" class="galeri-item">
-                            <img src="<?= base_url('uploads/galeri/' . $g['foto']) ?>" alt="<?= esc($g['judul']) ?>">
+                            <?php if (!empty($g['foto'])): ?>
+                                <img src="<?= base_url('uploads/galeri/' . $g['foto']) ?>" alt="<?= esc($g['judul']) ?>">
+                            <?php else: ?>
+                                <div class="galeri-item-placeholder"><?= esc($g['judul']) ?></div>
+                            <?php endif; ?>
                         </a>
                     <?php endforeach; ?>
                     <?php if (empty($galeri)): ?>
@@ -137,7 +141,9 @@
                 <div class="ekskul-grid">
                     <?php foreach ($ekskul as $e): ?>
                         <a href="#" class="ekskul-item">
-                            <img src="<?= base_url('uploads/ekstrakurikuler/' . $e['foto']) ?>" alt="<?= esc($e['nama']) ?>" style="width:32px;height:32px;object-fit:cover;border-radius:6px;">
+                            <?php if (!empty($e['foto'])): ?>
+                                <img src="<?= base_url('uploads/ekstrakurikuler/' . $e['foto']) ?>" alt="<?= esc($e['nama']) ?>" style="width:32px;height:32px;object-fit:cover;border-radius:6px;">
+                            <?php endif; ?>
                             <span><?= esc($e['nama']) ?></span>
                         </a>
                     <?php endforeach; ?>
@@ -168,8 +174,12 @@
                 <?php foreach ($prestasi as $p): ?>
                     <div class="prestasi-card">
                         <div class="prestasi-card-img">
-                            <img src="<?= base_url('uploads/prestasi/' . $p['foto']) ?>"
-                                alt="<?= esc($p['judul']) ?>">
+                            <?php if (!empty($p['foto'])): ?>
+                                <img src="<?= base_url('uploads/prestasi/' . $p['foto']) ?>"
+                                    alt="<?= esc($p['judul']) ?>">
+                            <?php else: ?>
+                                <div class="galeri-item-placeholder"><?= esc($p['judul']) ?></div>
+                            <?php endif; ?>
                             <span class="prestasi-badge"><?= esc($p['tingkat']) ?></span>
                             <div class="prestasi-card-icon"><i class="bi bi-trophy-fill"></i></div>
                         </div>
@@ -199,10 +209,12 @@
                     <div class="partner-info-track">
                         <?php foreach ($partner as $p): ?>
                             <a href="<?= base_url('partner/detail/' . $p['slug']) ?>" class="partner-info-card">
-                                <img src="<?= base_url('uploads/partner/' . $p['foto']) ?>" alt="<?= esc($p['nama']) ?>">
+                                <?php if (!empty($p['foto'])): ?>
+                                    <img src="<?= base_url('uploads/partner/' . $p['foto']) ?>" alt="<?= esc($p['nama']) ?>">
+                                <?php endif; ?>
                                 <div class="partner-info-body">
                                     <h4><?= esc($p['nama']) ?></h4>
-                                    <p><?= esc(character_limiter($p['deskripsi'], 100)) ?></p>
+                                    <p><?= esc(character_limiter($p['deskripsi'] ?? '', 100)) ?></p>
                                 </div>
                             </a>
                         <?php endforeach; ?>
@@ -210,10 +222,12 @@
                         ?>
                         <?php foreach ($partner as $p): ?>
                             <a href="<?= base_url('partner/detail/' . $p['slug']) ?>" class="partner-info-card" aria-hidden="true" tabindex="-1">
-                                <img src="<?= base_url('uploads/partner/' . $p['foto']) ?>" alt="">
+                                <?php if (!empty($p['foto'])): ?>
+                                    <img src="<?= base_url('uploads/partner/' . $p['foto']) ?>" alt="">
+                                <?php endif; ?>
                                 <div class="partner-info-body">
                                     <h4><?= esc($p['nama']) ?></h4>
-                                    <p><?= esc(character_limiter($p['deskripsi'], 100)) ?></p>
+                                    <p><?= esc(character_limiter($p['deskripsi'] ?? '', 100)) ?></p>
                                 </div>
                             </a>
                         <?php endforeach; ?>

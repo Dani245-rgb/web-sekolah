@@ -9,7 +9,11 @@
             <h2>Hubungi Kami</h2>
         </div>
 
-        <?php if (session()->getFlashdata('success')): ?>
+        <?php
+
+        use Config\Honeypot;
+
+        if (session()->getFlashdata('success')): ?>
             <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
         <?php endif; ?>
 

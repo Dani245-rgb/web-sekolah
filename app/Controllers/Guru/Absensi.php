@@ -15,16 +15,33 @@ use App\Libraries\WhatsappService;
 
 class Absensi extends BaseController
 {
+    /**
+     * Ambil data guru yang sedang login.
+     * Melempar RuntimeException kalau data guru tidak ditemukan
+     * (misal akun user ada tapi data guru sudah terhapus).
+     */
     protected function getGuruLogin()
     {
-        $userId = session()->get('id_user');
+        $userId    = session()->get('id_user');
         $guruModel = new GuruModel();
-        return $guruModel->where('user_id', $userId)->first();
+        $guru      = $guruModel->where('user_id', $userId)->first();
+
+        if (!$guru) {
+            throw new \RuntimeException('DATA_GURU_TIDAK_DITEMUKAN');
+        }
+
+        return $guru;
     }
 
     public function form($idJadwal)
     {
-        $guru = $this->getGuruLogin();
+        try {
+            $guru = $this->getGuruLogin();
+        } catch (\RuntimeException $e) {
+            return redirect()->to('/logout')
+                ->with('errors', ['akun' => 'Data guru Anda tidak ditemukan. Silakan hubungi Admin.']);
+        }
+
         $jadwalModel = new JadwalModel();
         $jadwal = $jadwalModel->select('jadwal.*, kelas.nama_kelas, mapel.nama_mapel')
             ->join('kelas', 'kelas.id_kelas = jadwal.id_kelas')
@@ -68,7 +85,13 @@ class Absensi extends BaseController
 
     public function simpan()
     {
-        $guru = $this->getGuruLogin();
+        try {
+            $guru = $this->getGuruLogin();
+        } catch (\RuntimeException $e) {
+            return redirect()->to('/logout')
+                ->with('errors', ['akun' => 'Data guru Anda tidak ditemukan. Silakan hubungi Admin.']);
+        }
+
         $idJadwal = $this->request->getPost('id_jadwal');
         $tanggal  = $this->request->getPost('tanggal');
         $statusArr = $this->request->getPost('status');
@@ -151,7 +174,7 @@ class Absensi extends BaseController
             . "|Hadir:{$rekap['Hadir']}|Izin:{$rekap['Izin']}|Sakit:{$rekap['Sakit']}|Alfa:{$rekap['Alfa']}"
             . "|TidakHadir:" . (empty($tidakHadir) ? '-' : implode(', ', $tidakHadir));
 
-       $auditLogModel = new AuditLogModel();
+        $auditLogModel = new AuditLogModel();
         $auditLogModel->catat(
             session()->get('id_user'),
             $guru['nama'],
@@ -210,7 +233,13 @@ class Absensi extends BaseController
      */
     public function riwayat($idJadwal)
     {
-        $guru = $this->getGuruLogin();
+        try {
+            $guru = $this->getGuruLogin();
+        } catch (\RuntimeException $e) {
+            return redirect()->to('/logout')
+                ->with('errors', ['akun' => 'Data guru Anda tidak ditemukan. Silakan hubungi Admin.']);
+        }
+
         $jadwalModel = new JadwalModel();
         $jadwal = $jadwalModel->select('jadwal.*, kelas.nama_kelas, mapel.nama_mapel')
             ->join('kelas', 'kelas.id_kelas = jadwal.id_kelas')

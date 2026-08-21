@@ -66,6 +66,24 @@ body {
     color: #cfd6e0;
     padding: 20px 0;
     flex-shrink: 0;
+    transition: width 0.25s ease;
+    overflow: hidden;
+}
+
+.sidebar.collapsed {
+    width: 64px;
+}
+
+.sidebar.collapsed a span.label {
+    display: none;
+}
+
+.btn-toggle-sidebar {
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #333;
 }
 
 .sidebar a {
@@ -76,6 +94,7 @@ body {
     color: #cfd6e0;
     text-decoration: none;
     font-size: 14px;
+    white-space: nowrap;
 }
 
 .sidebar a:hover,
@@ -140,6 +159,18 @@ body {
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 20px;
+}
+
+/* BARU: dipakai untuk section yang cuma punya 1 card,
+   supaya card-nya full-width, bukan setengah seperti .grid-2 */
+.grid-1 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.grid-1.mt {
+    margin-top: 16px;
 }
 
 .grid-2 {

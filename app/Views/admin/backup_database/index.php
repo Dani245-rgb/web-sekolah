@@ -30,24 +30,46 @@
     </thead>
     <tbody>
         <?php foreach ($backups as $b): ?>
-        <tr>
-            <td><?= esc($b['nama']) ?></td>
-            <td><?= esc($b['ukuran']) ?></td>
-            <td><?= esc($b['tanggal']) ?></td>
-            <td class="d-flex gap-2" style="flex-wrap:wrap;">
-                <a href="<?= base_url('admin/backup-database/download/' . $b['nama']) ?>" class="btn btn-sm btn-outline-primary">Download</a>
-                <form action="<?= base_url('admin/backup-database/delete/' . $b['nama']) ?>" method="post" onsubmit="return confirm('Hapus file backup ini?');">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
-                </form>
-            </td>
-        </tr>
+            <tr>
+                <td><?= esc($b['nama']) ?></td>
+                <td><?= esc($b['ukuran']) ?></td>
+                <td><?= esc($b['tanggal']) ?></td>
+                <td class="d-flex gap-2" style="flex-wrap:wrap;">
+                    <a href="<?= base_url('admin/backup-database/download/' . $b['nama']) ?>" class="btn btn-sm btn-outline-primary">Download</a>
+                    <form action="<?= base_url('admin/backup-database/delete/' . $b['nama']) ?>" method="post"
+                        onsubmit="return konfirmasiHapusBackup(this, '<?= esc($b['nama'], 'js') ?>')">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                    </form>
+                </td>
+            </tr>
         <?php endforeach; ?>
 
         <?php if (empty($backups)): ?>
-        <tr><td colspan="4" class="text-muted">Belum ada backup.</td></tr>
+            <tr>
+                <td colspan="4" class="text-muted">Belum ada backup.</td>
+            </tr>
         <?php endif; ?>
     </tbody>
 </table>
+
+<script>
+    function konfirmasiHapusBackup(form, namaFile) {
+        const ketik = prompt(
+            `PERINGATAN: File backup "${namaFile}" akan dihapus PERMANEN dan tidak bisa dikembalikan.\n\nKetik ulang nama file persis "${namaFile}" untuk melanjutkan:`
+        );
+
+        if (ketik === null) {
+            return false;
+        }
+
+        if (ketik.trim() !== namaFile) {
+            alert('Nama file yang diketik tidak cocok. Penghapusan dibatalkan.');
+            return false;
+        }
+
+        return true;
+    }
+</script>
 
 <?= $this->endSection() ?>

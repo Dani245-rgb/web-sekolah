@@ -115,8 +115,17 @@ class Mutasi extends BaseController
             return redirect()->to('/admin/mutasi')->with('errors', ['404' => 'Data tidak ditemukan.']);
         }
 
+        $db = \Config\Database::connect();
+        $db->transStart();
+
         $this->siswaModel->update($mutasi['id_siswa'], ['status' => 'Aktif']);
         $this->mutasiModel->delete($idMutasi);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->to('/admin/mutasi')->with('errors', ['gagal' => 'Terjadi kesalahan, pembatalan mutasi gagal.']);
+        }
 
         return redirect()->to('/admin/mutasi')->with('success', 'Mutasi dibatalkan, siswa kembali Aktif.');
     }

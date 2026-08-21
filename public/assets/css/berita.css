@@ -47,21 +47,25 @@
 }
 
 .btn-outline-primary {
-    background: #fff;
-    color: #2563eb;
-    border-color: #2563eb;
+    background: #f59e0b;
+    color: #fff;
+    border: 1px solid #f59e0b;
 }
 .btn-outline-primary:hover {
-    background: #eff6ff;
+    background: #d97706;
+    border-color: #d97706;
+    color: #fff;
 }
 
 .btn-outline-danger {
-    background: #fff;
-    color: #dc2626;
-    border-color: #dc2626;
+    background: #ef4444;
+    color: #fff;
+    border: 1px solid #ef4444;
 }
 .btn-outline-danger:hover {
-    background: #fef2f2;
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
 }
 
 .btn-sm {

@@ -9,12 +9,23 @@ class Nilai extends BaseController
 {
     public function index()
     {
-        $id_siswa      = session()->get('id_siswa'); // TODO: sesuaikan cara ambil id_siswa yang login
+        $idUser = session()->get('id_user');
+
+        $db = \Config\Database::connect();
+
+        // Cari data siswa berdasarkan user_id yang sedang login
+        $siswa = $db->table('siswa')->where('user_id', $idUser)->get()->getRowArray();
+
+        if (!$siswa) {
+            return redirect()->to('/siswa/dashboard')
+                ->with('errors', ['nilai' => 'Data siswa tidak ditemukan. Silakan hubungi Admin.']);
+        }
+
+        $id_siswa = $siswa['id_siswa'];
+
         $semesterModel = new SemesterModel();
         $semesterAktif = $semesterModel->where('status', 'Aktif')->first();
 
-        // TODO: sesuaikan nama tabel pivot kelas_siswa & kolom nama_mapel
-        $db = \Config\Database::connect();
         $pengaturanList = $db->table('pengaturan_nilai pn')
             ->select('pn.*, mapel.nama_mapel')
             ->join('mapel', 'mapel.id_mapel = pn.id_mapel')

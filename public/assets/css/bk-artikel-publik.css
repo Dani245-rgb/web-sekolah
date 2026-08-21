@@ -1,0 +1,65 @@
+.bk-artikel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.bk-artikel-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bk-artikel-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
+.bk-artikel-card-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+}
+
+.bk-artikel-card-img-kosong {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    color: #94a3b8;
+    font-size: 32px;
+}
+
+.bk-artikel-card-body {
+    padding: 16px;
+}
+
+.bk-artikel-card-body h3 {
+    font-size: 16px;
+    margin: 0 0 8px;
+    color: #0f172a;
+}
+
+.bk-artikel-card-body p {
+    font-size: 13.5px;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.bk-artikel-deadline {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 12.5px;
+    color: #b45309;
+    background: #fef3c7;
+    padding: 4px 10px;
+    border-radius: 12px;
+}

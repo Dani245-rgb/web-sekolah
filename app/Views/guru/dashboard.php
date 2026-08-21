@@ -28,7 +28,10 @@
     </div>
 </div>
 
-<div class="grid-2">
+<!-- DIUBAH: dari class="grid-2" jadi class="grid-1" karena section ini
+     cuma berisi 1 card. Dengan grid-2 (yang selalu 2 kolom), card jadwal
+     hanya mengisi kolom pertama dan menyisakan ruang kosong di kanan. -->
+<div class="grid-1">
     <div class="card-widget">
         <h4 style="margin-bottom:10px;">Jadwal Mengajar Hari Ini</h4>
      <?php foreach ($jadwalHariIni as $j): ?>

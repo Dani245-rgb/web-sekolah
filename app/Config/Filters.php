@@ -35,6 +35,7 @@ public array $aliases = [
     'pagecache'          => PageCache::class,
     'performance'        => PerformanceMetrics::class,
     'roleAuth'           => \App\Filters\RoleFilter::class,
+    'throttle'           => \App\Filters\ThrottleFilter::class,
     'mustchangepassword' => \App\Filters\MustChangePassword::class,
     'sessiontimeout'     => \App\Filters\SessionTimeout::class,
     'auth'               => \App\Filters\AuthFilter::class,
@@ -76,15 +77,15 @@ public array $aliases = [
      */
     public array $globals = [
         'before' => [
-            // 'honeypot',
-            // 'csrf',
-            // 'invalidchars',
+             'honeypot',
+             'csrf',
+             'invalidchars',
             'sessiontimeout',
             'mustchangepassword',
         ],
         'after' => [
-            // 'honeypot',
-            // 'secureheaders',
+            'honeypot',
+            'secureheaders',
             'mustchangepassword',
         ],
     ];

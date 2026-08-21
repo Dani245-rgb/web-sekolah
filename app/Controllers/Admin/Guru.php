@@ -47,7 +47,7 @@ class Guru extends BaseController
     {
         $rules = [
             'username'      => 'required|min_length[4]|is_unique[users.username]',
-            'password'      => 'required|min_length[6]',
+            'password'      => 'required|strongPassword',
             'nip'           => 'required|is_unique[guru.nip]',
             'nama'          => 'required|min_length[3]',
             'jenis_kelamin' => 'required|in_list[L,P]',
@@ -71,11 +71,19 @@ class Guru extends BaseController
         $db->transStart();
 
         $userId = $this->userModel->insert([
-            'username' => $this->request->getPost('username'),
-            'password' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
-            'role_id'  => 2,
-            'status'   => 'Aktif',
+            'username'             => $this->request->getPost('username'),
+            'password'             => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
+            'role_id'              => 2,
+            'status'               => 'Aktif',
+            'must_change_password' => true,
         ]);
+
+        if (!$userId) {
+            $db->transRollback();
+            $errors = $this->userModel->errors();
+            $pesanError = $errors ? implode('; ', $errors) : 'Gagal membuat akun user.';
+            return redirect()->back()->withInput()->with('errors', ['user' => $pesanError]);
+        }
 
         $this->guruModel->skipValidation(true)->insert([
             'user_id'       => $userId,

@@ -20,6 +20,12 @@ class Kontak extends BaseController
 
     public function kirim()
     {
+        $throttler = \Config\Services::throttler();
+        if ($throttler->check(md5($this->request->getIPAddress()), 3, 600) === false) {
+            return redirect()->back()->withInput()
+                ->with('errors', ['limit' => 'Terlalu banyak percobaan pengiriman pesan. Silakan coba lagi dalam beberapa menit.']);
+        }
+
         $rules = [
             'nama'  => 'required|min_length[3]|max_length[255]',
             'email' => 'required|valid_email',

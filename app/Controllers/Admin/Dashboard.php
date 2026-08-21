@@ -34,8 +34,8 @@ class Dashboard extends BaseController
         $totalSiswaAktif = $siswaModel->where('status', 'Aktif')->countAllResults();
         $totalGuru       = $guruModel->countAllResults();
         $totalKelas      = $kelasModel->where('status', 'Aktif')
-                                       ->where('id_tahun_ajaran', $idTahunAktif)
-                                       ->countAllResults();
+            ->where('id_tahun_ajaran', $idTahunAktif)
+            ->countAllResults();
         $totalMapel      = $mapelModel->where('status', 'Aktif')->countAllResults();
 
         // Siswa baru per tahun ajaran
@@ -64,7 +64,7 @@ class Dashboard extends BaseController
         // Siswa aktif per jurusan
         $perJurusanRaw = $db->table('siswa')
             ->select('kelas.jurusan, COUNT(*) as jumlah')
-            ->join('kelas_siswa', "kelas_siswa.id_siswa = siswa.id_siswa AND kelas_siswa.id_tahun_ajaran = {$idTahunAktif}")
+            ->join('kelas_siswa', 'kelas_siswa.id_siswa = siswa.id_siswa AND kelas_siswa.id_tahun_ajaran = ' . (int) $idTahunAktif)
             ->join('kelas', 'kelas.id_kelas = kelas_siswa.id_kelas')
             ->where('siswa.status', 'Aktif')
             ->groupBy('kelas.jurusan')

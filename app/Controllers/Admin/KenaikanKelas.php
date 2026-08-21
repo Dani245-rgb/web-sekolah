@@ -45,49 +45,66 @@ class KenaikanKelas extends BaseController
     /**
      * Proses kenaikan kelas massal.
      */
-    public function proses()
-    {
-        $idSiswaArr        = $this->request->getPost('id_siswa'); // array checkbox
-        $idKelasTujuan      = $this->request->getPost('id_kelas_tujuan');
-        $idTahunAjaranTujuan = $this->request->getPost('id_tahun_ajaran_tujuan');
+  public function proses()
+{
+    $idSiswaArr          = $this->request->getPost('id_siswa'); // array checkbox
+    $idKelasTujuan       = $this->request->getPost('id_kelas_tujuan');
+    $idTahunAjaranTujuan = $this->request->getPost('id_tahun_ajaran_tujuan');
 
-        if (empty($idSiswaArr) || !is_array($idSiswaArr) || empty($idKelasTujuan) || empty($idTahunAjaranTujuan)) {
-            return redirect()->back()->with('errors', ['pilih' => 'Pilih kelas tujuan, tahun ajaran tujuan, dan minimal 1 siswa.']);
-        }
-
-        $db = \Config\Database::connect();
-        $db->transStart();
-
-        $gagal = [];
-        foreach ($idSiswaArr as $idSiswa) {
-            $sudahAda = $this->kelasSiswaModel
-                ->where('id_siswa', $idSiswa)
-                ->where('id_tahun_ajaran', $idTahunAjaranTujuan)
-                ->countAllResults();
-
-            if ($sudahAda > 0) {
-                $gagal[] = $idSiswa;
-                continue;
-            }
-
-            $this->kelasSiswaModel->insert([
-                'id_kelas'        => $idKelasTujuan,
-                'id_siswa'        => $idSiswa,
-                'id_tahun_ajaran' => $idTahunAjaranTujuan,
-            ]);
-        }
-
-        $db->transComplete();
-
-        if ($db->transStatus() === false) {
-            return redirect()->back()->with('errors', ['gagal' => 'Terjadi kesalahan, proses dibatalkan.']);
-        }
-
-        $pesan = count($idSiswaArr) - count($gagal) . ' siswa berhasil naik kelas.';
-        if (!empty($gagal)) {
-            $pesan .= ' (' . count($gagal) . ' siswa dilewati karena sudah punya kelas di tahun ajaran tujuan.)';
-        }
-
-        return redirect()->to('/admin/kenaikan-kelas/form')->with('success', $pesan);
+    if (empty($idSiswaArr) || !is_array($idSiswaArr) || empty($idKelasTujuan) || empty($idTahunAjaranTujuan)) {
+        return redirect()->back()->with('errors', ['pilih' => 'Pilih kelas tujuan, tahun ajaran tujuan, dan minimal 1 siswa.']);
     }
+
+    $kelasTujuanValid = $this->kelasModel->find($idKelasTujuan);
+    if (!$kelasTujuanValid) {
+        return redirect()->back()->with('errors', ['pilih' => 'Kelas tujuan tidak valid.']);
+    }
+
+    $tahunAjaranTujuanValid = $this->tahunAjaranModel->find($idTahunAjaranTujuan);
+    if (!$tahunAjaranTujuanValid) {
+        return redirect()->back()->with('errors', ['pilih' => 'Tahun ajaran tujuan tidak valid.']);
+    }
+
+    $db = \Config\Database::connect();
+    $db->transStart();
+
+    $sudahTerdaftar = $this->kelasSiswaModel
+        ->select('id_siswa')
+        ->whereIn('id_siswa', $idSiswaArr)
+        ->where('id_tahun_ajaran', $idTahunAjaranTujuan)
+        ->findColumn('id_siswa') ?? [];
+
+    $gagal = [];
+    foreach ($idSiswaArr as $idSiswa) {
+        if (in_array($idSiswa, $sudahTerdaftar)) {
+            $gagal[] = $idSiswa;
+            continue;
+        }
+
+        $idInsert = $this->kelasSiswaModel->insert([
+            'id_kelas'        => $idKelasTujuan,
+            'id_siswa'        => $idSiswa,
+            'id_tahun_ajaran' => $idTahunAjaranTujuan,
+        ]);
+
+        if (!$idInsert) {
+            $gagal[] = $idSiswa;
+            continue;
+        }
+    }
+
+    $db->transComplete();
+
+    if ($db->transStatus() === false) {
+        return redirect()->back()->with('errors', ['gagal' => 'Terjadi kesalahan, proses dibatalkan.']);
+    }
+
+    $pesan = count($idSiswaArr) - count($gagal) . ' siswa berhasil naik kelas.';
+    if (!empty($gagal)) {
+        $pesan .= ' (' . count($gagal) . ' siswa dilewati karena sudah punya kelas di tahun ajaran tujuan.)';
+    }
+
+    return redirect()->to('/admin/kenaikan-kelas/form')->with('success', $pesan);
+    }   
+
 }

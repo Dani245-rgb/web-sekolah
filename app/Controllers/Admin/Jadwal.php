@@ -275,10 +275,19 @@ class Jadwal extends BaseController
         $hasil  = $this->parseDanValidasi($path);
         $sukses = 0;
 
+        $db = \Config\Database::connect();
+        $db->transStart();
+
         foreach ($hasil as $baris) {
             if (!$baris['valid']) continue;
             $this->jadwalModel->insert($baris['data']);
             $sukses++;
+        }
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->to('/admin/jadwal/import')->with('errors', ['gagal' => 'Terjadi kesalahan saat menyimpan, import dibatalkan. Silakan coba lagi.']);
         }
 
         unlink($path); // hapus file temp setelah selesai

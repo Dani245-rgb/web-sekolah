@@ -23,7 +23,7 @@
             </div>
         <?php endif; ?>
 
-      <form action="<?= base_url('ppdb/daftar') ?>" method="post" class="ppdb-form">
+        <form action="<?= base_url('ppdb/daftar') ?>" method="post" class="ppdb-form">
             <?= csrf_field() ?>
 
             <div class="ppdb-grid">
@@ -82,12 +82,20 @@
                 </div>
             </div>
 
-            <button type="submit" class="ppdb-submit">
+            <button type="submit" class="ppdb-submit" id="btnSubmitPpdb">
                 <i class="bi bi-send"></i> Kirim Pendaftaran
             </button>
         </form>
 
     </div>
 </main>
+
+<script>
+document.querySelector('.ppdb-form').addEventListener('submit', function () {
+    const btn = document.getElementById('btnSubmitPpdb');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Mengirim...';
+});
+</script>
 
 <?= $this->endSection() ?>
