@@ -1,14 +1,14 @@
 <aside class="sidebar">
 
     <!-- Widget Informasi Sekolah (ganti dari Pengumuman) -->
-   <div class="widget-info">
+    <div class="widget-info">
         <div class="widget-info-header">
             <i class="bi bi-megaphone-fill"></i>
             <h3>Informasi Sekolah</h3>
         </div>
 
         <ul class="info-list">
-            <?php foreach ($informasi as $i): ?>
+            <?php foreach (($informasi ?? []) as $i): ?>
                 <li>
                     <a href="<?= base_url('pengumuman/' . $i['slug']) ?>">
                         <span class="info-icon"><i class="bi bi-file-earmark-text"></i></span>

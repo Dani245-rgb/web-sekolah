@@ -6,6 +6,8 @@ use App\Controllers\BaseController;
 use App\Models\GuruModel;
 use App\Models\JadwalModel;
 use App\Models\AbsensiJadwalModel;
+use App\Models\TugasModel;
+use App\Models\MateriModel;
 
 class Dashboard extends BaseController
 {
@@ -22,14 +24,19 @@ class Dashboard extends BaseController
 
         $hariIni = date('l');
         $hariMap = [
-            'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
-            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu',
+            'Monday' => 'Senin',
+            'Tuesday' => 'Selasa',
+            'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis',
+            'Friday' => 'Jumat',
+            'Saturday' => 'Sabtu',
+            'Sunday' => 'Minggu',
         ];
         $hariIni = $hariMap[$hariIni] ?? $hariIni;
         $tanggalHariIni = date('Y-m-d');
 
         $jadwalModel = new JadwalModel();
-        $jadwalRaw = $jadwalModel->select('jadwal.*, kelas.nama_kelas, mapel.nama_mapel')
+        $jadwalRaw = $jadwalModel->select('jadwal.*, kelas.nama_kelas, mapel.nama_mapel, mapel.ada_nilai')
             ->join('kelas', 'kelas.id_kelas = jadwal.id_kelas')
             ->join('mapel', 'mapel.id_mapel = jadwal.id_mapel')
             ->where('jadwal.id_guru', $guru['id_guru'])
@@ -53,8 +60,26 @@ class Dashboard extends BaseController
                 'kelas'       => $j['nama_kelas'],
                 'nama_mapel'  => $j['nama_mapel'],
                 'sudah_absen' => $sudahAbsen ? true : false,
+                'ada_nilai'   => ($j['ada_nilai'] ?? 'Ya') === 'Ya',
             ];
         }
+
+        // Tugas terbaru (3 tugas terakhir yang dibuat guru ini)
+        $tugasModel = new TugasModel();
+        $tugasTerbaru = $tugasModel->getByGuru($guru['id_guru']);
+        $tugasTerbaru = array_slice($tugasTerbaru, 0, 3);
+
+        // Materi terbaru (3 materi terakhir yang diunggah guru ini)
+        $materiModel = new MateriModel();
+        $materiTerbaru = $materiModel->getByGuru($guru['id_guru']);
+        $materiTerbaru = array_slice($materiTerbaru, 0, 3);
+
+        // Jumlah kelas+mapel yang diajar (buat quick link ke Data Kelas)
+        $jumlahKelasDiajar = $jadwalModel
+            ->select('id_kelas, id_mapel')
+            ->where('id_guru', $guru['id_guru'])
+            ->groupBy('id_kelas, id_mapel')
+            ->countAllResults();
 
         $data['guru'] = $guru;
         $data['ringkasan'] = [
@@ -63,8 +88,11 @@ class Dashboard extends BaseController
             'absensi_belum'    => $absensiBelum,
             'pengumuman_baru'  => 0, // TODO: isi setelah modul Pengumuman dibuat
         ];
-        $data['jadwalHariIni'] = $jadwalHariIni;
-        $data['pengumumanTerbaru'] = []; // TODO: isi setelah modul Pengumuman dibuat
+        $data['jadwalHariIni']      = $jadwalHariIni;
+        $data['pengumumanTerbaru']  = []; // TODO: isi setelah modul Pengumuman dibuat
+        $data['tugasTerbaru']       = $tugasTerbaru;
+        $data['materiTerbaru']      = $materiTerbaru;
+        $data['jumlahKelasDiajar']  = $jumlahKelasDiajar;
 
         return view('guru/dashboard', $data);
     }

@@ -11,10 +11,10 @@
                 </div>
                 <p>Mencetak lulusan yang kompeten, berakhlak mulia, dan siap kerja.</p>
                 <div class="footer-social">
-                    <a href="#"><i class="bi bi-facebook"></i></a>
-                    <a href="#"><i class="bi bi-instagram"></i></a>
-                    <a href="#"><i class="bi bi-tiktok"></i></a>
-                    <a href="#"><i class="bi bi-youtube"></i></a>
+                    <a href="https://www.facebook.com/smk.attaufiqiyyah.baros/?locale=id_ID" target="_blank" rel="noopener noreferrer"><i class="bi bi-facebook"></i></a>
+                    <a href="https://www.instagram.com/smk_attaufiqiyyah_official/" target="_blank" rel="noopener noreferrer"><i class="bi bi-instagram"></i></a>
+                    <a href="https://www.tiktok.com/discover/smk-attaufiqiyyah-baros" target="_blank" rel="noopener noreferrer"><i class="bi bi-tiktok"></i></a>
+                    <a href="https://www.youtube.com/channel/UCRNn-8mnh7xsrHoLZH9-dRQ" target="_blank" rel="noopener noreferrer"><i class="bi bi-youtube"></i></a>
                 </div>
             </div>
 
@@ -40,9 +40,9 @@
 
             <div class="footer-item">
                 <h3>Kontak</h3>
-                <p>Jl. Contoh No. 123, Kec. Contoh<br>
-                    (021) 1234-5678<br>
-                    info@smkattaufiqiyyah.sch.id</p>
+                <p>Jl. Raya Serang-Pandeglang KM 14, Baros, Kabupaten Serang, Banten<br>
+                    (0254) 251411<br>
+                    smksmaattaufiqiyyah@gmail.com</p>
             </div>
         </div>
 

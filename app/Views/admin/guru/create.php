@@ -8,11 +8,11 @@
 </div>
 
 <?php if (session()->getFlashdata('errors')): ?>
-<div class="alert alert-error">
-    <?php foreach (session()->getFlashdata('errors') as $error): ?>
-    <div><?= esc($error) ?></div>
-    <?php endforeach; ?>
-</div>
+    <div class="alert alert-error">
+        <?php foreach (session()->getFlashdata('errors') as $error): ?>
+            <div><?= esc($error) ?></div>
+        <?php endforeach; ?>
+    </div>
 <?php endif; ?>
 
 <div class="card">
@@ -72,9 +72,23 @@
             </div>
 
             <div class="form-group">
-                <label>Jabatan</label>
-                <input type="text" name="jabatan" placeholder="Guru Mapel / Wali Kelas / Kepsek"
-                    value="<?= old('jabatan') ?>">
+                <label>Jabatan / Mengajar Mapel</label>
+                <select name="jabatan">
+                    <option value="">-- Pilih --</option>
+                    <?php $kelompokTerakhir = null; ?>
+                    <?php foreach ($mapelList as $m): ?>
+                        <?php if ($m['kelompok_mapel'] !== $kelompokTerakhir): ?>
+                            <?php if ($kelompokTerakhir !== null): ?></optgroup><?php endif; ?>
+                            <optgroup label="<?= esc($m['kelompok_mapel'] ?: 'Lainnya') ?>">
+                                <?php $kelompokTerakhir = $m['kelompok_mapel']; ?>
+                            <?php endif; ?>
+                            <option value="<?= esc($m['nama_mapel']) ?>" <?= old('jabatan') === $m['nama_mapel'] ? 'selected' : '' ?>>
+                                <?= esc($m['nama_mapel']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                        <?php if ($kelompokTerakhir !== null): ?>
+                            </optgroup><?php endif; ?>
+                </select>
             </div>
 
             <div class="form-group">

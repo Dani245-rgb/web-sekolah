@@ -1,3 +1,7 @@
+.kenaikan-kelas-intro {
+    align-items: flex-start;
+}
+
 .kenaikan-kelas-intro p {
     margin-bottom: 12px;
     line-height: 1.6;
@@ -23,4 +27,5 @@
 
 .kenaikan-kelas-intro .btn {
     margin-top: 8px;
+    align-self: flex-start;
 }

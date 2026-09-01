@@ -1,22 +1,22 @@
 // bagian header
 const headerImages = [
-    `${BASE_URL}/assets/images/hero_header/header1.jpg`,
-    `${BASE_URL}/assets/images/hero_header/header2.jpg`,
-    `${BASE_URL}/assets/images/hero_header/header3.jpg`,
+  `${BASE_URL}/assets/images/hero_header/header1.jpg`,
+  `${BASE_URL}/assets/images/hero_header/header2.jpg`,
+  `${BASE_URL}/assets/images/hero_header/header3.jpg`,
 ];
 
 const headerBg = document.getElementById("header-bg");
 
 if (headerBg) {
-    const randomImage = headerImages[Math.floor(Math.random() * headerImages.length)];
-    headerBg.src = randomImage;
+  const randomImage =
+    headerImages[Math.floor(Math.random() * headerImages.length)];
+  headerBg.src = randomImage;
 }
 
 // unutk tombol src
-document.querySelector('.search-box button').addEventListener('click', () => {
-  document.querySelector('.search-box').classList.toggle('active');
+document.querySelector(".search-box button").addEventListener("click", () => {
+  document.querySelector(".search-box").classList.toggle("active");
 });
-
 
 // Widget tab berita: Terbaru / Populer / Trending
 document.addEventListener("DOMContentLoaded", function () {
@@ -39,28 +39,67 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-
 // tombol scroll up
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const group = btn.closest('.berita-tabs');
-        group.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        group.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        btn.classList.add('active');
-        group.querySelector('#' + btn.dataset.tab).classList.add('active');
-    });
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const group = btn.closest(".berita-tabs");
+    group
+      .querySelectorAll(".tab-btn")
+      .forEach((b) => b.classList.remove("active"));
+    group
+      .querySelectorAll(".tab-content")
+      .forEach((c) => c.classList.remove("active"));
+    btn.classList.add("active");
+    group.querySelector("#" + btn.dataset.tab).classList.add("active");
+  });
 });
 
-const btnTop = document.getElementById('btnTop');
+const btnTop = document.getElementById("btnTop");
 
-window.addEventListener('scroll', () => {
+if (btnTop) {
+  window.addEventListener("scroll", () => {
     if (window.scrollY > 300) {
-        btnTop.classList.add('show');
+      btnTop.classList.add("show");
     } else {
-        btnTop.classList.remove('show');
+      btnTop.classList.remove("show");
     }
-});
+  });
 
-btnTop.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-});
+  btnTop.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
+// Contextual navbar — sembunyi saat scroll ke bawah, muncul saat scroll ke atas
+(function () {
+  const navbar = document.querySelector('.navbar');
+  if (!navbar) return;
+
+  let lastScrollY = window.scrollY;
+  let ticking = false;
+  const threshold = 80; // jangan react di area paling atas halaman
+
+  function onScroll() {
+    const currentScrollY = window.scrollY;
+
+    if (currentScrollY < threshold) {
+      navbar.classList.remove('nav-hidden');
+    } else if (currentScrollY > lastScrollY) {
+      // scroll ke bawah
+      navbar.classList.add('nav-hidden');
+    } else {
+      // scroll ke atas
+      navbar.classList.remove('nav-hidden');
+    }
+
+    lastScrollY = currentScrollY;
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(onScroll);
+      ticking = true;
+    }
+  });
+})();

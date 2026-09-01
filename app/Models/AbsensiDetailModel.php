@@ -48,4 +48,15 @@ class AbsensiDetailModel extends Model
         }
         return $rekap;
     }
+
+    public function getMatrixByJadwal($idJadwal, array $tanggalList)
+    {
+        if (empty($tanggalList)) return [];
+
+        return $this->select('absensi_detail.id_siswa, absensi_detail.status, absensi_jadwal.tanggal')
+            ->join('absensi_jadwal', 'absensi_jadwal.id_absensi_jadwal = absensi_detail.id_absensi_jadwal')
+            ->where('absensi_jadwal.id_jadwal', $idJadwal)
+            ->whereIn('absensi_jadwal.tanggal', $tanggalList)
+            ->findAll();
+    }
 }

@@ -43,104 +43,109 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
             <nav class="sidebar-menu">
                 <a href="<?= base_url('admin/dashboard') ?>"
                     class="<?= uri_string() === 'admin/dashboard' ? 'active' : '' ?>">
-                    <i class="bi bi-house-door"></i> Dashboard
+                    <i class="bi bi-house-door"></i> <span class="label">Dashboard</span>
                 </a>
 
                 <p class="menu-label">DATA SEKOLAH</p>
                 <a href="<?= base_url('admin/siswa') ?>"
-                    class="<?= strpos(uri_string(), 'admin/siswa') === 0 ? 'active' : '' ?>"><i class="bi bi-people"></i> Siswa</a>
+                    class="<?= strpos(uri_string(), 'admin/siswa') === 0 ? 'active' : '' ?>"><i class="bi bi-people"></i> <span class="label">Siswa</span></a>
                 <a href="<?= base_url('admin/guru') ?>"
-                    class="<?= strpos(uri_string(), 'admin/guru') === 0 ? 'active' : '' ?>"><i class="bi bi-person-badge"></i> Guru</a>
+                    class="<?= strpos(uri_string(), 'admin/guru') === 0 ? 'active' : '' ?>"><i class="bi bi-person-badge"></i> <span class="label">Guru</span></a>
 
 
                 <p class="menu-label">DATA AKADEMIK</p>
                 <a href="<?= base_url('admin/tahun-ajaran') ?>"
-                    class="<?= strpos(uri_string(), 'admin/tahun-ajaran') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar3"></i> Tahun Ajaran</a>
+                    class="<?= strpos(uri_string(), 'admin/tahun-ajaran') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar3"></i> <span class="label">Tahun Ajaran</span></a>
                 <a href="<?= base_url('admin/kelas') ?>"
-                    class="<?= strpos(uri_string(), 'admin/kelas') === 0 && strpos(uri_string(), 'assign-kelas') === false ? 'active' : '' ?>"><i class="bi bi-door-open"></i> Kelas</a>
+                    class="<?= strpos(uri_string(), 'admin/kelas') === 0 && strpos(uri_string(), 'assign-kelas') === false ? 'active' : '' ?>"><i class="bi bi-door-open"></i> <span class="label">Kelas</span></a>
                 <a href="<?= base_url('admin/assign-kelas') ?>"
-                    class="<?= strpos(uri_string(), 'admin/assign-kelas') === 0 ? 'active' : '' ?>"><i class="bi bi-diagram-3"></i> Assign Kelas</a>
+                    class="<?= strpos(uri_string(), 'admin/assign-kelas') === 0 ? 'active' : '' ?>"><i class="bi bi-diagram-3"></i> <span class="label">Assign Kelas</span></a>
                 <a href="<?= base_url('admin/mapel') ?>"
-                    class="<?= strpos(uri_string(), 'admin/mapel') === 0 ? 'active' : '' ?>"><i class="bi bi-journal-bookmark"></i> Mata Pelajaran</a>
+                    class="<?= strpos(uri_string(), 'admin/mapel') === 0 ? 'active' : '' ?>"><i class="bi bi-journal-bookmark"></i> <span class="label">Mata Pelajaran</span></a>
                 <a href="<?= base_url('admin/jadwal') ?>"
-                    class="<?= strpos(uri_string(), 'admin/jadwal') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar-week"></i> Jadwal Manager</a>
+                    class="<?= strpos(uri_string(), 'admin/jadwal') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar-week"></i> <span class="label">Jadwal Manager</span></a>
                 <a href="<?= base_url('admin/alumni') ?>"
-                    class="<?= strpos(uri_string(), 'admin/alumni') === 0 ? 'active' : '' ?>"><i class="bi bi-mortarboard"></i> Alumni</a>
+                    class="<?= strpos(uri_string(), 'admin/alumni') === 0 ? 'active' : '' ?>"><i class="bi bi-mortarboard"></i> <span class="label">Alumni</span></a>
                 <a href="<?= base_url('admin/mutasi') ?>"
-                    class="<?= strpos(uri_string(), 'admin/mutasi') === 0 ? 'active' : '' ?>"><i class="bi bi-arrow-left-right"></i> Mutasi</a>
+                    class="<?= strpos(uri_string(), 'admin/mutasi') === 0 ? 'active' : '' ?>"><i class="bi bi-arrow-left-right"></i> <span class="label">Mutasi</span></a>
                 <a href="<?= base_url('admin/kenaikan-kelas') ?>"
-                    class="<?= strpos(uri_string(), 'admin/kenaikan-kelas') === 0 ? 'active' : '' ?>"><i class="bi bi-arrow-up-circle"></i> Kenaikan Kelas</a>
+                    class="<?= strpos(uri_string(), 'admin/kenaikan-kelas') === 0 ? 'active' : '' ?>"><i class="bi bi-arrow-up-circle"></i> <span class="label">Kenaikan Kelas</span></a>
                 <a href="<?= base_url('admin/riwayat-kelas') ?>"
-                    class="<?= strpos(uri_string(), 'admin/riwayat-kelas') === 0 ? 'active' : '' ?>"><i class="bi bi-clock-history"></i> Riwayat Kelas</a>
+                    class="<?= strpos(uri_string(), 'admin/riwayat-kelas') === 0 ? 'active' : '' ?>"><i class="bi bi-clock-history"></i> <span class="label">Riwayat Kelas</span></a>
 
                 <p class="menu-label">WEBSITE</p>
                 <a href="<?= base_url('admin/bk-artikel') ?>"
-                    class="<?= strpos(uri_string(), 'admin/bk-artikel') === 0 ? 'active' : '' ?>"><i class="bi bi-heart-pulse"></i> Artikel BK</a>
+                    class="<?= strpos(uri_string(), 'admin/bk-artikel') === 0 ? 'active' : '' ?>"><i class="bi bi-heart-pulse"></i> <span class="label">Artikel BK</span></a>
                 <a href="<?= base_url('admin/unduhan') ?>"
-                    class="<?= strpos(uri_string(), 'admin/unduhan') === 0 ? 'active' : '' ?>"><i class="bi bi-download"></i> Pusat Unduhan</a>
+                    class="<?= strpos(uri_string(), 'admin/unduhan') === 0 ? 'active' : '' ?>"><i class="bi bi-download"></i> <span class="label">Pusat Unduhan</span></a>
                 <a href="<?= base_url('admin/jurusan') ?>"
-                    class="<?= strpos(uri_string(), 'admin/jurusan') === 0 ? 'active' : '' ?>"><i class="bi bi-diagram-3-fill"></i> Jurusan</a>
+                    class="<?= strpos(uri_string(), 'admin/jurusan') === 0 ? 'active' : '' ?>"><i class="bi bi-diagram-3-fill"></i> <span class="label">Jurusan</span></a>
                 <a href="<?= base_url('admin/berita') ?>"
-                    class="<?= strpos(uri_string(), 'admin/berita') === 0 ? 'active' : '' ?>"><i class="bi bi-newspaper"></i> Berita</a>
+                    class="<?= strpos(uri_string(), 'admin/berita') === 0 ? 'active' : '' ?>"><i class="bi bi-newspaper"></i> <span class="label">Berita</span></a>
                 <a href="<?= base_url('admin/galeri') ?>"
-                    class="<?= strpos(uri_string(), 'admin/galeri') === 0 ? 'active' : '' ?>"><i class="bi bi-images"></i> Galeri</a>
+                    class="<?= strpos(uri_string(), 'admin/galeri') === 0 ? 'active' : '' ?>"><i class="bi bi-images"></i> <span class="label">Galeri</span></a>
                 <a href="<?= base_url('admin/pengumuman') ?>"
-                    class="<?= strpos(uri_string(), 'admin/pengumuman') === 0 ? 'active' : '' ?>"><i class="bi bi-megaphone"></i> Pengumuman</a>
+                    class="<?= strpos(uri_string(), 'admin/pengumuman') === 0 ? 'active' : '' ?>"><i class="bi bi-megaphone"></i> <span class="label">Pengumuman</span></a>
                 <a href="<?= base_url('admin/prestasi') ?>"
-                    class="<?= strpos(uri_string(), 'admin/prestasi') === 0 ? 'active' : '' ?>"><i class="bi bi-trophy"></i> Prestasi</a>
+                    class="<?= strpos(uri_string(), 'admin/prestasi') === 0 ? 'active' : '' ?>"><i class="bi bi-trophy"></i> <span class="label">Prestasi</span></a>
                 <a href="<?= base_url('admin/agenda') ?>"
-                    class="<?= strpos(uri_string(), 'admin/agenda') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar-event"></i> Agenda</a>
+                    class="<?= strpos(uri_string(), 'admin/agenda') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar-event"></i> <span class="label">Agenda</span></a>
                 <a href="<?= base_url('admin/ekstrakurikuler') ?>"
-                    class="<?= strpos(uri_string(), 'admin/ekstrakurikuler') === 0 ? 'active' : '' ?>"><i class="bi bi-stars"></i> Ekstrakurikuler</a>
+                    class="<?= strpos(uri_string(), 'admin/ekstrakurikuler') === 0 ? 'active' : '' ?>"><i class="bi bi-stars"></i> <span class="label">Ekstrakurikuler</span></a>
                 <a href="<?= base_url('admin/partner') ?>"
-                    class="<?= strpos(uri_string(), 'admin/partner') === 0 ? 'active' : '' ?>"><i class="bi bi-briefcase"></i> Industri Mitra</a>
+                    class="<?= strpos(uri_string(), 'admin/partner') === 0 ? 'active' : '' ?>"><i class="bi bi-briefcase"></i> <span class="label">Industri Mitra</span></a>
                 <a href="<?= base_url('admin/ppdb') ?>"
-                    class="<?= strpos(uri_string(), 'admin/ppdb') === 0 ? 'active' : '' ?>"><i class="bi bi-file-earmark-person"></i> PPDB</a>
+                    class="<?= strpos(uri_string(), 'admin/ppdb') === 0 && strpos(uri_string(), 'pengaturan') === false ? 'active' : '' ?>"><i class="bi bi-file-earmark-person"></i> <span class="label">PPDB</span></a>
+                <a href="<?= base_url('admin/ppdb/pengaturan') ?>"
+                    class="<?= strpos(uri_string(), 'admin/ppdb/pengaturan') === 0 ? 'active' : '' ?>"><i class="bi bi-toggle-on"></i> <span class="label">Buka/Tutup PPDB</span></a>
                 <a href="<?= base_url('admin/kontak') ?>"
-                    class="<?= strpos(uri_string(), 'admin/kontak') === 0 ? 'active' : '' ?>"><i class="bi bi-envelope"></i> Pesan Masuk</a>
+                    class="<?= strpos(uri_string(), 'admin/kontak') === 0 ? 'active' : '' ?>"><i class="bi bi-envelope"></i> <span class="label">Pesan Masuk</span></a>
                 <a href="<?= base_url('admin/kalender-akademik') ?>"
-                    class="<?= strpos(uri_string(), 'admin/kalender-akademik') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar-check"></i> Kalender Akademik</a>
+                    class="<?= strpos(uri_string(), 'admin/kalender-akademik') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar-check"></i> <span class="label">Kalender Akademik</span></a>
                 <a href="<?= base_url('admin/profil-sekolah/sejarah') ?>"
-                    class="<?= strpos(uri_string(), 'admin/profil-sekolah') === 0 ? 'active' : '' ?>"><i class="bi bi-building"></i> Profil Sekolah</a>
+                    class="<?= strpos(uri_string(), 'admin/profil-sekolah') === 0 ? 'active' : '' ?>"><i class="bi bi-building"></i> <span class="label">Profil Sekolah</span></a>
                 <a href="<?= base_url('admin/organisasi') ?>"
-                    class="<?= strpos(uri_string(), 'admin/organisasi') === 0 ? 'active' : '' ?>"><i class="bi bi-diagram-2"></i> Organisasi Sekolah</a>
+                    class="<?= strpos(uri_string(), 'admin/organisasi') === 0 ? 'active' : '' ?>"><i class="bi bi-diagram-2"></i> <span class="label">Organisasi Sekolah</span></a>
 
 
                 <p class="menu-label">USER MANAGEMENT</p>
                 <a href="<?= base_url('admin/user/admin') ?>"
-                    class="<?= uri_string() === 'admin/user' || uri_string() === 'admin/user/admin' ? 'active' : '' ?>"><i class="bi bi-person-gear"></i> Admin</a>
+                    class="<?= uri_string() === 'admin/user' || uri_string() === 'admin/user/admin' ? 'active' : '' ?>"><i class="bi bi-person-gear"></i> <span class="label">Admin</span></a>
                 <a href="<?= base_url('admin/user/guru') ?>"
-                    class="<?= uri_string() === 'admin/user/guru' ? 'active' : '' ?>"><i class="bi bi-person-video3"></i> Guru</a>
+                    class="<?= uri_string() === 'admin/user/guru' ? 'active' : '' ?>"><i class="bi bi-person-video3"></i> <span class="label">Guru</span></a>
                 <a href="<?= base_url('admin/user/siswa') ?>"
-                    class="<?= uri_string() === 'admin/user/siswa' ? 'active' : '' ?>"><i class="bi bi-person"></i> Siswa</a>
+                    class="<?= uri_string() === 'admin/user/siswa' ? 'active' : '' ?>"><i class="bi bi-person"></i> <span class="label">Siswa</span></a>
                 <a href="<?= base_url('admin/role-permission') ?>"
-                    class="<?= strpos(uri_string(), 'admin/role-permission') === 0 ? 'active' : '' ?>"><i class="bi bi-shield-lock"></i> Role & Permission</a>
+                    class="<?= strpos(uri_string(), 'admin/role-permission') === 0 ? 'active' : '' ?>"><i class="bi bi-shield-lock"></i> <span class="label">Role & Permission</span></a>
 
                 <p class="menu-label">LAPORAN</p>
                 <a href="<?= base_url('admin/laporan-siswa') ?>"
-                    class="<?= strpos(uri_string(), 'admin/laporan-siswa') === 0 ? 'active' : '' ?>"><i class="bi bi-file-earmark-text"></i> Laporan Siswa</a>
+                    class="<?= strpos(uri_string(), 'admin/laporan-siswa') === 0 ? 'active' : '' ?>"><i class="bi bi-file-earmark-text"></i> <span class="label">Laporan Siswa</span></a>
                 <a href="<?= base_url('admin/laporan-akademik') ?>"
-                    class="<?= strpos(uri_string(), 'admin/laporan-akademik') === 0 ? 'active' : '' ?>"><i class="bi bi-file-earmark-bar-graph"></i> Laporan Akademik</a>
+                    class="<?= strpos(uri_string(), 'admin/laporan-akademik') === 0 ? 'active' : '' ?>"><i class="bi bi-file-earmark-bar-graph"></i> <span class="label">Laporan Akademik</span></a>
                 <a href="<?= base_url('admin/nilai/rekap') ?>"
-                    class="<?= strpos(uri_string(), 'admin/nilai/rekap') === 0 ? 'active' : '' ?>"><i class="bi bi-clipboard-data"></i> Laporan Nilai</a>
+                    class="<?= strpos(uri_string(), 'admin/nilai/rekap') === 0 ? 'active' : '' ?>"><i class="bi bi-clipboard-data"></i> <span class="label">Laporan Nilai</span></a>
                 <a href="<?= base_url('admin/rekap-absensi') ?>"
-                    class="<?= strpos(uri_string(), 'admin/rekap-absensi') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar2-check"></i> Laporan Absensi</a>
+                    class="<?= strpos(uri_string(), 'admin/rekap-absensi') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar2-check"></i> <span class="label">Laporan Absensi</span></a>
 
                 <p class="menu-label">SISTEM</p>
                 <a href="<?= base_url('admin/notifikasi') ?>"
-                    class="<?= strpos(uri_string(), 'admin/notifikasi') === 0 ? 'active' : '' ?>"><i class="bi bi-bell"></i> Notifikasi</a>
+                    class="<?= strpos(uri_string(), 'admin/notifikasi') === 0 ? 'active' : '' ?>"><i class="bi bi-bell"></i> <span class="label">Notifikasi</span></a>
                 <a href="<?= base_url('admin/backup-database') ?>"
-                    class="<?= strpos(uri_string(), 'admin/backup-database') === 0 ? 'active' : '' ?>"><i class="bi bi-hdd-stack"></i> Backup Database</a>
+                    class="<?= strpos(uri_string(), 'admin/backup-database') === 0 ? 'active' : '' ?>"><i class="bi bi-hdd-stack"></i> <span class="label">Backup Database</span></a>
                 <a href="<?= base_url('admin/pengaturan') ?>"
-                    class="<?= strpos(uri_string(), 'admin/pengaturan') === 0 ? 'active' : '' ?>"><i class="bi bi-gear"></i> Pengaturan</a>
+                    class="<?= strpos(uri_string(), 'admin/pengaturan') === 0 ? 'active' : '' ?>"><i class="bi bi-gear"></i> <span class="label">Pengaturan</span></a>
                 <a href="<?= base_url('admin/audit-log') ?>"
-                    class="<?= strpos(uri_string(), 'admin/audit-log') === 0 ? 'active' : '' ?>"><i class="bi bi-journal-text"></i> Audit Log</a>
+                    class="<?= strpos(uri_string(), 'admin/audit-log') === 0 ? 'active' : '' ?>"><i class="bi bi-journal-text"></i> <span class="label">Audit Log</span></a>
             </nav>
         </aside>
 
         <!-- MAIN CONTENT -->
         <main class="main-content">
             <header class="topbar" style="flex-wrap:nowrap;">
+                <button class="btn-toggle-sidebar" onclick="document.querySelector('.sidebar').classList.toggle('collapsed')">
+                    <i class="bi bi-list"></i>
+                </button>
                 <div style="display:flex;align-items:center;gap:10px;background:#f4f6f9;padding:8px 16px;border-radius:8px;font-size:13px;color:#4b5563;flex-shrink:0;white-space:nowrap;">
                     <i class="bi bi-calendar3"></i>
                     <?php
@@ -164,7 +169,7 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                         </div>
                         <span><?= esc(session()->get('username')) ?> (<?= esc(session()->get('role')) ?>)</span>
                     </div>
-                    <a href="<?= base_url('logout') ?>" class="btn-logout">Logout</a>
+                    <a href="<?= base_url('logout') ?>" class="btn-logout" onclick="return confirm('Yakin ingin logout?')">Logout</a>
                 </div>
             </header>
 
@@ -196,6 +201,8 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
         </main>
 
     </div>
+
+    <script src="<?= base_url('assets/js/admin.js') ?>"></script>
 
 </body>
 

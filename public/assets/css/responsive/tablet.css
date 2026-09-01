@@ -1,0 +1,344 @@
+/* =========================================================
+   TOPBAR — breakpoint independen, lebih lebar dari layout
+   umum 768px, supaya topbar tidak berantakan di rentang
+   laptop kecil / tablet besar.
+   ========================================================= */
+@media (max-width: 992px) {
+  .topbar .container {
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .topbar p {
+    font-size: 11.5px;
+  }
+
+  .contact-info {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+/* =========================================================
+   NAVBAR HAMBURGER — breakpoint independen (lebih lebar dari
+   breakpoint layout umum 768px), khusus supaya menu navbar
+   tidak sesak di ukuran laptop kecil / tablet landscape besar.
+   ========================================================= */
+@media (max-width: 1200px) {
+  .navbar-toggle {
+    display: block;
+  }
+
+  .navbar .container {
+    position: relative;
+    flex-wrap: wrap;
+  }
+
+  .nav-menu {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--hijau-tua);
+    padding: 8px 0;
+    box-shadow: 0 12px 22px rgba(10, 40, 25, 0.25);
+    z-index: 200;
+  }
+
+  .nav-menu.open {
+    display: flex;
+  }
+
+  .nav-menu li {
+    width: 100%;
+  }
+
+  .nav-menu li a {
+    padding: 12px 20px;
+    width: 100%;
+    justify-content: flex-start;
+    white-space: normal;
+    box-sizing: border-box;
+  }
+
+  .nav-menu li a .fa-chevron-down {
+    margin-left: auto;
+  }
+
+.dropdown-menu {
+    position: static;
+    display: none;
+    width: 100%;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    background: rgba(0, 0, 0, 0.15);
+  }
+
+  .dropdown.open .dropdown-menu {
+    display: block;
+  }
+
+  .dropdown.open .fa-chevron-down {
+    transform: rotate(180deg);
+  }
+}
+
+/* =========================================================
+   LAPTOP KECIL / TABLET LANDSCAPE (769px – 1024px)
+   Sidebar dipersempit dulu di sini, BELUM di-stack penuh.
+   Mengisi celah antara desktop (420px sidebar) dan
+   tablet sempit (260px sidebar).
+   ========================================================= */
+@media (max-width: 1024px) {
+.content-layout {
+  grid-template-columns: 1fr 300px;
+  grid-template-areas:
+    "hero            hero"
+    "berita          sidebar-atas"
+    "berita-terbaru  sidebar-bawah"
+    "galeri          agenda"
+    "prestasi        ekskul";
+  gap: 16px;
+}
+
+.berita-terbaru-block,
+.galeri-block,
+.prestasi-block {
+  margin-top: 0;
+}
+}
+
+/* =========================================================
+   TABLET.CSS
+   Berlaku untuk layar <= 768px (tablet & HP besar/landscape)
+   ========================================================= */
+@media (max-width: 768px) {
+.content-layout {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "hero"
+    "berita"
+    "sidebar-atas"
+    "berita-terbaru"
+    "sidebar-bawah"
+    "galeri"
+    "agenda"
+    "prestasi"
+    "ekskul";
+  gap: 16px;
+}
+.berita-terbaru-block,
+.galeri-block,
+.prestasi-block {
+  margin-top: 0;
+}
+
+  .hero {
+    position: relative;
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 30px 36px;
+    background: linear-gradient(
+      to top,
+      rgba(10, 40, 25, 0.85),
+      rgba(10, 40, 25, 0.1) 60%
+    );
+    color: white;
+  }
+
+  .hero-overlay h1 {
+    font-size: 28px;
+    color: white;
+    max-width: 560px;
+    margin-bottom: 8px;
+  }
+
+  .hero-overlay p {
+    max-width: 480px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 16px;
+  }
+
+  .widget-agenda,
+  .widget-ekskul {
+    position: static;
+  }
+
+  .btn-hero-cta {
+    align-self: flex-start;
+    background: var(--emas);
+    color: var(--hijau-tua);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 12px 26px;
+    border-radius: 25px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+  }
+
+  .btn-hero-cta:hover {
+    background: var(--emas-terang);
+    gap: 11px;
+  }
+
+  .topbar .container {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+  }
+
+  /* --- Header --- */
+  .header .container {
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* --- Search box --- */
+  .search-box {
+    width: 100%;
+  }
+
+  .search-box input {
+    flex: 1;
+  }
+
+  .contact-info {
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* --- Content layout utama: tetap 2 kolom, sidebar dipersempit --- */
+.content-layout {
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+  .berita-utama-list {
+    grid-template-columns: 1fr; /* kolom utama sempit, berita jadi 1 kolom */
+  }
+
+  .widget-ekskul .ekskul-grid {
+    grid-template-columns: 1fr; /* sidebar sempit, ekskul jadi 1 kolom */
+  }
+
+  /* --- Hero --- */
+  .hero img {
+    height: 220px;
+  }
+
+  /* --- Berita terbaru grid --- */
+  .berita-terbaru-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Section split (Berita|Agenda, Galeri|Ekskul): tetap 2 kolom --- */
+  .section-split,
+  .section-split-row {
+    grid-template-columns: 1fr 200px;
+    gap: 16px;
+  }
+
+  /* --- Lokasi & kontak --- */
+  .lokasi-split {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Partner, Galeri, Ekskul grid --- */
+  .partner-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .galeri-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ekskul-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .prestasi-grid {
+  grid-template-columns: 1fr;
+}
+
+  /* --- Lightbox modal --- */
+  .lightbox {
+    padding: 20px;
+  }
+
+  .lightbox-close {
+    top: 12px;
+    right: 12px;
+  }
+
+  /* --- Form PPDB --- */
+  .ppdb-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Struktur organisasi --- */
+  .organisasi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* --- Ticker bar --- */
+  .ticker-bar-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .top-tags {
+    flex-wrap: wrap;
+    width: 100%;
+    overflow-x: visible;
+  }
+
+  .berita-ticker {
+    border-left: none;
+    padding-left: 0;
+    width: 100%;
+  }
+
+    .berita-ticker {
+    border-left: none;
+    padding-left: 0;
+    width: 100%;
+  }
+
+  /* --- Tactile tap feedback buat card di layar sentuh --- */
+  .berita-card,
+  .prestasi-card,
+  .partner-info-card {
+    transition:
+      transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+      box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .berita-card:active,
+  .prestasi-card:active,
+  .partner-info-card:active {
+    transform: scale(0.98);
+    box-shadow:
+      0 1px 2px rgba(10, 40, 25, 0.06),
+      0 4px 10px rgba(10, 40, 25, 0.08);
+  }
+}

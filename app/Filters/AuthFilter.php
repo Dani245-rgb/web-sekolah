@@ -5,6 +5,7 @@ namespace App\Filters;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
+use App\Models\UserModel;
 
 class AuthFilter implements FilterInterface
 {
@@ -13,6 +14,28 @@ class AuthFilter implements FilterInterface
         if (!session()->get('logged_in')) {
             return redirect()->to('/login')
                 ->with('errors', ['login' => 'Silakan login terlebih dahulu.']);
+        }
+
+        // Re-check status akun ke DB setiap 5 menit, cegah akun yang baru
+        // dinonaktifkan/dihapus/dikunci admin tetap bisa akses sampai session habis
+        $lastCheck = session()->get('status_checked_at');
+        if (!$lastCheck || (time() - $lastCheck) > 300) {
+            $userModel = new UserModel();
+            // find() otomatis skip soft-deleted user (useSoftDeletes=true di UserModel),
+            // jadi $user akan null kalau akun sudah dihapus — tidak perlu cek deleted_at manual
+            $user = $userModel->find(session()->get('id_user'));
+
+            $tidakValid = !$user
+                || $user['status'] !== 'Aktif'
+                || ($user['locked_until'] !== null && strtotime($user['locked_until']) > time());
+
+            if ($tidakValid) {
+                session()->destroy();
+                return redirect()->to('/login')
+                    ->with('errors', ['login' => 'Akun Anda tidak aktif, terkunci, atau telah dinonaktifkan. Silakan hubungi Admin.']);
+            }
+
+            session()->set('status_checked_at', time());
         }
     }
 

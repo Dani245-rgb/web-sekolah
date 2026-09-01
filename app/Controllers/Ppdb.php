@@ -3,27 +3,58 @@
 namespace App\Controllers;
 
 use App\Models\PendaftarPpdbModel;
+use App\Models\PengaturanPpdbModel;
 
 class Ppdb extends BaseController
 {
     protected $ppdbModel;
+    protected $settingModel;
 
     public function __construct()
     {
-        $this->ppdbModel = new PendaftarPpdbModel();
+        $this->ppdbModel    = new PendaftarPpdbModel();
+        $this->settingModel = new PengaturanPpdbModel();
     }
 
     public function index()
     {
-        return view('ppdb/index');
+        $setting = $this->settingModel->getSetting();
+        $data['setting'] = $setting;
+
+        // kalau tutup, tampilkan view khusus "belum dibuka" bukan form
+        if ($setting['status'] !== 'buka') {
+            return view('ppdb/tutup', $data);
+        }
+
+        return view('ppdb/index', $data);
     }
 
     public function daftar()
     {
-        $throttler = \Config\Services::throttler();
-        if ($throttler->check(md5($this->request->getIPAddress()), 3, 600) === false) {
-            return redirect()->back()->withInput()
-                ->with('errors', ['limit' => 'Terlalu banyak percobaan pendaftaran. Silakan coba lagi dalam beberapa menit.']);
+        // validasi ulang di server, jangan cuma andalkan tampilan
+        $setting = $this->settingModel->getSetting();
+        if ($setting['status'] !== 'buka') {
+            return redirect()->to('/ppdb')->with('error', 'Pendaftaran sedang ditutup.');
+        }
+
+        // Rate limiting sudah ditangani oleh filter route: throttle:ppdb,3,120 (lihat Routes.php)
+        // Jadi tidak perlu dicek manual lagi di sini.
+
+        // Validasi eksplisit di controller, jangan cuma andalkan rules di model
+        $rules = [
+            'nama_lengkap'    => 'required|min_length[3]|max_length[100]|regex_match[/^[a-zA-Z\s\.\']+$/]',
+            'tempat_lahir'    => 'required|max_length[100]',
+            'tanggal_lahir'   => 'required|valid_date[Y-m-d]',
+            'jenis_kelamin'   => 'required|in_list[Laki-laki,Perempuan]',
+            'asal_sekolah'    => 'required|max_length[150]',
+            'jurusan_pilihan' => 'required',
+            'no_hp'           => 'required|numeric|min_length[10]|max_length[15]',
+            'email'           => 'required|valid_email|max_length[100]',
+            'alamat'          => 'required|max_length[500]',
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
         $data = [
@@ -36,6 +67,7 @@ class Ppdb extends BaseController
             'no_hp'           => $this->request->getPost('no_hp'),
             'email'           => $this->request->getPost('email'),
             'alamat'          => $this->request->getPost('alamat'),
+            'tahun_ajaran'    => $setting['tahun_ajaran'] ?? null,
         ];
 
         $idPendaftar = $this->ppdbModel->insert($data);

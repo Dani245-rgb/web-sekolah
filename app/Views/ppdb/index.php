@@ -5,16 +5,22 @@
 <main class="content">
     <div class="container">
 
+        <nav class="breadcrumb" aria-label="breadcrumb">
+            <a href="<?= base_url('/') ?>">Beranda</a>
+            <span class="sep">/</span>
+            <span class="current">PPDB</span>
+        </nav>
+
         <div class="section-heading">
             <h2>Pendaftaran Siswa Baru (PPDB)</h2>
         </div>
 
         <?php if (session()->getFlashdata('success')): ?>
-            <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
+            <div class="alert alert-success" role="alert"><?= esc(session()->getFlashdata('success')) ?></div>
         <?php endif; ?>
 
         <?php if (session()->getFlashdata('errors')): ?>
-            <div class="alert alert-danger">
+            <div class="alert alert-danger" role="alert">
                 <ul style="margin:0;">
                     <?php foreach (session()->getFlashdata('errors') as $error): ?>
                         <li><?= esc($error) ?></li>
@@ -28,7 +34,7 @@
 
             <div class="ppdb-grid">
                 <div class="ppdb-group">
-                    <label>Nama Lengkap</label>
+                    <label>Nama Lengkap <span class="required-mark">*</span></label>
                     <input type="text" name="nama_lengkap" value="<?= old('nama_lengkap') ?>" required>
                 </div>
 
@@ -91,11 +97,11 @@
 </main>
 
 <script>
-document.querySelector('.ppdb-form').addEventListener('submit', function () {
-    const btn = document.getElementById('btnSubmitPpdb');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Mengirim...';
-});
+    document.querySelector('.ppdb-form').addEventListener('submit', function() {
+        const btn = document.getElementById('btnSubmitPpdb');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Mengirim...';
+    });
 </script>
 
 <?= $this->endSection() ?>

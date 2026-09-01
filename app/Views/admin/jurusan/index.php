@@ -47,9 +47,11 @@
                 <td>
                     <a href="<?= base_url('admin/jurusan/edit/' . $j['id_jurusan']) ?>"
                        class="btn btn-sm btn-outline-primary">Edit</a>
-                    <a href="<?= base_url('admin/jurusan/delete/' . $j['id_jurusan']) ?>"
-                       class="btn btn-sm btn-outline-danger"
-                       onclick="return confirm('Hapus jurusan \'<?= esc($j['nama_jurusan'], 'js') ?>\'? Tindakan ini tidak bisa dibatalkan.')">Hapus</a>
+                    <form method="post" action="<?= base_url('admin/jurusan/delete/' . $j['id_jurusan']) ?>" style="display:inline;"
+                       onsubmit="return confirm('Hapus jurusan \'<?= esc($j['nama_jurusan'], 'js') ?>\'? Tindakan ini tidak bisa dibatalkan.')">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                    </form>
                 </td>
             </tr>
             <?php endforeach; ?>

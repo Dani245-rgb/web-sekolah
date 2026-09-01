@@ -47,42 +47,54 @@
 
     <div class="audit-export-row">
         <?php
-            $queryString = http_build_query(array_filter($filter));
-            $qs = $queryString ? '?' . $queryString : '';
+        $queryString = http_build_query(array_filter($filter));
+        $qs = $queryString ? '?' . $queryString : '';
         ?>
         <a href="<?= base_url('admin/audit-log/export/pdf' . $qs) ?>" class="btn btn-outline-danger">
-            📄 Export PDF
+            <i class="bi bi-file-earmark-pdf"></i> Export PDF
         </a>
         <a href="<?= base_url('admin/audit-log/export/excel' . $qs) ?>" class="btn btn-outline-success">
-            📊 Export Excel
+            <i class="bi bi-file-earmark-excel"></i> Export Excel
         </a>
     </div>
 
     <table class="table">
         <thead>
             <tr>
-                <th>No</th><th>Waktu</th><th>User</th><th>Aksi</th><th>Keterangan</th><th>IP Address</th>
+                <th>No</th>
+                <th>Waktu</th>
+                <th>User</th>
+                <th>Aksi</th>
+                <th>Keterangan</th>
+                <th>IP Address</th>
             </tr>
         </thead>
         <tbody>
             <?php $no = ($pager->getCurrentPage() - 1) * $pager->getPerPage() + 1; ?>
             <?php foreach ($logs as $log): ?>
-            <tr>
-                <td><?= $no++ ?></td>
-                <td><?= esc($log['created_at']) ?></td>
-                <td><?= esc($log['username'] ?? '-') ?></td>
-                <td><?= esc($log['aksi']) ?></td>
-                <td><?= esc($log['keterangan'] ?? '-') ?></td>
-                <td><?= esc($log['ip_address'] ?? '-') ?></td>
-            </tr>
+                <tr>
+                    <td><?= $no++ ?></td>
+                    <td><?= esc($log['created_at']) ?></td>
+                    <td><?= esc($log['username'] ?? '-') ?></td>
+                    <td><?= esc($log['aksi']) ?></td>
+                    <td><?= esc($log['keterangan'] ?? '-') ?></td>
+                    <td><?= esc($log['ip_address'] ?? '-') ?></td>
+                </tr>
             <?php endforeach; ?>
             <?php if (empty($logs)): ?>
-            <tr><td colspan="6" class="text-center">Belum ada log yang cocok dengan filter.</td></tr>
+                <tr>
+                    <td colspan="6" class="text-center">
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                            <i class="bi bi-inbox" style="font-size:24px;color:#d7dce3;"></i>
+                            <span>Belum ada log yang cocok dengan filter.</span>
+                        </div>
+                    </td>
+                </tr>
             <?php endif; ?>
         </tbody>
     </table>
 
-    <div class="pagination">
+    <div class="pagination-wrapper">
         <?= $pager->links() ?>
     </div>
 </div>

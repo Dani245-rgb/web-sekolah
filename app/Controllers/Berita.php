@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\BeritaModel;
+use App\Models\PengumumanModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class Berita extends BaseController
@@ -18,6 +19,7 @@ class Berita extends BaseController
         return view('berita_index', [
             'beritaList' => $beritaList,
             'pager'      => $beritaModel->pager,
+            'informasi'  => $this->getInformasiSidebar(),
         ]);
     }
 
@@ -38,8 +40,23 @@ class Berita extends BaseController
             ->findAll();
 
         return view('berita_detail', [
-            'berita'  => $berita,
-            'terkait' => $terkait,
+            'berita'    => $berita,
+            'terkait'   => $terkait,
+            'informasi' => $this->getInformasiSidebar(),
         ]);
+    }
+
+    /**
+     * Data "Informasi Sekolah" yang tampil di layouts/sidebar.php.
+     * Dipakai bersama oleh index() dan detail() (dan halaman publik lain yang pakai sidebar sama).
+     */
+    protected function getInformasiSidebar(int $limit = 5): array
+    {
+        $pengumumanModel = new PengumumanModel();
+
+        return $pengumumanModel->where('status', 'Published')
+            ->orderBy('created_at', 'DESC')
+            ->limit($limit)
+            ->findAll();
     }
 }

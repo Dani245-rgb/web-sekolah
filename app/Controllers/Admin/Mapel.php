@@ -21,9 +21,9 @@ class Mapel extends BaseController
         $builder = $this->mapelModel->orderBy('nama_mapel', 'ASC');
         if ($keyword) {
             $builder->groupStart()
-                    ->like('nama_mapel', $keyword)
-                    ->orLike('kode_mapel', $keyword)
-                    ->groupEnd();
+                ->like('nama_mapel', $keyword)
+                ->orLike('kode_mapel', $keyword)
+                ->groupEnd();
         }
 
         $data['mapel']   = $builder->paginate(10, 'mapel');
@@ -60,6 +60,7 @@ class Mapel extends BaseController
             'kkm'            => $this->request->getPost('kkm') ?: 75,
             'semester'       => $this->request->getPost('semester'),
             'status'         => 'Aktif',
+            'ada_nilai'      => $this->request->getPost('ada_nilai') ?: 'Ya',
         ]);
 
         return redirect()->to('/admin/mapel')->with('success', "Mapel {$namaMapel} berhasil ditambahkan.");
@@ -104,6 +105,7 @@ class Mapel extends BaseController
             'kkm'            => $this->request->getPost('kkm') ?: 75,
             'semester'       => $this->request->getPost('semester'),
             'status'         => $this->request->getPost('status'),
+            'ada_nilai'      => $this->request->getPost('ada_nilai') ?: 'Ya',
         ]);
 
         if (!$berhasil) {

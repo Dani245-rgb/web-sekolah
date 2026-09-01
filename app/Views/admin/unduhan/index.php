@@ -60,9 +60,11 @@
                 <td>
                     <a href="<?= base_url('admin/unduhan/edit/' . $u['id_unduhan']) ?>"
                        class="btn btn-sm btn-outline-primary">Edit</a>
-                    <a href="<?= base_url('admin/unduhan/delete/' . $u['id_unduhan']) ?>"
-                       class="btn btn-sm btn-outline-danger"
-                       onclick="return confirm('Hapus file \'<?= esc($u['judul'], 'js') ?>\'? Tindakan ini tidak bisa dibatalkan.')">Hapus</a>
+                    <form method="post" action="<?= base_url('admin/unduhan/delete/' . $u['id_unduhan']) ?>" style="display:inline;"
+                       onsubmit="return confirm('Hapus file \'<?= esc($u['judul'], 'js') ?>\'? Tindakan ini tidak bisa dibatalkan.')">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                    </form>
                 </td>
             </tr>
             <?php endforeach; ?>

@@ -111,8 +111,19 @@ class ImportSiswa extends BaseController
             return $this->response->setJSON(['error' => 'File tidak valid atau gagal diupload.']);
         }
 
-        if (!in_array($file->getClientExtension(), ['xlsx', 'xls'])) {
-            return $this->response->setJSON(['error' => 'File harus format .xlsx atau .xls']);
+        // Pakai getMimeType() (deteksi dari isi file asli), bukan getClientExtension()
+        // yang cuma baca nama file kiriman browser (gampang dipalsukan)
+        $mimeValid = in_array($file->getMimeType(), [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
+            'application/vnd.ms-excel', // xls
+        ]);
+
+        if (!$mimeValid) {
+            return $this->response->setJSON(['error' => 'File harus format .xlsx atau .xls yang valid.']);
+        }
+
+        if ($file->getSize() > 10 * 1024 * 1024) { // 10MB
+            return $this->response->setJSON(['error' => 'Ukuran file maksimal 10MB.']);
         }
 
         $tahunAktif = $this->tahunAjaranModel->getActive();
@@ -263,6 +274,12 @@ class ImportSiswa extends BaseController
 
         if (!in_array($data['jenis_kelamin'], ['L', 'P'])) {
             return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Jenis Kelamin '{$data['jenis_kelamin']}' tidak valid (harus L/P)."];
+        }
+
+        // Validasi format email kalau diisi — skipValidation(true) di bawah membuat rule model
+        // tidak jalan, jadi perlu dicek manual di sini
+        if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Format email '{$data['email']}' tidak valid."];
         }
 
         // Cek duplikat NIS/NISN

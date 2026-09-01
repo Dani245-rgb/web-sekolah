@@ -32,18 +32,18 @@ $nama = session()->get('username');
     <div class="layout">
         <div class="sidebar">
             <a href="<?= base_url('siswa/dashboard') ?>" class="active"><i class="bi bi-house-door-fill"></i> <span class="label">Dashboard</span></a>
-            <a href="#"><i class="bi bi-person-circle"></i> <span class="label">Profil Saya</span></a>
-            <a href="#"><i class="bi bi-calendar3"></i> <span class="label">Jadwal Pelajaran</span></a>
-            <a href="#"><i class="bi bi-pencil-square"></i> <span class="label">Nilai</span></a>
-            <a href="#"><i class="bi bi-clipboard-check"></i> <span class="label">Absensi</span></a>
-            <a href="#"><i class="bi bi-megaphone-fill"></i> <span class="label">Pengumuman</span></a>
-            <a href="#"><i class="bi bi-newspaper"></i> <span class="label">Berita Sekolah</span></a>
-            <a href="#"><i class="bi bi-mortarboard-fill"></i> <span class="label">PKL</span></a>
-            <a href="#"><i class="bi bi-folder-fill"></i> <span class="label">Tugas</span></a>
-            <a href="#"><i class="bi bi-download"></i> <span class="label">Download Materi</span></a>
+            <a href="<?= base_url('siswa/profil') ?>" class="<?= strpos(uri_string(), 'siswa/profil') === 0 ? 'active' : '' ?>"><i class="bi bi-person-circle"></i> <span class="label">Profil Saya</span></a>
+            <a href="<?= base_url('siswa/jadwal') ?>" class="<?= strpos(uri_string(), 'siswa/jadwal') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar3"></i> <span class="label">Jadwal Pelajaran</span></a>
+            <a href="<?= base_url('siswa/nilai') ?>" class="<?= strpos(uri_string(), 'siswa/nilai') === 0 ? 'active' : '' ?>"><i class="bi bi-pencil-square"></i> <span class="label">Nilai</span></a>
+            <a href="<?= base_url('siswa/absensi') ?>" class="<?= strpos(uri_string(), 'siswa/absensi') === 0 ? 'active' : '' ?>"><i class="bi bi-clipboard-check"></i> <span class="label">Absensi</span></a>
+            <a href="<?= base_url('siswa/pengumuman') ?>" class="<?= strpos(uri_string(), 'siswa/pengumuman') === 0 ? 'active' : '' ?>"><i class="bi bi-megaphone-fill"></i> <span class="label">Pengumuman</span></a>
+            <a href="#" class="disabled" aria-disabled="true"><i class="bi bi-newspaper"></i> <span class="label">Berita Sekolah</span><span class="badge-soon">Soon</span></a>
+            <a href="<?= base_url('siswa/pkl') ?>" class="<?= strpos(uri_string(), 'siswa/pkl') === 0 ? 'active' : '' ?>"><i class="bi bi-mortarboard-fill"></i> <span class="label">PKL</span></a>
+            <a href="<?= base_url('siswa/tugas') ?>" class="<?= strpos(uri_string(), 'siswa/tugas') === 0 ? 'active' : '' ?>"><i class="bi bi-folder-fill"></i> <span class="label">Tugas</span></a>
+            <a href="<?= base_url('siswa/materi') ?>" class="<?= strpos(uri_string(), 'siswa/materi') === 0 ? 'active' : '' ?>"><i class="bi bi-download"></i> <span class="label">Download Materi</span></a>
             <hr>
             <a href="<?= base_url('profil/gantipassword') ?>"><i class="bi bi-gear-fill"></i> <span class="label">Pengaturan</span></a>
-            <a href="<?= base_url('logout') ?>"><i class="bi bi-box-arrow-right"></i> <span class="label">Logout</span></a>
+            <a href="<?= base_url('logout') ?>" onclick="return confirm('Yakin ingin logout?')"><i class="bi bi-box-arrow-right"></i> <span class="label">Logout</span></a>
         </div>
 
         <div class="content">

@@ -288,6 +288,73 @@ body {
   outline-offset: 2px;
 }
 
+/* ---------- Alert sukses (belum ada sebelumnya) ---------- */
+.alert-success {
+  background: #EAF7EA;
+  color: #2E7D32;
+  border: 1px solid #B8E0B8;
+}
+
+/* ---------- Toggle show/hide password ---------- */
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper input {
+  padding-right: 42px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-password:hover {
+  color: var(--navy);
+}
+
+.toggle-password:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------- Loading state tombol login ---------- */
+.btn-loading {
+  opacity: 0.7;
+  pointer-events: none;
+  position: relative;
+  color: transparent !important;
+}
+
+.btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin: -8px 0 0 -8px;
+  border: 2px solid rgba(16, 25, 46, 0.3);
+  border-top-color: var(--navy-dark);
+  border-radius: 50%;
+  animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 900px) {

@@ -202,3 +202,121 @@
     flex: 1;
     max-width: 320px;
 }
+
+/* ============================
+   Button base (dipakai bareng .btn-primary/.btn-secondary)
+   ============================ */
+.btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-primary {
+    background: #4a6cf7;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #3a5ce0;
+}
+
+/* ============================
+   Input skor nilai (kolom nilai per siswa)
+   ============================ */
+.absensi-nilai-input {
+    width: 90px;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.absensi-nilai-input:focus {
+    outline: none;
+    border-color: #4a6cf7;
+    box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.12);
+}
+
+/* ============================
+   Badge status nilai (Tuntas / Belum Tuntas)
+   ============================ */
+.badge-tuntas {
+    background: #dcfce7;
+    color: #166534;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.badge-belum-tuntas {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* ============================
+   Pagination (CI4 default_full pager)
+   ============================ */
+.pagination {
+    display: flex;
+    list-style: none;
+    gap: 6px;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+}
+
+.pagination .page-item {
+    list-style: none;
+}
+
+.pagination .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid #dfe4ea;
+    border-radius: 8px;
+    color: #33404f;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.pagination .page-link:hover {
+    background: #f4f6f9;
+    border-color: #4a6cf7;
+}
+
+.pagination .page-item.active .page-link {
+    background: #4a6cf7;
+    border-color: #4a6cf7;
+    color: #fff;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #b2bec3;
+    cursor: not-allowed;
+    background: #fafbfc;
+}

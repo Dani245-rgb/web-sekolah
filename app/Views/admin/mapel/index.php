@@ -59,8 +59,11 @@
                 <td>
                     <a href="<?= base_url('admin/mapel/edit/' . $m['id_mapel']) ?>"
                         class="btn btn-sm btn-warning">Edit</a>
-                    <a href="<?= base_url('admin/mapel/delete/' . $m['id_mapel']) ?>" class="btn btn-sm btn-danger"
-                        onclick="return confirm('Yakin hapus mapel ini?')">Hapus</a>
+                    <form method="post" action="<?= base_url('admin/mapel/delete/' . $m['id_mapel']) ?>" style="display:inline;"
+                        onsubmit="return confirm('Yakin hapus mapel ini?')">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                    </form>
                 </td>
             </tr>
             <?php endforeach; ?>

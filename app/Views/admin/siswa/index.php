@@ -20,16 +20,18 @@
 
 <div class="card">
     <div class="card-toolbar">
-        <a href="<?= base_url('admin/siswa/create') ?>" class="btn btn-primary">+ Tambah Siswa</a>
-        <a href="<?= base_url('admin/siswa/import') ?>" class="btn btn-secondary">Import Excel</a>
-        <a href="<?= base_url('admin/siswa/trash') ?>" class="btn btn-secondary">Tong Sampah</a>
+        <div class="toolbar-actions">
+            <a href="<?= base_url('admin/siswa/create') ?>" class="btn btn-primary">+ Tambah Siswa</a>
+            <a href="<?= base_url('admin/siswa/import') ?>" class="btn btn-secondary">Import Excel</a>
+            <a href="<?= base_url('admin/siswa/trash') ?>" class="btn btn-secondary">Tong Sampah</a>
+        </div>
 
         <form action="<?= base_url('admin/siswa') ?>" method="get" class="search-form">
             <?php if (!empty($jurusanFilter)): ?>
                 <input type="hidden" name="jurusan" value="<?= esc($jurusanFilter) ?>">
             <?php endif; ?>
             <input type="text" name="cari" placeholder="Cari siswa..." value="<?= esc($keyword) ?>">
-            <button type="submit"><i class="icon-search"></i></button>
+            <button type="submit"><i class="bi bi-search"></i></button>
         </form>
     </div>
 
@@ -41,7 +43,7 @@
     <?php endif; ?>
 
     <?php if (!empty($daftarJurusan)): ?>
-        <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
+        <div class="filter-chips">
             <a href="<?= base_url('admin/siswa' . (!empty($keyword) ? '?cari=' . urlencode($keyword) : '')) ?>"
                 class="btn btn-sm <?= empty($jurusanFilter) ? 'btn-primary' : 'btn-secondary' ?>">Semua Jurusan</a>
             <?php foreach ($daftarJurusan as $j): ?>
@@ -90,15 +92,23 @@
                     <td>
                         <a href="<?= base_url('admin/siswa/edit/' . $s['id_siswa']) ?>"
                             class="btn btn-sm btn-warning">Edit</a>
-                        <a href="<?= base_url('admin/siswa/delete/' . $s['id_siswa']) ?>" class="btn btn-sm btn-danger"
-                            onclick="return confirm('Hapus data siswa ini? Data akan dipindahkan ke Tong Sampah dan bisa dipulihkan kapan saja.')">Hapus</a>
+                        <form method="post" action="<?= base_url('admin/siswa/delete/' . $s['id_siswa']) ?>" style="display:inline;"
+                            onsubmit="return confirm('Hapus data siswa ini? Data akan dipindahkan ke Tong Sampah dan bisa dipulihkan kapan saja.')">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
 
             <?php if (empty($siswa)): ?>
                 <tr>
-                    <td colspan="8" class="text-center">Belum ada data siswa.</td>
+                    <td colspan="8" class="text-center">
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                            <i class="bi bi-inbox" style="font-size:24px;color:#d7dce3;"></i>
+                            <span>Belum ada data siswa.</span>
+                        </div>
+                    </td>
                 </tr>
             <?php endif; ?>
         </tbody>

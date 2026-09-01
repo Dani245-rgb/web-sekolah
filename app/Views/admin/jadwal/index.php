@@ -20,13 +20,13 @@
 
 <div class="card">
     <div class="card-toolbar">
-        <a href="<?= base_url('admin/jadwal/create') ?>" class="btn btn-primary">+ Tambah Jadwal</a>
-        <a href="<?= base_url('admin/jadwal/import') ?>" class="btn btn-secondary">📊 Import Excel</a>
-        <a href="<?= base_url('admin/jadwal/template') ?>" class="btn btn-secondary">⬇️ Template</a>
-        <a href="<?= base_url('admin/jadwal/export') ?>" class="btn btn-secondary">📤 Export Excel</a>
+        <a href="<?= base_url('admin/jadwal/create') ?>" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tambah Jadwal</a>
+        <a href="<?= base_url('admin/jadwal/import') ?>" class="btn btn-secondary"><i class="bi bi-bar-chart"></i> Import Excel</a>
+        <a href="<?= base_url('admin/jadwal/template') ?>" class="btn btn-secondary"><i class="bi bi-download"></i> Template</a>
+        <a href="<?= base_url('admin/jadwal/export') ?>" class="btn btn-secondary"><i class="bi bi-upload"></i> Export Excel</a>
         <?php $qs = http_build_query(array_filter($filter));
         $qs = $qs ? '?' . $qs : ''; ?>
-        <a href="<?= base_url('admin/jadwal/export/pdf' . $qs) ?>" class="btn btn-outline-danger">📄 Export PDF</a>
+        <a href="<?= base_url('admin/jadwal/export/pdf' . $qs) ?>" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf"></i> Export PDF</a>
     </div>
 
     <form method="get" class="filter-bar">
@@ -89,18 +89,30 @@
                     <td><?= esc($j['nama_mapel']) ?></td>
                     <td><?= esc($j['nama_guru']) ?></td>
                     <td><?= esc($j['nama_ruangan']) ?></td>
-                    <td><?= esc($j['status']) ?></td>
+                    <td>
+                        <span class="badge <?= $j['status'] === 'Aktif' ? 'badge-success' : 'badge-danger' ?>">
+                            <?= esc($j['status']) ?>
+                        </span>
+                    </td>
                     <td>
                         <a href="<?= base_url('admin/jadwal/edit/' . $j['id_jadwal']) ?>"
                             class="btn btn-sm btn-warning">Edit</a>
-                        <a href="<?= base_url('admin/jadwal/delete/' . $j['id_jadwal']) ?>" class="btn btn-sm btn-danger"
-                            onclick="return confirm('Yakin hapus?')">Hapus</a>
+                        <form method="post" action="<?= base_url('admin/jadwal/delete/' . $j['id_jadwal']) ?>" style="display:inline;"
+                            onsubmit="return confirm('Yakin hapus?')">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
             <?php if (empty($jadwal)): ?>
                 <tr>
-                    <td colspan="10" class="text-center">Belum ada jadwal.</td>
+                    <td colspan="10" class="text-center">
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                            <i class="bi bi-calendar-x" style="font-size:24px;color:#d7dce3;"></i>
+                            <span>Belum ada jadwal.</span>
+                        </div>
+                    </td>
                 </tr>
             <?php endif; ?>
         </tbody>

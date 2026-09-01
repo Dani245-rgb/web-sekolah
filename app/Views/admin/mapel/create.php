@@ -7,11 +7,11 @@
 </div>
 
 <?php if (session()->getFlashdata('errors')): ?>
-<div class="alert alert-error">
-    <?php foreach (session()->getFlashdata('errors') as $error): ?>
-    <div><?= esc($error) ?></div>
-    <?php endforeach; ?>
-</div>
+    <div class="alert alert-error">
+        <?php foreach (session()->getFlashdata('errors') as $error): ?>
+            <div><?= esc($error) ?></div>
+        <?php endforeach; ?>
+    </div>
 <?php endif; ?>
 
 <div class="card">
@@ -56,6 +56,14 @@
                     <option value="Genap" <?= old('semester') === 'Genap' ? 'selected' : '' ?>>Genap</option>
                 </select>
             </div>
+        </div>
+
+        <div class="form-group">
+            <label>Ada Penilaian?</label>
+            <select name="ada_nilai">
+                <option value="Ya" <?= old('ada_nilai', 'Ya') === 'Ya' ? 'selected' : '' ?>>Ya — mapel ini dinilai (masuk rapor)</option>
+                <option value="Tidak" <?= old('ada_nilai') === 'Tidak' ? 'selected' : '' ?>>Tidak — tidak dinilai (contoh: BK)</option>
+            </select>
         </div>
 
         <div class="form-actions">

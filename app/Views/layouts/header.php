@@ -6,7 +6,7 @@
             <img src="<?= base_url('assets/images/logo/logo.png') ?>" alt="Logo SMK">
 
             <div class="logo-text">
-                <h1>SMK <span>Attuafiqiyyah</span></h1>
+                <h1>SMK <span>Attauafiqiyyah</span></h1>
                 <p>Berprestasi Bersama Kami</p>
             </div>
         </div>

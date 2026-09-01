@@ -26,7 +26,7 @@ class NilaiValidator implements ImportValidatorInterface
 
         // Kolom Excel: A=ID Siswa, B=NIS, C=Nama, D=Nilai, E=Snapshot (tersembunyi)
         $idSiswa = (int) trim((string)($rawRow['A'] ?? ''));
-        $nilaiRaw = trim((string)($rawRow['D'] ?? ''));
+        $nilaiRaw = str_replace(',', '.', trim((string)($rawRow['D'] ?? '')));
         $snapshotRaw = trim((string)($rawRow['E'] ?? ''));
 
         // 1. Cek id_siswa valid & ada di kelas ini (di tahun ajaran ini)

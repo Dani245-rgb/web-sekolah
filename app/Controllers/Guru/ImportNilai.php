@@ -154,8 +154,19 @@ class ImportNilai extends BaseController
             return redirect()->back()->with('error', 'File tidak valid');
         }
 
-        if (!in_array($file->getClientExtension(), ['xlsx', 'xls'])) {
-            return redirect()->back()->with('error', 'File harus format .xlsx atau .xls');
+        // Pakai getMimeType() (deteksi dari isi file asli), bukan getClientExtension()
+        // yang cuma baca nama file kiriman browser (gampang dipalsukan)
+        $mimeValid = in_array($file->getMimeType(), [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
+            'application/vnd.ms-excel', // xls
+        ]);
+
+        if (!$mimeValid) {
+            return redirect()->back()->with('error', 'File harus format .xlsx atau .xls yang valid.');
+        }
+
+        if ($file->getSize() > 5 * 1024 * 1024) { // 5MB
+            return redirect()->back()->with('error', 'Ukuran file maksimal 5MB.');
         }
 
         $konteks = $this->resolveKonteks($idKomponen);

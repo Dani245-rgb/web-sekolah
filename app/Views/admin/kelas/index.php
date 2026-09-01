@@ -63,8 +63,11 @@
                     <td>
                         <a href="<?= base_url('admin/kelas/edit/' . $k['id_kelas']) ?>"
                             class="btn btn-sm btn-warning">Edit</a>
-                        <a href="<?= base_url('admin/kelas/delete/' . $k['id_kelas']) ?>" class="btn btn-sm btn-danger"
-                            onclick="return confirm('Yakin hapus kelas ini?')">Hapus</a>
+                        <form method="post" action="<?= base_url('admin/kelas/delete/' . $k['id_kelas']) ?>" style="display:inline;"
+                            onsubmit="return confirm('Yakin hapus kelas ini?')">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>

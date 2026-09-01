@@ -33,8 +33,11 @@
             <td><?= esc($b['tanggal_publish'] ? date('d M Y', strtotime($b['tanggal_publish'])) : '-') ?></td>
             <td>
                 <a href="<?= base_url('admin/berita/edit/' . $b['id_berita']) ?>" class="btn btn-sm btn-outline-primary">Edit</a>
-                <a href="<?= base_url('admin/berita/delete/' . $b['id_berita']) ?>" class="btn btn-sm btn-outline-danger"
-                    onclick="return confirm('Hapus berita ini?')">Hapus</a>
+                <form method="post" action="<?= base_url('admin/berita/delete/' . $b['id_berita']) ?>" style="display:inline;"
+                    onsubmit="return confirm('Hapus berita ini?')">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                </form>
             </td>
         </tr>
         <?php endforeach; ?>

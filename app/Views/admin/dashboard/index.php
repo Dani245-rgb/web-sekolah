@@ -62,7 +62,7 @@
 </div>
 
 <!-- CHARTS -->
-<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+<div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:24px;">
     <div class="card" style="flex:2;min-width:320px;">
         <strong>Statistik Siswa Baru per Tahun Ajaran</strong>
         <div style="margin-top:16px;height:260px;">
@@ -105,7 +105,7 @@
 </div>
 
 <!-- ROW: Per Jurusan + Absensi + Jadwal + Pengumuman + Aktivitas -->
-<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;align-items:stretch;">
+<div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:24px;align-items:stretch;">
 
     <!-- Siswa Aktif per Jurusan -->
     <div class="card" style="flex:1;min-width:230px;">
@@ -135,23 +135,30 @@
     <!-- Absensi Hari Ini -->
     <div class="card" style="flex:1;min-width:230px;">
         <strong>Absensi Hari Ini</strong>
-        <div style="position:relative;margin-top:12px;height:170px;display:flex;align-items:center;justify-content:center;">
-            <canvas id="chartAbsensi"></canvas>
-            <div style="position:absolute;text-align:center;">
-                <div style="font-size:22px;font-weight:700;color:#22c55e;"><?= $persenHadirHariIni ?>%</div>
-                <div style="font-size:11px;color:#7c8a9c;">Kehadiran</div>
+        <?php if ($totalAbsensiHariIni == 0): ?>
+            <div class="empty-state-dash" style="margin-top:12px;">
+                <i class="bi bi-clipboard-x"></i>
+                <span>Belum ada absensi diinput hari ini.</span>
             </div>
-        </div>
-        <div style="margin-top:12px;font-size:12px;">
-            <?php $absenColors = ['Hadir' => '#22c55e', 'Izin' => '#f59e0b', 'Sakit' => '#3b82f6', 'Alfa' => '#ef4444']; ?>
-            <?php foreach ($rekapAbsensiHariIni as $status => $jumlah): ?>
-                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                    <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:<?= $absenColors[$status] ?>;margin-right:6px;"></span><?= esc($status) ?></span>
-                    <strong><?= $jumlah ?></strong>
+        <?php else: ?>
+            <div style="position:relative;margin-top:12px;height:170px;display:flex;align-items:center;justify-content:center;">
+                <canvas id="chartAbsensi"></canvas>
+                <div style="position:absolute;text-align:center;">
+                    <div style="font-size:22px;font-weight:700;color:#22c55e;"><?= $persenHadirHariIni ?>%</div>
+                    <div style="font-size:11px;color:#7c8a9c;">Kehadiran</div>
                 </div>
-            <?php endforeach; ?>
-        </div>
-        <div style="margin-top:8px;font-size:11px;color:#b7c0cc;border-top:1px solid #eef1f5;padding-top:8px;">Total Absensi: <?= $totalAbsensiHariIni ?></div>
+            </div>
+            <?php $absenColors = ['Hadir' => '#22c55e', 'Izin' => '#f59e0b', 'Sakit' => '#3b82f6', 'Alfa' => '#ef4444']; ?>
+            <div style="margin-top:12px;font-size:12px;">
+                <?php foreach ($rekapAbsensiHariIni as $status => $jumlah): ?>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                        <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:<?= $absenColors[$status] ?>;margin-right:6px;"></span><?= esc($status) ?></span>
+                        <strong><?= $jumlah ?></strong>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:#b7c0cc;border-top:1px solid #eef1f5;padding-top:8px;">Total Absensi: <?= $totalAbsensiHariIni ?></div>
+        <?php endif; ?>
     </div>
 
     <!-- Jadwal Hari Ini -->
@@ -159,7 +166,10 @@
         <strong>Jadwal Hari Ini (<?= esc($hariIni) ?>)</strong>
         <div style="margin-top:12px;">
             <?php if (empty($jadwalHariIni)): ?>
-                <p style="color:#7c8a9c;font-size:13px;">Tidak ada jadwal hari ini.</p>
+                <div class="empty-state-dash">
+                    <i class="bi bi-calendar-x"></i>
+                    <span>Tidak ada jadwal hari ini.</span>
+                </div>
             <?php else: ?>
                 <?php foreach ($jadwalHariIni as $j): ?>
                     <div style="padding:8px 0;border-bottom:1px solid #eef1f5;">
@@ -170,7 +180,7 @@
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
-        <a href="<?= base_url('admin/jadwal') ?>" style="font-size:12px;color:#3b82f6;text-decoration:none;display:inline-block;margin-top:10px;">Lihat Jadwal Lengkap →</a>
+        <a href="<?= base_url('admin/jadwal') ?>" style="font-size:12px;color:#3b82f6;text-decoration:none;display:inline-block;margin-top:auto;padding-top:10px;">Lihat Jadwal Lengkap →</a>
     </div>
 
     <!-- Pengumuman Terbaru -->
@@ -178,7 +188,10 @@
         <strong>Pengumuman Terbaru</strong>
         <div style="margin-top:12px;">
             <?php if (empty($pengumumanTerbaru)): ?>
-                <p style="color:#7c8a9c;font-size:13px;">Belum ada pengumuman.</p>
+                <div class="empty-state-dash">
+                    <i class="bi bi-megaphone"></i>
+                    <span>Belum ada pengumuman.</span>
+                </div>
             <?php else: ?>
                 <?php foreach ($pengumumanTerbaru as $p): ?>
                     <div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #eef1f5;">
@@ -199,7 +212,10 @@
         <strong>Aktivitas Terbaru</strong>
         <div style="margin-top:12px;">
             <?php if (empty($aktivitasTerbaru)): ?>
-                <p style="color:#7c8a9c;font-size:13px;">Belum ada aktivitas.</p>
+                <div class="empty-state-dash">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Belum ada aktivitas.</span>
+                </div>
             <?php else: ?>
                 <?php foreach ($aktivitasTerbaru as $a): ?>
                     <div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #eef1f5;">
@@ -221,7 +237,7 @@
 <div class="card">
     <strong>Quick Action</strong>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;">
-        <a href="<?= base_url('admin/siswa/create') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-person-plus"></i> Tambah Siswa</a>
+        <a href="<?= base_url('admin/siswa/create') ?>" class="btn btn-accent" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-person-plus"></i> Tambah Siswa</a>
         <a href="<?= base_url('admin/guru/create') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-person-plus"></i> Tambah Guru</a>
         <a href="<?= base_url('admin/kelas') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-building"></i> Tambah Kelas</a>
         <a href="<?= base_url('admin/jadwal') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-calendar-event"></i> Buat Jadwal</a>
@@ -232,14 +248,17 @@
 </div>
 
 <!-- Notifikasi + Akses Role -->
-<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:20px;">
+<div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:24px;">
     <div class="card" style="flex:2;min-width:300px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
             <strong>Notifikasi Terbaru</strong>
             <a href="<?= base_url('admin/notifikasi') ?>" style="font-size:13px;color:#3b82f6;text-decoration:none;">Lihat Semua →</a>
         </div>
         <?php if (empty($notifikasiTerbaru)): ?>
-            <p style="color:#7c8a9c;font-size:13px;">Belum ada notifikasi.</p>
+            <div class="empty-state-dash">
+                <i class="bi bi-bell"></i>
+                <span>Belum ada notifikasi.</span>
+            </div>
         <?php else: ?>
             <?php foreach ($notifikasiTerbaru as $n): ?>
                 <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #eef1f5;">
@@ -387,27 +406,29 @@
             });
         <?php endif; ?>
 
-        new Chart(document.getElementById('chartAbsensi'), {
-            type: 'doughnut',
-            data: {
-                labels: <?= json_encode(array_keys($rekapAbsensiHariIni)) ?>,
-                datasets: [{
-                    data: <?= json_encode(array_values($rekapAbsensiHariIni)) ?>,
-                    backgroundColor: <?= json_encode(array_values($absenColors)) ?>,
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+        <?php if ($totalAbsensiHariIni > 0): ?>
+            new Chart(document.getElementById('chartAbsensi'), {
+                type: 'doughnut',
+                data: {
+                    labels: <?= json_encode(array_keys($rekapAbsensiHariIni)) ?>,
+                    datasets: [{
+                        data: <?= json_encode(array_values($rekapAbsensiHariIni)) ?>,
+                        backgroundColor: <?= json_encode(array_values($absenColors)) ?>,
+                        borderWidth: 0
+                    }]
                 },
-                cutout: '75%'
-            }
-        });
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    cutout: '75%'
+                }
+            });
+        <?php endif; ?>
     })();
 </script>
 

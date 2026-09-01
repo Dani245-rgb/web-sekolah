@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Models\GuruModel;
 use App\Models\UserModel;
+use App\Models\MapelModel;
 use App\Libraries\ImageCompressor;
 use Config\Database;
 
@@ -12,11 +13,13 @@ class Guru extends BaseController
 {
     protected GuruModel $guruModel;
     protected UserModel $userModel;
+    protected MapelModel $mapelModel;
 
     public function __construct()
     {
         $this->guruModel = new GuruModel();
         $this->userModel = new UserModel();
+        $this->mapelModel = new MapelModel();
     }
 
     public function index()
@@ -40,7 +43,8 @@ class Guru extends BaseController
 
     public function create()
     {
-        return view('admin/guru/create');
+        $data['mapelList'] = $this->mapelModel->where('status', 'Aktif')->orderBy('kelompok_mapel', 'ASC')->findAll();
+        return view('admin/guru/create', $data);
     }
 
     public function store()
@@ -116,6 +120,8 @@ class Guru extends BaseController
         if (!$data['guru']) {
             return redirect()->to('/admin/guru')->with('errors', ['404' => 'Data guru tidak ditemukan.']);
         }
+
+        $data['mapelList'] = $this->mapelModel->where('status', 'Aktif')->orderBy('kelompok_mapel', 'ASC')->findAll();
 
         return view('admin/guru/edit', $data);
     }

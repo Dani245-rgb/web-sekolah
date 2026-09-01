@@ -1,0 +1,237 @@
+/* =========================================================
+   MOBILE.CSS
+   Berlaku untuk layar <= 480px (HP kecil: iPhone SE, Android
+   entry-level, dsb).
+
+   PENTING: seluruh isi file ini BARU — TIDAK ada di style.css
+   yang lama. File asli hanya punya 1 breakpoint (768px) yang
+   sudah dipindah ke tablet.css. Rule di bawah ini adalah
+   penyempurnaan tambahan untuk layar sangat sempit, silakan
+   sesuaikan/hapus kalau tidak sesuai kebutuhan.
+   ========================================================= */
+
+@media (max-width: 480px) {
+.content-layout {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "hero"
+    "berita"
+    "sidebar-atas"
+    "berita-terbaru"
+    "sidebar-bawah"
+    "galeri"
+    "agenda"
+    "prestasi"
+    "ekskul";
+  gap: 12px;
+}
+
+  /* --- Navbar: hamburger menu --- */
+  .navbar-toggle {
+    display: block;
+  }
+
+  .navbar .container {
+    position: relative;
+    flex-wrap: wrap;
+  }
+
+  .nav-menu {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--hijau-tua);
+    padding: 8px 0;
+    box-shadow: 0 12px 22px rgba(10, 40, 25, 0.25);
+    z-index: 200;
+  }
+
+  .nav-menu.open {
+    display: flex;
+  }
+
+  .nav-menu li {
+    width: 100%;
+  }
+
+  .nav-menu li a {
+    padding: 12px 20px;
+    width: 100%;
+    justify-content: flex-start;
+    white-space: normal;
+    box-sizing: border-box;
+  }
+
+  .nav-menu {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .nav-menu li a .fa-chevron-down {
+    margin-left: auto;
+  }
+
+  /* Dropdown submenu di mobile: klik untuk expand, bukan hover */
+  .dropdown-menu {
+    position: static;
+    display: none;
+    width: 100%;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    background: rgba(0, 0, 0, 0.15);
+  }
+
+  .dropdown.dropdown-open .dropdown-menu {
+    display: block;
+  }
+
+  .dropdown.dropdown-open .fa-chevron-down {
+    transform: rotate(180deg);
+  }
+
+  .nav-actions {
+    margin-left: auto;
+    gap: 6px;
+  }
+
+  .btn-login {
+    padding: 6px 16px !important;
+    font-size: 13px;
+  }
+
+  .search-box button {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* --- Topbar: rapikan & sembunyikan info kontak, sisakan sosial media --- */
+  .topbar .container {
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .topbar p {
+    font-size: 11.5px;
+  }
+
+  .contact-info {
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .contact-info > a {
+    display: none;
+  }
+
+  /* --- Hero: perkecil lagi teks overlay biar tidak sesak --- */
+  .hero img {
+    height: 180px;
+  }
+
+  .hero-overlay {
+    padding: 18px 20px;
+  }
+
+  .hero-overlay h1 {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+
+  .hero-overlay p {
+    font-size: 12.5px;
+    margin-bottom: 12px;
+  }
+
+  .btn-hero-cta {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  /* --- Berita utama: dari 2 kolom jadi 1 kolom --- */
+  .berita-utama-list {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Prestasi: dari 3 kolom jadi 1 kolom --- */
+  .prestasi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Partner block: perkecil supaya tidak overflow --- */
+  .partner-block {
+    width: 260px;
+    height: 180px;
+    padding: 18px;
+  }
+
+  .partner-info-card {
+    width: 280px;
+  }
+
+  /* --- Struktur organisasi: 2 kolom jadi 1 kolom --- */
+  .organisasi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Form PPDB: kurangi padding di layar sempit --- */
+  .ppdb-form {
+    padding: 18px;
+  }
+
+/* --- Override balik: HP kecil tetap full 1 kolom (khusus section lama, sudah tidak dipakai tapi dibiarkan aman) --- */
+.section-split,
+.section-split-row {
+  grid-template-columns: 1fr;
+}
+
+  .sidebar-atas,
+  .sidebar-bawah,
+  .widget-agenda,
+  .widget-ekskul {
+    position: static;
+  }
+
+  /* --- Lightbox: full-bleed di layar sangat kecil --- */
+  .lightbox {
+    padding: 12px;
+  }
+
+  .lightbox-content img {
+    max-height: 65vh;
+  }
+
+  /* --- Tombol ke atas: perkecil sedikit --- */
+  .btn-top {
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .berita-card,
+  .prestasi-card,
+  .partner-info-card {
+    transition:
+      transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+      box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .berita-card:active,
+  .prestasi-card:active,
+  .partner-info-card:active {
+    transform: scale(0.98);
+    box-shadow:
+      0 1px 2px rgba(10, 40, 25, 0.06),
+      0 4px 10px rgba(10, 40, 25, 0.08);
+  }
+}

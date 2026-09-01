@@ -98,7 +98,8 @@
     border-bottom: 1px solid #f1f5f9;
 }
 
-.nilai-komponen-table input[type="text"] {
+.nilai-komponen-table input[type="text"],
+.nilai-komponen-table input[type="url"] {
     width: 100%;
     padding: 8px 12px;
     border: 1px solid #cbd5e1;
@@ -120,14 +121,16 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-#total-bobot-info {
+#total-bobot-kategori-info,
+.total-bobot-komponen-info {
     font-size: 13px;
     font-weight: 600;
     color: #b91c1c;
     margin: 4px 0 20px 0;
 }
 
-#total-bobot-info.valid {
+#total-bobot-kategori-info.valid,
+.total-bobot-komponen-info.valid {
     color: #15803d;
 }
 
@@ -262,4 +265,46 @@
 .nilai-status-belum {
     background: #fee2e2;
     color: #b91c1c;
+}
+
+/* ============================
+   Kategori Block & Header
+============================ */
+.nilai-kategori-block {
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.nilai-kategori-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.nilai-kategori-header .input-nama-kategori {
+    flex: 1;
+    min-width: 200px;
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.nilai-kategori-header .input-bobot-kategori {
+    width: 160px;
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.nilai-kategori-header input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }

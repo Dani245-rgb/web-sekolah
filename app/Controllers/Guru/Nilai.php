@@ -35,11 +35,6 @@ class Nilai extends BaseController
         $this->auditLogModel   = new AuditLogModel();
     }
 
-    /**
-     * Ambil data guru yang sedang login.
-     * Melempar RuntimeException kalau data guru tidak ditemukan
-     * (misal akun user ada tapi data guru sudah terhapus).
-     */
     protected function getGuruLogin()
     {
         $userId    = session()->get('id_user');
@@ -53,19 +48,40 @@ class Nilai extends BaseController
         return $guru;
     }
 
-    /**
-     * Redirect standar kalau data guru tidak ditemukan.
-     */
     protected function redirectGuruTidakDitemukan()
     {
         return redirect()->to('/logout')
             ->with('errors', ['akun' => 'Data guru Anda tidak ditemukan. Silakan hubungi Admin.']);
     }
 
+    /**
+     * Dipanggil via AJAX secara berkala (keep-alive) dan tepat sebelum submit form nilai.
+     * Efeknya: 1) request ke server ini memperpanjang umur session CI4 secara alami,
+     * 2) mengembalikan CSRF token TERBARU yang bisa disuntikkan ke form sebelum submit,
+     * supaya token yang dipakai submit selalu segar walau guru sudah lama di halaman ini.
+     */
+    public function csrfToken()
+    {
+        try {
+            $this->getGuruLogin(); // sekalian pastikan session guru masih valid
+        } catch (\RuntimeException $e) {
+            return $this->response->setStatusCode(401)->setJSON([
+                'valid' => false,
+                'pesan' => 'Session tidak valid, silakan login ulang.',
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'valid'      => true,
+            'csrfName'   => csrf_token(),
+            'csrfHash'   => csrf_hash(),
+        ]);
+    }
+
     protected function getJadwalMilikSaya($idJadwal, $guru)
     {
         $jadwalModel = new JadwalModel();
-        $jadwal = $jadwalModel->select('jadwal.*, kelas.nama_kelas, mapel.nama_mapel')
+        $jadwal = $jadwalModel->select('jadwal.*, kelas.nama_kelas, mapel.nama_mapel, mapel.ada_nilai')
             ->join('kelas', 'kelas.id_kelas = jadwal.id_kelas')
             ->join('mapel', 'mapel.id_mapel = jadwal.id_mapel')
             ->find($idJadwal);
@@ -77,9 +93,36 @@ class Nilai extends BaseController
         return $jadwal;
     }
 
+    protected function redirectJikaMapelTanpaNilai($jadwal)
+    {
+        if (($jadwal['ada_nilai'] ?? 'Ya') === 'Tidak') {
+            return redirect()->to('/guru/dashboard')
+                ->with('errors', ['mapel' => "Mapel {$jadwal['nama_mapel']} tidak memerlukan input nilai."]);
+        }
+
+        return null;
+    }
+
     /**
-     * GET /guru/nilai/form/(:num)/pengaturan
+     * Sanitasi input nilai: ubah koma jadi titik, trim spasi.
+     * Return null kalau bukan angka valid (biar bisa di-skip pemanggil, bukan crash).
      */
+    protected function sanitasiNilai($nilaiRaw): ?float
+    {
+        $nilaiRaw = str_replace(',', '.', trim((string) $nilaiRaw));
+        if ($nilaiRaw === '' || !is_numeric($nilaiRaw)) {
+            return null;
+        }
+        $val = (float) $nilaiRaw;
+
+        // Range checking: nilai wajib 0-100
+        if ($val < 0 || $val > 100) {
+            return null;
+        }
+
+        return $val;
+    }
+
     public function pengaturanManual($idJadwal)
     {
         try {
@@ -92,6 +135,10 @@ class Nilai extends BaseController
 
         if (!$jadwal) {
             return redirect()->to('/guru/dashboard')->with('errors', ['403' => 'Jadwal ini bukan milik Anda.']);
+        }
+
+        if ($blokir = $this->redirectJikaMapelTanpaNilai($jadwal)) {
+            return $blokir;
         }
 
         $semesterAktif = $this->semesterModel->getActive();
@@ -141,6 +188,10 @@ class Nilai extends BaseController
             return redirect()->to('/guru/dashboard')->with('errors', ['403' => 'Jadwal ini bukan milik Anda.']);
         }
 
+        if ($blokir = $this->redirectJikaMapelTanpaNilai($jadwal)) {
+            return $blokir;
+        }
+
         $semesterAktif = $this->semesterModel->getActive();
 
         if (!$semesterAktif) {
@@ -184,8 +235,11 @@ class Nilai extends BaseController
         $nilaiRows = $idKomponenList ? $this->nilaiModel->whereIn('id_komponen', $idKomponenList)->findAll() : [];
 
         $nilaiMap = [];
+        $nilaiUpdatedAtMap = [];
         foreach ($nilaiRows as $row) {
             $nilaiMap[$row['id_siswa']][$row['id_komponen']] = $row['nilai'];
+            // Dipakai form sebagai "snapshot" utk optimistic locking saat simpan()
+            $nilaiUpdatedAtMap[$row['id_siswa']][$row['id_komponen']] = $row['updated_at'] ?? null;
         }
 
         return view('guru/nilai/input', [
@@ -196,6 +250,7 @@ class Nilai extends BaseController
             'komponenPerKategori' => $komponenPerKategori,
             'siswaList'           => $siswaList,
             'nilaiMap'            => $nilaiMap,
+            'nilaiUpdatedAtMap'   => $nilaiUpdatedAtMap,
         ]);
     }
 
@@ -213,25 +268,59 @@ class Nilai extends BaseController
             return redirect()->to('/guru/dashboard')->with('errors', ['403' => 'Jadwal ini bukan milik Anda.']);
         }
 
+        if ($blokir = $this->redirectJikaMapelTanpaNilai($jadwal)) {
+            return $blokir;
+        }
+
         $semesterAktif = $this->semesterModel->getActive();
 
         $kkm          = (int) $this->request->getPost('kkm');
         $kategoriData = $this->request->getPost('kategori');
 
+        // Range checking: KKM wajib 0-100
+        if ($kkm < 0 || $kkm > 100) {
+            return redirect()->back()->withInput()->with('errors', ['kkm' => 'KKM harus di antara 0 sampai 100.']);
+        }
+
         if (empty($kategoriData) || !is_array($kategoriData)) {
             return redirect()->back()->withInput()->with('errors', ['kosong' => 'Kategori & komponen nilai wajib diisi.']);
         }
 
+        $totalBobotKategori = 0;
+
         foreach ($kategoriData as $kat) {
-            if (empty($kat['nama']) || $kat['bobot'] === '' || empty($kat['komponen'])) {
-                return redirect()->back()->withInput()->with('errors', ['kosong' => 'Setiap kategori wajib punya nama, bobot, dan minimal 1 komponen.']);
+            // FIX #2: bobot kategori wajib > 0, bukan cuma "tidak kosong"
+            if (empty($kat['nama']) || $kat['bobot'] === '' || (float) $kat['bobot'] <= 0 || empty($kat['komponen'])) {
+                return redirect()->back()->withInput()->with('errors', ['kosong' => 'Setiap kategori wajib punya nama, bobot lebih dari 0, dan minimal 1 komponen.']);
             }
+
+            $totalBobotKategori += (float) $kat['bobot'];
 
             $totalBobotKomponen = 0;
             foreach ($kat['komponen'] as $komp) {
                 if (empty($komp['nama']) || $komp['bobot'] === '') {
                     return redirect()->back()->withInput()->with('errors', ['kosong' => 'Setiap komponen wajib punya nama & bobot.']);
                 }
+
+                // Validasi link_referensi: harus URL valid kalau diisi
+                if (!empty($komp['link'])) {
+                    $linkValid = filter_var($komp['link'], FILTER_VALIDATE_URL)
+                        && preg_match('/^https?:\/\//i', $komp['link']); // wajib http/https, tolak javascript:, data:, dll
+
+                    if (!$linkValid) {
+                        return redirect()->back()->withInput()->with('errors', [
+                            'link' => "Link referensi pada komponen \"{$komp['nama']}\" harus berupa URL http/https yang valid."
+                        ]);
+                    }
+                }
+
+                // Batasi panjang keterangan biar gak dipakai buat payload panjang
+                if (!empty($komp['keterangan']) && mb_strlen($komp['keterangan']) > 500) {
+                    return redirect()->back()->withInput()->with('errors', [
+                        'keterangan' => "Keterangan pada komponen \"{$komp['nama']}\" maksimal 500 karakter."
+                    ]);
+                }
+
                 $totalBobotKomponen += (float) $komp['bobot'];
             }
 
@@ -240,6 +329,11 @@ class Nilai extends BaseController
                     'bobot' => "Total bobot komponen dalam kategori \"{$kat['nama']}\" harus 100%, saat ini {$totalBobotKomponen}%."
                 ]);
             }
+        }
+
+        // FIX #2: cegah semua kategori dikasih bobot 0 (mencegah division-by-zero di kalkulasi akhir)
+        if ($totalBobotKategori <= 0) {
+            return redirect()->back()->withInput()->with('errors', ['bobot' => 'Total bobot semua kategori tidak boleh 0.']);
         }
 
         $db = \Config\Database::connect();
@@ -255,7 +349,7 @@ class Nilai extends BaseController
         if ($existing) {
             $idPengaturan = $existing['id_pengaturan'];
             $this->pengaturanModel->update($idPengaturan, ['kkm' => $kkm]);
-            $this->komponenModel->where('id_pengaturan', $idPengaturan)->delete();
+            $this->bersihkanKomponenLama($idPengaturan);
             $this->kategoriModel->where('id_pengaturan', $idPengaturan)->delete();
         } else {
             $idPengaturan = $this->pengaturanModel->insert([
@@ -329,7 +423,14 @@ class Nilai extends BaseController
             return redirect()->to('/guru/dashboard')->with('errors', ['403' => 'Jadwal ini bukan milik Anda.']);
         }
 
+        if ($blokir = $this->redirectJikaMapelTanpaNilai($jadwal)) {
+            return $blokir;
+        }
+
         $nilai = $this->request->getPost('nilai');
+        // FIX #4: timestamp snapshot per siswa+komponen, dikirim dari form (hidden input),
+        // dipakai utk optimistic locking. Format: updated_at[id_siswa][id_komponen] = 'Y-m-d H:i:s' atau '' kalau baru.
+        $updatedAtSnapshot = $this->request->getPost('updated_at') ?? [];
 
         if (empty($nilai) || !is_array($nilai)) {
             return redirect()->back()->with('errors', ['kosong' => 'Tidak ada nilai yang dikirim.']);
@@ -338,20 +439,66 @@ class Nilai extends BaseController
         $db = \Config\Database::connect();
         $db->transStart();
 
-        foreach ($nilai as $id_siswa => $perKomponen) {
-            foreach ($perKomponen as $id_komponen => $nilaiValue) {
-                if ($nilaiValue === '' || $nilaiValue === null) continue;
+        $konflikList = [];
+        $dilewatiFormatSalah = [];
+        $komponenDihapus = [];
 
+        // Ambil semua id_komponen yg dikirim form, cek sekali di awal (bukan query berulang per sel)
+        $semuaIdKomponenDikirim = [];
+        foreach ($nilai as $perKomponen) {
+            foreach ($perKomponen as $id_komponen => $v) {
+                $semuaIdKomponenDikirim[$id_komponen] = true;
+            }
+        }
+        $komponenMasihAda = $semuaIdKomponenDikirim
+            ? array_column($this->komponenModel->whereIn('id_komponen', array_keys($semuaIdKomponenDikirim))->findAll(), 'id_komponen')
+            : [];
+        $komponenMasihAda = array_flip($komponenMasihAda); // biar isset() O(1)
+
+        foreach ($nilai as $id_siswa => $perKomponen) {
+            foreach ($perKomponen as $id_komponen => $nilaiValueRaw) {
+                if ($nilaiValueRaw === '' || $nilaiValueRaw === null) continue;
+
+                // FIX #5: komponen sudah dihapus (soft-deleted) tepat saat guru mengisi form — jangan simpan, jangan crash FK
+                if (!isset($komponenMasihAda[$id_komponen])) {
+                    $komponenDihapus[] = $id_komponen;
+                    continue;
+                }
+
+                // FIX #3: sanitasi koma -> titik, skip kalau tetap bukan angka (jangan crash)
+                $nilaiValue = $this->sanitasiNilai($nilaiValueRaw);
+                if ($nilaiValue === null) {
+                    $dilewatiFormatSalah[] = "{$id_siswa}-{$id_komponen}";
+                    continue;
+                }
                 $existing = $this->nilaiModel->where('id_siswa', $id_siswa)
                     ->where('id_komponen', $id_komponen)->first();
 
+                // FIX #4: optimistic locking — kalau data sudah berubah sejak form dibuka, skip & catat konflik
+                $snapshotDikirim = $updatedAtSnapshot[$id_siswa][$id_komponen] ?? '';
+                $updatedAtSekarang = $existing['updated_at'] ?? null;
+
+                if ($existing && $snapshotDikirim !== '' && $snapshotDikirim !== (string) $updatedAtSekarang) {
+                    $konflikList[] = [
+                        'id_siswa'    => $id_siswa,
+                        'id_komponen' => $id_komponen,
+                        'nilai_baru_ditolak' => $nilaiValue,
+                        'nilai_saat_ini'     => $existing['nilai'],
+                    ];
+                    continue; // jangan timpa nilai yang sudah diubah pihak lain
+                }
+
                 if ($existing) {
-                    $this->nilaiModel->update($existing['id_nilai'], ['nilai' => $nilaiValue]);
+                    $this->nilaiModel->update($existing['id_nilai'], [
+                        'nilai'      => $nilaiValue,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
                 } else {
                     $this->nilaiModel->insert([
                         'id_siswa'    => $id_siswa,
                         'id_komponen' => $id_komponen,
                         'nilai'       => $nilaiValue,
+                        'updated_at'  => date('Y-m-d H:i:s'),
                     ]);
                 }
             }
@@ -363,9 +510,52 @@ class Nilai extends BaseController
             return redirect()->back()->with('errors', ['gagal' => 'Terjadi kesalahan, nilai tidak tersimpan.']);
         }
 
-        $this->kirimNotifNilaiJikaLengkap($guru, $jadwal, array_keys($nilai));
+        // $this->kirimNotifNilaiJikaLengkap($guru, $jadwal, array_keys($nilai));
+
+        if (!empty($komponenDihapus)) {
+            return redirect()->to('/guru/nilai/form/' . $idJadwal)
+                ->with('errors', ['komponen_dihapus' => 'Beberapa komponen nilai sudah dihapus oleh Admin/Kurikulum saat Anda mengisi form ini, sehingga nilainya tidak tersimpan. Silakan muat ulang halaman ini untuk melihat komponen terbaru.']);
+        }
+
+        if (!empty($konflikList)) {
+            session()->setFlashdata('konflikNilai', $konflikList);
+            return redirect()->to('/guru/nilai/form/' . $idJadwal)
+                ->with('errors', ['konflik' => count($konflikList) . ' nilai tidak tersimpan karena sudah diubah oleh pengguna lain. Silakan cek ulang dan isi kembali data tersebut.']);
+        }
 
         return redirect()->to('/guru/nilai/form/' . $idJadwal)->with('success', 'Nilai berhasil disimpan.');
+    }
+
+    /**
+     * Bersihkan komponen lama sebelum pengaturan ditulis ulang.
+     * - Komponen yang BELUM PERNAH punya nilai_siswa: hard-delete beneran (aman, tidak ada yg perlu dilindungi).
+     * - Komponen yang SUDAH punya nilai_siswa: soft-delete saja (histori nilai tetap terhubung, tidak numpuk sia-sia
+     *   karena hanya terjadi untuk komponen yang memang pernah dipakai, bukan tiap kali guru klik simpan).
+     */
+    protected function bersihkanKomponenLama(int $idPengaturan): void
+    {
+        $komponenLama = $this->komponenModel->where('id_pengaturan', $idPengaturan)->findAll();
+        if (empty($komponenLama)) {
+            return;
+        }
+
+        $idKomponenLama = array_column($komponenLama, 'id_komponen');
+
+        $idKomponenPernahDinilai = array_unique(array_column(
+            $this->nilaiModel->select('id_komponen')->whereIn('id_komponen', $idKomponenLama)->findAll(),
+            'id_komponen'
+        ));
+
+        $idUntukHapusPermanen = array_diff($idKomponenLama, $idKomponenPernahDinilai);
+        $idUntukSoftDelete    = $idKomponenPernahDinilai;
+
+        if (!empty($idUntukHapusPermanen)) {
+            $this->komponenModel->whereIn('id_komponen', $idUntukHapusPermanen)->delete(null, true); // true = forceDelete (hard)
+        }
+
+        if (!empty($idUntukSoftDelete)) {
+            $this->komponenModel->whereIn('id_komponen', $idUntukSoftDelete)->delete(); // soft delete biasa
+        }
     }
 
     protected function kirimNotifNilaiJikaLengkap($guru, array $jadwal, array $idSiswaList): void
@@ -524,6 +714,15 @@ class Nilai extends BaseController
         ]);
     }
 
+
+    protected function sanitasiNamaFile(string $str): string
+    {
+        // Hanya izinkan huruf, angka, spasi, dash, underscore
+        $str = preg_replace('/[^A-Za-z0-9\s\-_]/', '', $str);
+        return trim($str);
+    }
+
+
     public function exportPdf($idJadwal)
     {
         try {
@@ -574,7 +773,10 @@ class Nilai extends BaseController
         $mpdf = new \Mpdf\Mpdf(['mode' => 'utf-8', 'format' => 'A4']);
         $mpdf->SetTitle('Rekap Nilai');
         $mpdf->WriteHTML($html);
-        $mpdf->Output('rekap-nilai_' . $jadwal['nama_kelas'] . '_' . $jadwal['nama_mapel'] . '.pdf', 'D');
+
+        $namaKelasAman = $this->sanitasiNamaFile($jadwal['nama_kelas']);
+        $namaMapelAman = $this->sanitasiNamaFile($jadwal['nama_mapel']);
+        $mpdf->Output('rekap-nilai_' . $namaKelasAman . '_' . $namaMapelAman . '.pdf', 'D');
     }
 
     protected function hitungRekap(array $pengaturan, array $kategoriList, array $komponenList, array $siswaList): array

@@ -64,9 +64,11 @@
                 <td>
                     <a href="<?= base_url('admin/bk-artikel/edit/' . $a['id_artikel']) ?>"
                        class="btn btn-sm btn-outline-primary">Edit</a>
-                    <a href="<?= base_url('admin/bk-artikel/delete/' . $a['id_artikel']) ?>"
-                       class="btn btn-sm btn-outline-danger"
-                       onclick="return confirm('Hapus artikel \'<?= esc($a['judul'], 'js') ?>\'? Tindakan ini tidak bisa dibatalkan.')">Hapus</a>
+                    <form method="post" action="<?= base_url('admin/bk-artikel/delete/' . $a['id_artikel']) ?>" style="display:inline;"
+                       onsubmit="return confirm('Hapus artikel \'<?= esc($a['judul'], 'js') ?>\'? Tindakan ini tidak bisa dibatalkan.')">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                    </form>
                 </td>
             </tr>
             <?php endforeach; ?>

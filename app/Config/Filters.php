@@ -114,5 +114,12 @@ public array $aliases = [
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    public array $filters = [
+    'throttle' => [
+        'before' => [
+            'login',
+            'guru/nilai/csrf-token',
+        ],
+    ],
+];
 }

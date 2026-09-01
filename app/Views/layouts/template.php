@@ -2,13 +2,13 @@
 
 <body>
 
+<?= view('layouts/ticker') ?>
+
 <?= view('layouts/topbar') ?>
 
 <?= view('layouts/header') ?>
 
 <?= view('layouts/navbar') ?>
-
-<?= view('layouts/ticker') ?>
 
 <?= $this->renderSection('content') ?>
 
@@ -19,8 +19,12 @@
     const BASE_URL = "<?= base_url() ?>";
 </script>
 
-<!-- File JavaScript -->
+<!-- Bootstrap JS (bundle sudah termasuk Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- File JavaScript kamu -->
 <script src="<?= base_url('assets/js/script.js') ?>"></script>
+<script src="<?= base_url('assets/js/navbar.js') ?>"></script>
 
 </body>
 </html>

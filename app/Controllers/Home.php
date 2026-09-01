@@ -14,6 +14,8 @@ class Home extends BaseController
 {
     public function index(): string
     {
+        helper('text');
+
         $beritaModel      = new BeritaModel();
         $galeriModel      = new GaleriModel();
         $pengumumanModel  = new PengumumanModel();
