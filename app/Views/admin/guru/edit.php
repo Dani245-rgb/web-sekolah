@@ -66,25 +66,7 @@
 
             <div class="form-group">
                 <label>Jabatan / Mengajar Mapel</label>
-                <select name="jabatan">
-                    <option value="">-- Pilih --</option>
-                    <?php $kelompokTerakhir = null; ?>
-                    <?php foreach ($mapelList as $m): ?>
-                        <?php if ($m['kelompok_mapel'] !== $kelompokTerakhir): ?>
-                            <?php if ($kelompokTerakhir !== null): ?></optgroup><?php endif; ?>
-                            <optgroup label="<?= esc($m['kelompok_mapel'] ?: 'Lainnya') ?>">
-                                <?php $kelompokTerakhir = $m['kelompok_mapel']; ?>
-                            <?php endif; ?>
-                            <option value="<?= esc($m['nama_mapel']) ?>" <?= old('jabatan', $guru['jabatan']) === $m['nama_mapel'] ? 'selected' : '' ?>>
-                                <?= esc($m['nama_mapel']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                        <?php if ($kelompokTerakhir !== null): ?>
-                            </optgroup><?php endif; ?>
-                </select>
-                <?php if (!empty($guru['jabatan']) && !in_array($guru['jabatan'], array_column($mapelList, 'nama_mapel'))): ?>
-                    <small style="color:#e17055;">Data lama: "<?= esc($guru['jabatan']) ?>" tidak cocok dengan daftar mapel saat ini. Silakan pilih ulang.</small>
-                <?php endif; ?>
+                <input type="text" name="jabatan" value="<?= old('jabatan', $guru['jabatan']) ?>" placeholder="mis. Guru Matematika">
             </div>
 
             <div class="form-group">

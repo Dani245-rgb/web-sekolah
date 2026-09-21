@@ -4,8 +4,6 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\UserModel;
-use App\Models\SiswaModel;
-use App\Models\GuruModel;
 use App\Models\AuditLogModel;
 
 class User extends BaseController
@@ -14,6 +12,10 @@ class User extends BaseController
 
     public function __construct()
     {
+        if (!session()->get('is_superadmin')) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException('Halaman tidak ditemukan.');
+        }
+
         $this->userModel = new UserModel();
     }
 
@@ -115,31 +117,7 @@ class User extends BaseController
         }
 
         $namaTampil   = $user['username'];
-        $passwordBaru = null;
-
-        if ((int) $user['role_id'] === 3) {
-            // Siswa: pola lama, password = tanggal lahir
-            $siswaModel = new SiswaModel();
-            $siswa = $siswaModel->where('user_id', $idUser)->first();
-
-            if ($siswa) {
-                $namaTampil   = $siswa['nama'];
-                $passwordBaru = date('dmY', strtotime($siswa['tanggal_lahir']));
-            }
-        } elseif ((int) $user['role_id'] === 2) {
-            // Guru
-            $guruModel = new GuruModel();
-            $guru = $guruModel->where('user_id', $idUser)->first();
-
-            if ($guru) {
-                $namaTampil = $guru['nama'];
-            }
-        }
-
-        // Kalau bukan siswa (atau siswa tanpa tanggal lahir), pakai password acak
-        if ($passwordBaru === null) {
-            $passwordBaru = bin2hex(random_bytes(4)); // 8 karakter acak
-        }
+        $passwordBaru = bin2hex(random_bytes(4)); // 8 karakter acak
 
         $this->userModel->update($idUser, [
             'password'              => password_hash($passwordBaru, PASSWORD_DEFAULT),

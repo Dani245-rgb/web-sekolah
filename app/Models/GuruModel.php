@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class GuruModel extends Model
+class GuruModel extends BaseModel
 {
     protected $table            = 'guru';
     protected $primaryKey       = 'id_guru';

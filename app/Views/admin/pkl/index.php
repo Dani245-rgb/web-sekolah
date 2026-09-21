@@ -31,6 +31,7 @@
         <button type="submit" class="btn btn-secondary">Filter</button>
     </form>
 
+    <div class="table-responsive-wrap">
     <table style="width:100%; border-collapse:collapse;">
         <thead>
             <tr style="background:#f8fafc; text-align:left;">
@@ -65,6 +66,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <?= $this->endSection() ?>

@@ -6,6 +6,13 @@ use App\Controllers\BaseController;
 
 class RolePermission extends BaseController
 {
+    public function __construct()
+    {
+        if (!session()->get('is_superadmin')) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException('Halaman tidak ditemukan.');
+        }
+    }
+
     public function index()
     {
         $data['roles'] = [
@@ -13,26 +20,21 @@ class RolePermission extends BaseController
                 'nama'  => 'Admin',
                 'desc'  => 'Akses penuh ke seluruh sistem.',
                 'grup'  => [
-                    'Data Sekolah'   => ['Tahun Ajaran', 'Siswa', 'Guru', 'Kelas', 'Assign Kelas', 'Mata Pelajaran', 'Jadwal Manager'],
-                    'Data Akademik'  => ['Alumni', 'Mutasi', 'Kenaikan Kelas', 'Riwayat Kelas', 'Rekap Absensi', 'Rekap Nilai'],
+                    'Data Sekolah'   => ['Tahun Ajaran', 'Siswa', 'Guru', 'Kelas', 'Assign Kelas', 'MataPelajaran', 'Jadwal Manager'],
+                    'Data Akademik'  => ['Alumni', 'Mutasi', 'Kenaikan Kelas', 'Riwayat Kelas'],
                     'Website (CMS)'  => ['Berita', 'Galeri', 'Pengumuman', 'Prestasi', 'Agenda', 'Ekstrakurikuler', 'Industri Mitra', 'PPDB', 'Pesan Masuk', 'Kalender Akademik', 'Profil Sekolah', 'Organisasi Sekolah'],
-                    'User & Akses'   => ['User (Admin/Guru/Siswa)', 'Audit Log', 'Role & Permission'],
+                    'User & Akses'   => ['User (Admin)', 'Audit Log', 'Role & Permission'],
                 ],
             ],
             [
                 'nama'  => 'Guru',
-                'desc'  => 'Akses terbatas ke kelas dan mapel yang diampu.',
-                'grup'  => [
-                    'Absensi' => ['Input Absensi per Kelas', 'Riwayat Absensi'],
-                    'Nilai'   => ['Input Nilai', 'Pengaturan Bobot Nilai', 'Rekap Nilai', 'Import Nilai', 'Riwayat Nilai'],
-                ],
+                'desc'  => 'Tidak bisa login ke sistem. Data guru dikelola langsung oleh Admin.',
+                'grup'  => [],
             ],
             [
                 'nama'  => 'Siswa',
-                'desc'  => 'Akses baca saja untuk data pribadi.',
-                'grup'  => [
-                    'Akademik' => ['Lihat Nilai (read-only)'],
-                ],
+                'desc'  => 'Tidak bisa login ke sistem. Data siswa dikelola langsung oleh Admin.',
+                'grup'  => [],
             ],
         ];
 

@@ -75,16 +75,18 @@ class LaporanSiswa extends BaseController
         $header = ['No', 'NIS', 'NISN', 'Nama', 'Jenis Kelamin', 'Kelas', 'Jurusan', 'Status'];
         $sheet->fromArray($header, null, 'A1');
 
+        helper('excel');
+
         $row = 2;
         foreach ($siswa as $i => $s) {
             $sheet->fromArray([
                 $i + 1,
                 $s['nis'],
                 $s['nisn'],
-                $s['nama'],
+                sanitize_excel_cell($s['nama']),
                 $s['jenis_kelamin'],
-                $s['nama_kelas'] ?? '-',
-                $s['jurusan'] ?? '-',
+                sanitize_excel_cell($s['nama_kelas'] ?? '-'),
+                sanitize_excel_cell($s['jurusan'] ?? '-'),
                 $s['status'],
             ], null, "A{$row}");
             $row++;

@@ -19,28 +19,7 @@ $namaSekolahLogin     = $pengaturanLogin['nama_sekolah'] ?? 'Website Sekolah';
 
 <body>
     <div class="login-page">
-
-        <!-- PANEL KIRI: identitas sekolah -->
-        <aside class="login-aside">
-            <div class="aside-brand">
-                <?php if (!empty($pengaturanLogin['logo'])): ?>
-                    <img src="<?= base_url('assets/uploads/sekolah/' . $pengaturanLogin['logo']) ?>" alt="Logo <?= esc($namaSekolahLogin) ?>">
-                <?php endif; ?>
-                <span><?= esc(strtoupper($namaSekolahLogin)) ?></span>
-            </div>
-
-            <div class="aside-content">
-                <span class="aside-eyebrow">Portal Akademik Terpadu</span>
-                <h1>Satu Akun untuk Admin, Guru, dan Siswa</h1>
-                <p>Kelola data akademik, absensi, nilai, dan informasi sekolah dalam satu tempat yang aman dan terpercaya.</p>
-            </div>
-
-            <div class="aside-footer">
-                &copy; <?= date('Y') ?> <?= esc($namaSekolahLogin) ?>. Seluruh hak dilindungi.
-            </div>
-        </aside>
-
-        <!-- PANEL KANAN: form login -->
+        <!-- Form login -->
         <main class="login-main">
             <div class="login-box">
                 <h2><?= esc($namaSekolahLogin) ?></h2>
@@ -85,11 +64,6 @@ $namaSekolahLogin     = $pengaturanLogin['nama_sekolah'] ?? 'Website Sekolah';
                                 <i class="bi bi-eye"></i>
                             </button>
                         </div>
-                    </div>
-
-                    <div class="form-options">
-                        <label><input type="checkbox" name="remember"> Ingat saya</label>
-                        <a href="<?= base_url('forgot-password') ?>">Lupa password?</a>
                     </div>
 
                     <button type="submit" class="btn-login" id="btn-submit-login">Masuk</button>

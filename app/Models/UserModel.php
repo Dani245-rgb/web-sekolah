@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class UserModel extends Model
+class UserModel extends BaseModel
 {
     protected $table         = 'users';
     protected $primaryKey    = 'id_user';
@@ -24,6 +24,7 @@ class UserModel extends Model
     /**
      * Cari user berdasarkan username, sekaligus ambil nama role-nya.
      * Dipakai saat proses login (Tahap 10).
+     * 
      */
     public function findByUsername(string $username)
     {

@@ -25,7 +25,8 @@
 </form>
 
 <div class="card">
-    <table class="table">
+    <div class="table-responsive-wrap">
+<table class="table">
         <thead>
             <tr>
                 <th>Nama</th>

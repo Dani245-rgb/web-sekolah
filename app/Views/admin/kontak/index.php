@@ -14,6 +14,7 @@
     <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
 <?php endif; ?>
 
+<div class="table-responsive-wrap">
 <table class="table-admin">
     <thead>
         <tr>
@@ -52,5 +53,6 @@
         <?php endif; ?>
     </tbody>
 </table>
+</div>
 
 <?= $this->endSection() ?>

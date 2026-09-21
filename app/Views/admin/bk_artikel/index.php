@@ -26,6 +26,7 @@
     <a href="<?= base_url('admin/bk-artikel?kategori=tes_minat') ?>" class="<?= $kategoriFilter === 'tes_minat' ? 'active' : '' ?>">Tes Minat</a>
 </div>
 
+<div class="table-responsive-wrap">
 <table class="table table-bordered">
     <thead>
         <tr>
@@ -77,5 +78,6 @@
         <?php endif; ?>
     </tbody>
 </table>
+</div>
 
 <?= $this->endSection() ?>

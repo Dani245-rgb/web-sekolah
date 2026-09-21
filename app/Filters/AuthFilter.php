@@ -27,12 +27,14 @@ class AuthFilter implements FilterInterface
 
             $tidakValid = !$user
                 || $user['status'] !== 'Aktif'
+                || (int) $user['role_id'] !== (int) session()->get('role_id')
+                || (bool) $user['is_superadmin'] !== (bool) session()->get('is_superadmin')
                 || ($user['locked_until'] !== null && strtotime($user['locked_until']) > time());
 
             if ($tidakValid) {
                 session()->destroy();
                 return redirect()->to('/login')
-                    ->with('errors', ['login' => 'Akun Anda tidak aktif, terkunci, atau telah dinonaktifkan. Silakan hubungi Admin.']);
+                    ->with('errors', ['login' => 'Sesi Anda telah berakhir. Silakan login kembali.']);
             }
 
             session()->set('status_checked_at', time());

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class SiswaModel extends Model
+class SiswaModel extends BaseModel
 {
     protected $table            = 'siswa';
     protected $primaryKey       = 'id_siswa';
@@ -29,7 +29,6 @@ class SiswaModel extends Model
         'no_hp_ortu',
         'email',
         'foto',
-        'status',
     ];
 
     protected $validationRules = [
@@ -48,21 +47,9 @@ class SiswaModel extends Model
             'is_unique' => 'NISN ini sudah terdaftar.',
         ],
     ];
-
-    // Join ke kelas saat ini (berdasarkan tahun ajaran yang sedang Aktif)
-    // Sekarang ikut ambil kolom jurusan supaya bisa difilter per jurusan
-    public function getAllWithKelas(int $idTahunAktif = 0)
+    
+    public function getAll()
     {
-        return $this->select('siswa.*, kelas.nama_kelas, kelas.jurusan')
-            ->join('kelas_siswa', "kelas_siswa.id_siswa = siswa.id_siswa AND kelas_siswa.id_tahun_ajaran = {$idTahunAktif}", 'left')
-            ->join('kelas', 'kelas.id_kelas = kelas_siswa.id_kelas', 'left')
-            ->orderBy('siswa.nama', 'ASC');
-    }
-
-    // Cek apakah siswa punya relasi ke modul lain (Nilai, Absensi, dll)
-    // Slot dulu — selalu false sampai modul akademik dibuat
-    public function isDipakaiDiModulLain($id_siswa): bool
-    {
-        return false;
+        return $this->orderBy('nama', 'ASC');
     }
 }

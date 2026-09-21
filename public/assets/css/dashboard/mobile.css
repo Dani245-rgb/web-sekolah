@@ -1,0 +1,125 @@
+   /* DASHBOARD ADMIN — RESPONSIVE MOBILE */
+   
+
+@media (max-width: 768px) {
+
+    /* Toolbar (tombol Tambah/Import/Tong Sampah + search) jadi tumpuk vertikal */
+    .card-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar-actions {
+        width: 100%;
+    }
+
+    .toolbar-actions .btn {
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .card-toolbar .search-form {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .search-form input {
+        min-width: 0;
+        flex: 1;
+    }
+
+    /* Filter chips (Semua Jurusan, BP, MPLB, dll) biar rapi & bisa digeser */
+    .filter-chips {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 12px;
+    }
+
+    .filter-chips .btn {
+        flex-shrink: 0;
+    }
+
+}
+
+@media (max-width: 480px) {
+
+    .toolbar-actions {
+        flex-direction: column;
+    }
+
+    .toolbar-actions .btn {
+        width: 100%;
+    }
+
+}
+
+
+   /* SIDEBAR — mobile: selalu kecil (ikon saja) */
+
+@media (max-width: 768px) {
+
+    .sidebar {
+        width: 64px;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .sidebar-brand span,
+    .sidebar-profile div,
+    .menu-label,
+    .sidebar-menu a span.label {
+        display: none;
+    }
+
+    .sidebar-menu a {
+        justify-content: center;
+        padding: 12px 0;
+    }
+
+    .sidebar-menu a i {
+        font-size: 18px;
+    }
+
+    /* Tombol toggle sidebar gak perlu dipakai lagi di mobile */
+    .btn-toggle-sidebar {
+        display: none;
+    }
+
+}
+
+@media (max-width: 768px) {
+    .card[style*="max-width"] {
+        max-width: 100% !important;
+    }
+}
+
+
+   /* TOPBAR — mobile: sembunyiin elemen yang gak krusial */
+
+@media (max-width: 480px) {
+    .topbar-date {
+        display: none !important;
+    }
+
+    .topbar-username {
+        display: none;
+    }
+
+    .topbar-right {
+        gap: 10px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .pkl-form-row {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .berita-page-header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}

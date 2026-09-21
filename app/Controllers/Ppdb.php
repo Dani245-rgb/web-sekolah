@@ -49,7 +49,7 @@ class Ppdb extends BaseController
             'asal_sekolah'    => 'required|max_length[150]',
             'jurusan_pilihan' => 'required',
             'no_hp'           => 'required|numeric|min_length[10]|max_length[15]',
-            'email'           => 'required|valid_email|max_length[100]',
+            'email'           => 'permit_empty|valid_email|max_length[100]',
             'alamat'          => 'required|max_length[500]',
         ];
 

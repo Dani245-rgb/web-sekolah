@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class PklJurnalModel extends Model
+class PklJurnalModel extends BaseModel
 {
     protected $table            = 'pkl_jurnal';
     protected $primaryKey       = 'id_jurnal';

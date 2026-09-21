@@ -42,7 +42,8 @@
                 <?php endif; ?>
 
             </div>
-            <?= $this->include('layouts/sidebar') ?>
+            <?= $this->include('layouts/sidebar_atas') ?>
+            <?= $this->include('layouts/sidebar_bawah') ?>
         </div>
     </div>
 </main>

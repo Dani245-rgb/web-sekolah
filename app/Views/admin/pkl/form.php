@@ -49,7 +49,7 @@
             <textarea name="alamat_perusahaan" rows="2" style="width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:8px;"><?= old('alamat_perusahaan', $penempatan['alamat_perusahaan'] ?? '') ?></textarea>
         </div>
 
-        <div style="display:flex; gap:14px; margin-bottom:14px;">
+        <div class="pkl-form-row" style="display:flex; gap:14px; margin-bottom:14px;">
             <div style="flex:1;">
                 <label style="display:block; font-weight:600; margin-bottom:6px;">Nama Pembimbing Industri</label>
                 <input type="text" name="nama_pembimbing_industri" value="<?= old('nama_pembimbing_industri', $penempatan['nama_pembimbing_industri'] ?? '') ?>" style="width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:8px;">
@@ -60,7 +60,7 @@
             </div>
         </div>
 
-        <div style="display:flex; gap:14px; margin-bottom:14px;">
+        <div class="pkl-form-row" style="display:flex; gap:14px; margin-bottom:14px;">
             <div style="flex:1;">
                 <label style="display:block; font-weight:600; margin-bottom:6px;">Tanggal Mulai</label>
                 <input type="date" name="tanggal_mulai" value="<?= old('tanggal_mulai', $penempatan['tanggal_mulai'] ?? '') ?>" required style="width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:8px;">

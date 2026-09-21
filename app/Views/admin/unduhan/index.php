@@ -29,6 +29,7 @@
 </div>
 <?php endif; ?>
 
+<div class="table-responsive-wrap">
 <table class="table table-bordered">
     <thead>
         <tr>
@@ -73,5 +74,6 @@
         <?php endif; ?>
     </tbody>
 </table>
+</div>
 
 <?= $this->endSection() ?>

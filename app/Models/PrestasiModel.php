@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class PrestasiModel extends Model
+class PrestasiModel extends BaseModel
 {
     protected $table            = 'prestasi';
     protected $primaryKey       = 'id';

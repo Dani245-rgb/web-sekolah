@@ -39,13 +39,13 @@
                 </div>
 
                 <div class="ppdb-group">
-                    <label>Tempat Lahir</label>
-                    <input type="text" name="tempat_lahir" value="<?= old('tempat_lahir') ?>">
+                    <label>Tempat Lahir <span class="required-mark">*</span></label>
+                    <input type="text" name="tempat_lahir" value="<?= old('tempat_lahir') ?>" required>
                 </div>
 
                 <div class="ppdb-group">
-                    <label>Tanggal Lahir</label>
-                    <input type="date" name="tanggal_lahir" value="<?= old('tanggal_lahir') ?>">
+                    <label>Tanggal Lahir <span class="required-mark">*</span></label>
+                    <input type="date" name="tanggal_lahir" value="<?= old('tanggal_lahir') ?>" required>
                 </div>
 
                 <div class="ppdb-group">
@@ -58,8 +58,8 @@
                 </div>
 
                 <div class="ppdb-group">
-                    <label>Asal Sekolah</label>
-                    <input type="text" name="asal_sekolah" value="<?= old('asal_sekolah') ?>">
+                    <label>Asal Sekolah <span class="required-mark">*</span></label>
+                    <input type="text" name="asal_sekolah" value="<?= old('asal_sekolah') ?>" required>
                 </div>
 
                 <div class="ppdb-group">
@@ -83,8 +83,8 @@
                 </div>
 
                 <div class="ppdb-group ppdb-group-full">
-                    <label>Alamat</label>
-                    <textarea name="alamat" rows="3"><?= old('alamat') ?></textarea>
+                    <label>Alamat <span class="required-mark">*</span></label>
+                    <textarea name="alamat" rows="3" required><?= old('alamat') ?></textarea>
                 </div>
             </div>
 

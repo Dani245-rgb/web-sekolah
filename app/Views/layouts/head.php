@@ -6,7 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'SMK ATAUFIQIYYAH' ?></title>
 
-    <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <?php
+    $pengaturanModelHead = new \App\Models\PengaturanModel();
+    $pengaturanHead      = $pengaturanModelHead->getPengaturan();
+    ?>
+    <?php if (!empty($pengaturanHead['favicon'])): ?>
+        <link rel="icon" type="image/png" href="<?= base_url('assets/uploads/sekolah/' . $pengaturanHead['favicon']) ?>">
+    <?php else: ?>
+        <link rel="icon" href="<?= base_url('favicon.ico') ?>">
+    <?php endif; ?>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

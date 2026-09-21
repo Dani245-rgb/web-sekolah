@@ -5,7 +5,6 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Models\GuruModel;
 use App\Models\UserModel;
-use App\Models\MapelModel;
 use App\Libraries\ImageCompressor;
 use Config\Database;
 
@@ -13,13 +12,11 @@ class Guru extends BaseController
 {
     protected GuruModel $guruModel;
     protected UserModel $userModel;
-    protected MapelModel $mapelModel;
 
     public function __construct()
     {
         $this->guruModel = new GuruModel();
         $this->userModel = new UserModel();
-        $this->mapelModel = new MapelModel();
     }
 
     public function index()
@@ -43,15 +40,12 @@ class Guru extends BaseController
 
     public function create()
     {
-        $data['mapelList'] = $this->mapelModel->where('status', 'Aktif')->orderBy('kelompok_mapel', 'ASC')->findAll();
-        return view('admin/guru/create', $data);
+        return view('admin/guru/create');
     }
 
     public function store()
     {
         $rules = [
-            'username'      => 'required|min_length[4]|is_unique[users.username]',
-            'password'      => 'required|strongPassword',
             'nip'           => 'required|is_unique[guru.nip]',
             'nama'          => 'required|min_length[3]',
             'jenis_kelamin' => 'required|in_list[L,P]',
@@ -74,9 +68,13 @@ class Guru extends BaseController
         $db = Database::connect();
         $db->transStart();
 
+        $nip          = $this->request->getPost('nip');
+        $tanggalLahir = $this->request->getPost('tanggal_lahir');
+        $passwordAwal = date('dmY', strtotime($tanggalLahir));
+
         $userId = $this->userModel->insert([
-            'username'             => $this->request->getPost('username'),
-            'password'             => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
+            'username'             => $nip,
+            'password'             => password_hash($passwordAwal, PASSWORD_DEFAULT),
             'role_id'              => 2,
             'status'               => 'Aktif',
             'must_change_password' => true,
@@ -91,7 +89,7 @@ class Guru extends BaseController
 
         $this->guruModel->skipValidation(true)->insert([
             'user_id'       => $userId,
-            'nip'           => $this->request->getPost('nip'),
+            'nip'           => $nip,
             'nuptk'         => $this->request->getPost('nuptk'),
             'nama'          => $this->request->getPost('nama'),
             'tempat_lahir'  => $this->request->getPost('tempat_lahir'),
@@ -120,8 +118,6 @@ class Guru extends BaseController
         if (!$data['guru']) {
             return redirect()->to('/admin/guru')->with('errors', ['404' => 'Data guru tidak ditemukan.']);
         }
-
-        $data['mapelList'] = $this->mapelModel->where('status', 'Aktif')->orderBy('kelompok_mapel', 'ASC')->findAll();
 
         return view('admin/guru/edit', $data);
     }

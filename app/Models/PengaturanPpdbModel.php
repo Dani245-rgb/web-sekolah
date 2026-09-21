@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class PengaturanPpdbModel extends Model
+class PengaturanPpdbModel extends BaseModel
 {
     protected $table      = 'pengaturan_ppdb';
     protected $primaryKey = 'id';

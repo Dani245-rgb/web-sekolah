@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class KalenderAkademikModel extends Model
+class KalenderAkademikModel extends BaseModel
 {
     protected $table            = 'kalender_akademik';
     protected $primaryKey       = 'id';

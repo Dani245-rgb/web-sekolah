@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class AgendaModel extends Model
+class AgendaModel extends BaseModel
 {
     protected $table            = 'agenda';
     protected $primaryKey       = 'id';

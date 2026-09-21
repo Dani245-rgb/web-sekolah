@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class GaleriModel extends Model
+class GaleriModel extends BaseModel
 {
     protected $table            = 'galeri';
     protected $primaryKey       = 'id';

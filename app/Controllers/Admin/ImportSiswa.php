@@ -6,8 +6,6 @@ use App\Controllers\BaseController;
 use App\Models\ImportLogModel;
 use App\Models\UserModel;
 use App\Models\SiswaModel;
-use App\Models\KelasModel;
-use App\Models\TahunAjaranModel;
 use Config\Database;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
@@ -19,18 +17,14 @@ class ImportSiswa extends BaseController
     protected ImportLogModel $importLogModel;
     protected UserModel $userModel;
     protected SiswaModel $siswaModel;
-    protected KelasModel $kelasModel;
-    protected TahunAjaranModel $tahunAjaranModel;
 
     protected int $batchSize = 500;
 
     public function __construct()
     {
-        $this->importLogModel   = new ImportLogModel();
-        $this->userModel        = new UserModel();
-        $this->siswaModel       = new SiswaModel();
-        $this->kelasModel       = new KelasModel();
-        $this->tahunAjaranModel = new TahunAjaranModel();
+        $this->importLogModel = new ImportLogModel();
+        $this->userModel      = (new UserModel())->skipAudit();
+        $this->siswaModel     = (new SiswaModel())->skipAudit();
     }
 
     // Ambil token CSRF terbaru untuk dikirim balik ke JS
@@ -69,7 +63,6 @@ class ImportSiswa extends BaseController
             'Pekerjaan Ortu',
             'No HP Ortu',
             'Email',
-            'Kelas',
         ];
         $sheet->fromArray($header, null, 'A1');
 
@@ -88,7 +81,6 @@ class ImportSiswa extends BaseController
             'Wiraswasta',
             '081234567890',
             'contoh@email.com',
-            'X TKJ 1',
         ], null, 'A2');
 
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
@@ -124,11 +116,6 @@ class ImportSiswa extends BaseController
 
         if ($file->getSize() > 10 * 1024 * 1024) { // 10MB
             return $this->response->setJSON(['error' => 'Ukuran file maksimal 10MB.']);
-        }
-
-        $tahunAktif = $this->tahunAjaranModel->getActive();
-        if (!$tahunAktif) {
-            return $this->response->setJSON(['error' => 'Tidak ada Tahun Ajaran Aktif. Aktifkan dulu sebelum import.']);
         }
 
         $namaFileAsli = $file->getClientName();
@@ -191,10 +178,21 @@ class ImportSiswa extends BaseController
             ], $this->csrfData()));
         }
 
-        $this->importLogModel->update($id_import_log, ['status' => 'Diproses_Batch']);
+        $db = Database::connect();
+        $db->table('import_log')
+            ->where('id_import_log', $id_import_log)
+            ->where('status', 'Proses')
+            ->update(['status' => 'Diproses_Batch']);
+
+        if ($db->affectedRows() === 0) {
+            return $this->response->setJSON(array_merge([
+                'sedang_diproses' => true,
+                'baris_selesai'   => $job['baris_selesai'],
+                'total_baris'     => $job['total_baris'],
+            ], $this->csrfData()));
+        }
 
         $offset = (int) $job['baris_selesai']; // 0-based, dihitung dari baris data (bukan termasuk header)
-        $tahunAktif = $this->tahunAjaranModel->getActive();
 
         $spreadsheet = IOFactory::load($job['path_file']);
         $sheet = $spreadsheet->getActiveSheet();
@@ -223,7 +221,6 @@ class ImportSiswa extends BaseController
                 'pekerjaan_ortu' => trim((string) $sheet->getCell("K{$row}")->getValue()),
                 'no_hp_ortu'     => trim((string) $sheet->getCell("L{$row}")->getValue()),
                 'email'          => trim((string) $sheet->getCell("M{$row}")->getValue()),
-                'kelas'          => trim((string) $sheet->getCell("N{$row}")->getValue()),
             ];
 
             // Baris kosong total → lewati diam-diam, tidak dihitung sukses/gagal
@@ -231,7 +228,7 @@ class ImportSiswa extends BaseController
                 continue;
             }
 
-            $hasil = $this->prosesSatuBaris($rowData, $nomorBarisData, $tahunAktif);
+            $hasil = $this->prosesSatuBaris($rowData, $nomorBarisData);
 
             if ($hasil['sukses']) {
                 $suksesBatch++;
@@ -265,7 +262,7 @@ class ImportSiswa extends BaseController
     }
 
     // Proses 1 baris siswa — transaksi sendiri, gagal di sini tidak pengaruhi baris lain
-    protected function prosesSatuBaris(array $data, int $nomorBaris, array $tahunAktif): array
+    protected function prosesSatuBaris(array $data, int $nomorBaris): array
     {
         // Validasi wajib
         if (empty($data['nis']) || empty($data['nisn']) || empty($data['nama'])) {
@@ -288,14 +285,6 @@ class ImportSiswa extends BaseController
         }
         if ($this->siswaModel->where('nisn', $data['nisn'])->first()) {
             return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: NISN '{$data['nisn']}' sudah terdaftar, dilewati."];
-        }
-
-        // Cari kelas berdasarkan nama persis, di tahun ajaran aktif
-        $kelas = $this->kelasModel->where('nama_kelas', $data['kelas'])
-            ->where('id_tahun_ajaran', $tahunAktif['id_tahun_ajaran'])
-            ->first();
-        if (!$kelas) {
-            return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Kelas '{$data['kelas']}' tidak ditemukan di Tahun Ajaran Aktif."];
         }
 
         // Normalisasi tanggal lahir
@@ -352,14 +341,6 @@ class ImportSiswa extends BaseController
                 $pesanError = $errors ? implode('; ', $errors) : ($db->error()['message'] ?? 'unknown error');
                 return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Gagal buat data siswa - {$pesanError}"];
             }
-
-            // --- Insert kelas_siswa ---
-            $db->table('kelas_siswa')->insert([
-                'id_kelas'        => $kelas['id_kelas'],
-                'id_siswa'        => $idSiswa,
-                'id_tahun_ajaran' => $tahunAktif['id_tahun_ajaran'],
-                'created_at'      => date('Y-m-d H:i:s'),
-            ]);
 
             $db->transComplete();
 

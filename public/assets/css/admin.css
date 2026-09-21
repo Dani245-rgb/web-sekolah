@@ -364,7 +364,6 @@ legend {
   background: #e5e9ef;
 }
 
-/* Pagination */
 .pagination-wrapper {
     margin-top: 16px;
 }
@@ -465,9 +464,8 @@ legend {
   color: #4b5563;
 }
 
-/* ============================
-   Accessibility: focus-visible
-   ============================ */
+   /* Accessibility: focus-visible */
+
 .sidebar-menu a:focus-visible,
 .btn:focus-visible,
 .pagination-wrapper a:focus-visible,
@@ -477,9 +475,8 @@ legend {
   outline-offset: 2px;
 }
 
-/* ============================
-   Empty State (dashboard admin)
-   ============================ */
+   /* Empty State (dashboard admin) */
+   
 .empty-state-dash {
   display: flex;
   flex-direction: column;
@@ -499,9 +496,9 @@ legend {
   color: #d7dce3;
 }
 
-/* ============================
-   Stat Card icon (dashboard)
-   ============================ */
+
+   /* Stat Card icon (dashboard) */
+   
 .stat-icon-square {
   width: 44px;
   height: 44px;
@@ -530,9 +527,9 @@ legend {
   font-size: 24px;
 }
 
-/* ============================
-   Filter chips (jurusan, dll)
-   ============================ */
+
+   /* Filter chips (jurusan, dll) */
+   
 .filter-chips {
   display: flex;
   gap: 8px;
@@ -542,9 +539,8 @@ legend {
   border-bottom: 1px solid #eef1f5;
 }
 
-/* ============================
-   Table row polish
-   ============================ */
+   /* Table row polish */
+
 .table tbody tr {
   transition: background 0.15s ease;
 }
@@ -559,9 +555,9 @@ legend {
   padding: 32px 12px;
 }
 
-/* ============================
-   Avatar inisial (fallback foto guru/siswa)
-   ============================ */
+
+   /* Avatar inisial (fallback foto guru/siswa) */
+   
 .avatar-initial {
   width: 32px;
   height: 32px;
@@ -576,9 +572,8 @@ legend {
   flex-shrink: 0;
 }
 
-/* ============================
-   Filter form (dropdown filter di atas tabel)
-   ============================ */
+   /* Filter form (dropdown filter di atas tabel) */
+   
 .filter-form {
   display: flex;
   align-items: center;
@@ -608,9 +603,8 @@ legend {
   border-color: #3b82f6;
 }
 
-/* ============================
-   Outline button variant
-   ============================ */
+   /* Outline button variant */
+
 .btn-outline-danger {
   background: transparent;
   color: #ef4444;
@@ -622,9 +616,8 @@ legend {
   border-color: #ef4444;
 }
 
-/* ============================
-   Filter bar (jadwal, dll — banyak dropdown + search)
-   ============================ */
+   /* Filter bar (jadwal, dll — banyak dropdown + search) */
+
 .filter-bar {
   display: flex;
   align-items: center;
@@ -673,4 +666,32 @@ legend {
     display: inline;
     margin: 0;
     padding: 0;
+}
+
+.aksi-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+  max-width: 90px;
+}
+
+.aksi-actions .btn,
+.aksi-actions form {
+  width: 100%;
+}
+
+.aksi-actions .btn {
+  text-align: center;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+.table-responsive-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  min-width: 0;
+}
+
+.table-responsive-wrap .table {
+  min-width: 700px;
 }

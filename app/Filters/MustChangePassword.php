@@ -12,7 +12,7 @@ class MustChangePassword implements FilterInterface
     {
         $session = session();
 
-        if (!$session->get('isLoggedIn')) {
+        if (!$session->get('logged_in')) {
             return; // biarkan filter auth yang urus halaman non-login
         }
 

@@ -7,6 +7,13 @@ use App\Models\AuditLogModel;
 
 class AuditLog extends BaseController
 {
+    public function __construct()
+    {
+        if (!session()->get('is_superadmin')) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException('Halaman tidak ditemukan.');
+        }
+    }
+
     /**
      * Ambil parameter filter dari query string (dipakai bareng oleh index & export)
      */
@@ -72,14 +79,16 @@ class AuditLog extends BaseController
             ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
             ->getStartColor()->setRGB('EEF1FF');
 
+        helper('excel');
+
         $row = 2;
         foreach ($logs as $i => $log) {
             $sheet->fromArray([
                 $i + 1,
                 $log['created_at'],
-                $log['username'] ?? '-',
+                sanitize_excel_cell($log['username'] ?? '-'),
                 $log['aksi'],
-                $log['keterangan'] ?? '-',
+                sanitize_excel_cell($log['keterangan'] ?? '-'),
                 $log['ip_address'] ?? '-',
             ], null, "A{$row}");
             $row++;

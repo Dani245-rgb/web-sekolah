@@ -9,16 +9,21 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Di mobile, dropdown dibuka via tap (klik), bukan hover
+    // Link dropdown pakai href="#" — selalu dicegah biar gak nge-jump/nambah "#" ke URL,
+    // di ukuran layar manapun.
     document.querySelectorAll('.dropdown > a').forEach(function (link) {
         link.addEventListener('click', function (e) {
-            // Cuma override perilaku default di layar sempit (mobile)
-            if (window.innerWidth <= 768) {
-                e.preventDefault();
+            e.preventDefault();
+
+            // Breakpoint 1200px HARUS sama persis dengan breakpoint hamburger
+            // di desktop.css (.navbar-toggle { display: block } di situ juga 1200px).
+            // Di bawah breakpoint ini, dropdown-menu di CSS mode "display:none,
+            // butuh class .open" — jadi harus di-toggle manual via JS.
+            // Di atas breakpoint ini, dropdown-menu tetap pakai :hover dari style.css.
+            if (window.innerWidth <= 1200) {
                 var parentLi = link.closest('.dropdown');
                 var sedangTerbuka = parentLi.classList.contains('open');
 
-                // Tutup dropdown lain yang mungkin masih terbuka
                 document.querySelectorAll('.dropdown.open').forEach(function (d) {
                     d.classList.remove('open');
                 });
@@ -54,4 +59,45 @@ document.addEventListener('DOMContentLoaded', function () {
   );
 
   targets.forEach((el) => observer.observe(el));
+})();
+
+// Contextual navbar — sembunyi saat scroll ke bawah, muncul saat scroll ke atas
+(function () {
+  const navbar = document.querySelector('.navbar');
+  if (!navbar) return;
+
+  let lastScrollY = window.scrollY;
+  let ticking = false;
+  const threshold = 80;
+
+  function onScroll() {
+    const currentScrollY = window.scrollY;
+    const menu = document.getElementById('nav-menu');
+    const menuOpen = menu && menu.classList.contains('open');
+
+    if (menuOpen) {
+      navbar.classList.remove('nav-hidden');
+      lastScrollY = currentScrollY;
+      ticking = false;
+      return;
+    }
+
+    if (currentScrollY < threshold) {
+      navbar.classList.remove('nav-hidden');
+    } else if (currentScrollY > lastScrollY) {
+      navbar.classList.add('nav-hidden');
+    } else {
+      navbar.classList.remove('nav-hidden');
+    }
+
+    lastScrollY = currentScrollY;
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(onScroll);
+      ticking = true;
+    }
+  });
 })();

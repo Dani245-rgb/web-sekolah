@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class BeritaModel extends Model
+class BeritaModel extends BaseModel
 {
     protected $table            = 'berita';
     protected $primaryKey       = 'id_berita';
@@ -46,15 +46,16 @@ class BeritaModel extends Model
         return $builder->findAll();
     }
 
-    public function getHero()
+    public function getHero(int $limit = 5)
     {
         return $this->where('status', 'Published')
             ->where('posisi', 'hero')
             ->orderBy('tanggal_publish', 'DESC')
-            ->first();
+            ->limit($limit)
+            ->findAll();
     }
 
-    public function getUtama(int $limit = 3)
+    public function getUtama(int $limit = 5)
     {
         return $this->where('status', 'Published')
             ->where('posisi', 'utama')
@@ -69,6 +70,16 @@ class BeritaModel extends Model
             ->where('posisi', 'biasa')
             ->orderBy('tanggal_publish', 'DESC')
             ->limit($limit, $offset)
+            ->findAll();
+    }
+
+    // Ticker: semua berita Published terbaru, apa pun posisinya (hero/utama/biasa)
+    public function getTicker(int $limit = 10)
+    {
+        return $this->where('status', 'Published')
+            ->orderBy('tanggal_publish', 'DESC')
+            ->orderBy('id_berita', 'DESC')
+            ->limit($limit)
             ->findAll();
     }
 

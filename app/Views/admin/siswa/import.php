@@ -163,8 +163,12 @@ function tampilkanHasilAkhir(data) {
             .then(status => {
                 const box = document.getElementById('hasil-error');
                 box.style.display = 'block';
+                const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                }[c]));
+
                 box.innerHTML = '<strong>Detail baris gagal:</strong><br>' +
-                    status.detail_gagal.map(e => `• ${e}`).join('<br>');
+                    status.detail_gagal.map(e => `• ${esc(e)}`).join('<br>');   
             });
     }
 }

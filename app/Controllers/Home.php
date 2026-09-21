@@ -25,17 +25,17 @@ class Home extends BaseController
         $ekskulModel      = new EkstrakurikulerModel();
 
         return view('home', [
-            'berita_hero'    => $beritaModel->getHero(),
-            'berita_utama'   => $beritaModel->getUtama(3),
+            'berita_hero'    => $beritaModel->getHero(5),
+            'berita_utama'   => $beritaModel->getUtama(4),
             'berita_terbaru' => $beritaModel->getTerbaru(4),
             'galeri'         => $galeriModel->getPublished(null, 4),
-            'informasi'      => $pengumumanModel->getPublished(6),
-            'agenda'         => $agendaModel->getUpcoming(4),
-            'prestasi'       => $prestasiModel->getPublished(3),
+            'informasi'      => $pengumumanModel->getPublished(10),
+            'agenda'         => $agendaModel->getUpcoming(8),
+            'prestasi'       => $prestasiModel->getPublished(4),
             'partner'        => $partnerModel->getPublished(5),
             'ekskul'         => $ekskulModel->getPublished(8),
             'topTags'        => ['LKS', 'PPDB', 'Prestasi', 'Kerjasama', 'OSIS'],
-            'tickerBerita'   => $beritaModel->getTerbaru(8),
+            'tickerBerita'   => $beritaModel->getTicker(10),
         ]);
     }
 }

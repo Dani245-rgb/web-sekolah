@@ -8,6 +8,7 @@
 
 <h4>Detail Pesan</h4>
 
+<div class="table-responsive-wrap">
 <table class="table-admin" style="max-width:600px;">
     <tbody>
         <tr><th style="width:150px;">Nama</th><td><?= esc($pesan['nama']) ?></td></tr>
@@ -17,6 +18,7 @@
         <tr><th>Pesan</th><td><?= nl2br(esc($pesan['pesan'])) ?></td></tr>
     </tbody>
 </table>
+</div>
 
 <div style="margin-top:20px;">
     <a href="mailto:<?= esc($pesan['email']) ?>" class="btn btn-primary">

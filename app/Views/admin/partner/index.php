@@ -19,9 +19,9 @@
 
 <div class="row">
     <?php foreach ($partner as $p): ?>
-        <div class="col-md-3 mb-4">
+        <div class="col-6 col-md-3 mb-4">
             <div class="card">
-                <img src="<?= base_url('uploads/partner/' . $p['foto']) ?>" class="card-img-top" style="height:160px;object-fit:cover;">
+                <img src="<?= base_url('uploads/partner/' . $p['foto']) ?>" class="card-img-top" style="width:100%;height:160px;object-fit:cover;display:block;">
                 <div class="card-body">
                     <h6 class="card-title"><?= esc($p['nama']) ?></h6>
                     <span class="badge <?= $p['status'] === 'Published' ? 'bg-success' : 'bg-warning' ?>">

@@ -4,7 +4,6 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\JurusanModel;
-use App\Models\KelasModel;
 use Throwable;
 
 class Jurusan extends BaseController
@@ -192,15 +191,7 @@ class Jurusan extends BaseController
             return redirect()->to('/admin/jurusan')->with('error', 'Jurusan tidak ditemukan.');
         }
 
-        $kelasModel  = new KelasModel();
-        $jumlahKelas = $kelasModel->where('id_jurusan', $id)->countAllResults();
-
-        if ($jumlahKelas > 0) {
-            return redirect()->to('/admin/jurusan')
-                ->with('error', "Tidak bisa dihapus — masih dipakai oleh {$jumlahKelas} kelas. Pindahkan kelas ke jurusan lain dulu.");
-        }
-
-        try {
+        try {   
             $this->jurusanModel->delete($id);
 
             if (!empty($item['foto']) && is_file(FCPATH . 'uploads/jurusan/' . $item['foto'])) {

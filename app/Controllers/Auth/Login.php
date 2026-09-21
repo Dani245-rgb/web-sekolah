@@ -46,6 +46,13 @@ class Login extends BaseController
                 ->with('errors', ['login' => 'Akun ini sudah tidak aktif. Silakan hubungi Admin.']);
         }
 
+        // Portal Guru & Siswa belum tersedia -> tolak login untuk role selain Admin
+        if ($user && $user['nama_role'] !== 'Admin') {
+            $auditLogModel->catat($user['id_user'], $username, 'login_ditolak_role_belum_tersedia', 'Role ' . $user['nama_role'] . ' mencoba login, portal belum tersedia.');
+            return redirect()->back()->withInput()
+                ->with('errors', ['login' => 'Portal untuk role ini belum tersedia. Silakan hubungi Admin.']);
+        }
+
         if (!$user) {
             if ($calon) {
                 // Increment atomik di level database — hindari race condition
@@ -91,6 +98,7 @@ class Login extends BaseController
             'id_user'              => $user['id_user'],
             'username'             => $user['username'],
             'role'                 => $user['nama_role'],
+            'role_id'              => $user['role_id'],
             'logged_in'            => true,
             'must_change_password' => (bool) $user['must_change_password'],
             'is_superadmin'        => (bool) ($user['is_superadmin'] ?? false),
@@ -151,8 +159,6 @@ class Login extends BaseController
     {
         return match ($role) {
             'Admin' => '/admin/dashboard',
-            'Guru'  => '/guru/dashboard',
-            'Siswa' => '/siswa/dashboard',
             default => '/login',
         };
     }

@@ -16,6 +16,7 @@
     <button class="btn btn-outline-secondary">Cari</button>
 </form>
 
+<div class="table-responsive-wrap">
 <table class="table table-bordered">
     <thead>
         <tr><th>Judul</th><th>Kategori</th><th>Status</th><th>Tanggal Publish</th><th>Aksi</th></tr>
@@ -46,6 +47,7 @@
         <?php endif; ?>
     </tbody>
 </table>
+</div>
 
 <?= $pager->links() ?>
 

@@ -9,7 +9,7 @@
                         <p>Sekolah Menengah Kejuruan</p>
                     </div>
                 </div>
-                <p>Mencetak lulusan yang kompeten, berakhlak mulia, dan siap kerja.</p>
+                <p>Lembaga pendidikan kejuruan berbasis nilai agamis untuk mencetak lulusan terampil, mandiri, dan berkarakter</p>
                 <div class="footer-social">
                     <a href="https://www.facebook.com/smk.attaufiqiyyah.baros/?locale=id_ID" target="_blank" rel="noopener noreferrer"><i class="bi bi-facebook"></i></a>
                     <a href="https://www.instagram.com/smk_attaufiqiyyah_official/" target="_blank" rel="noopener noreferrer"><i class="bi bi-instagram"></i></a>

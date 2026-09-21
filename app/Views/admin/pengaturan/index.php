@@ -8,6 +8,14 @@
     <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
 <?php endif; ?>
 
+<?php if (session()->getFlashdata('errors')): ?>
+    <div class="alert alert-error">
+        <?php foreach (session()->getFlashdata('errors') as $error): ?>
+            <div><?= esc($error) ?></div>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
 <div class="card" style="max-width:500px;">
     <form action="<?= base_url('admin/pengaturan/update') ?>" method="post" enctype="multipart/form-data">
         <?= csrf_field() ?>

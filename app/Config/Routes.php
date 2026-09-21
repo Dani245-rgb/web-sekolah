@@ -128,16 +128,6 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('kenaikan-kelas/siswa-by-kelas/(:num)/(:num)', 'Admin\KenaikanKelas::siswaByKelas/$1/$2');
     $routes->post('kenaikan-kelas/proses', 'Admin\KenaikanKelas::proses');
 
-    // Rekap Kelas
-    $routes->get('rekap-absensi', 'Admin\RekapAbsensi::index');
-    $routes->get('rekap-absensi/export/pdf', 'Admin\RekapAbsensi::exportPdfKelas');
-    $routes->get('rekap-absensi/export/excel', 'Admin\RekapAbsensi::exportExcelKelas');
-    $routes->get('rekap-absensi/siswa', 'Admin\RekapAbsensi::siswa');
-    $routes->get('rekap-absensi/siswa/detail/(:num)', 'Admin\RekapAbsensi::siswaDetail/$1');
-    $routes->get('rekap-absensi/siswa/detail/(:num)/export/pdf', 'Admin\RekapAbsensi::exportPdfSiswa/$1');
-    $routes->get('rekap-absensi/siswa/detail/(:num)/export/excel', 'Admin\RekapAbsensi::exportExcelSiswa/$1');
-
-
     // Berita (CMS)
     $routes->get('berita', 'Admin\Berita::index');
     $routes->get('berita/create', 'Admin\Berita::create');
@@ -145,12 +135,6 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('berita/edit/(:num)', 'Admin\Berita::edit/$1');
     $routes->post('berita/update/(:num)', 'Admin\Berita::update/$1');
     $routes->post('berita/delete/(:num)', 'Admin\Berita::delete/$1');
-
-    // Rekap Nilai
-    $routes->get('nilai/rekap', 'Admin\RekapNilai::index');
-    $routes->get('nilai/rekap/(:num)', 'Admin\RekapNilai::detail/$1');
-    $routes->get('nilai/rekap/(:num)/export/pdf', 'Admin\RekapNilai::exportPdf/$1');
-    $routes->get('nilai/rekap/(:num)/export/excel', 'Admin\RekapNilai::exportExcel/$1');
 
     // Galeri
     $routes->get('galeri', 'Admin\Galeri::index');
@@ -246,8 +230,6 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
 
     $routes->get('user', 'Admin\User::index');
     $routes->get('user/admin', 'Admin\User::index/admin');
-    $routes->get('user/guru', 'Admin\User::index/guru');
-    $routes->get('user/siswa', 'Admin\User::index/siswa');
     $routes->get('role-permission', 'Admin\RolePermission::index');
 
     // Backup Database
@@ -303,126 +285,10 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->post('pkl/delete/(:num)', 'Admin\Pkl::delete/$1');
 });
 
-$routes->group('guru', ['filter' => 'roleAuth:Guru'], function ($routes) {
-    $routes->get('dashboard', 'Guru\Dashboard::index');
-    $routes->get('absensi/form/(:num)', 'Guru\Absensi::form/$1');
-    $routes->post('absensi/simpan', 'Guru\Absensi::simpan');
-    $routes->get('absensi/riwayat/(:num)', 'Guru\Absensi::riwayat/$1');
-
-    // Nilai
-    $routes->get('nilai/form/(:num)', 'Guru\Nilai::form/$1');
-    $routes->get('nilai/form/(:num)/pengaturan', 'Guru\Nilai::pengaturanManual/$1');
-    $routes->post('nilai/form/(:num)/pengaturan', 'Guru\Nilai::simpanPengaturan/$1');
-    $routes->post('nilai/form/(:num)/simpan', 'Guru\Nilai::simpan/$1');
-    $routes->get('nilai/rekap/(:num)', 'Guru\Nilai::rekap/$1');
-    $routes->get('nilai/rekap/(:num)/export/pdf', 'Guru\Nilai::exportPdf/$1');
-
-    $routes->get('nilai/form/(:num)/riwayat', 'Guru\Nilai::riwayat/$1');
-
-    // Keep-alive session + refresh CSRF token (dipakai script di halaman input nilai)
-    $routes->get('nilai/csrf-token', 'Guru\Nilai::csrfToken', ['filter' => 'throttle:nilai-csrf,20,60']);
-
-    // Import Nilai
-    $routes->get('nilai/import/template/(:num)', 'Guru\ImportNilai::template/$1');
-    $routes->post('nilai/import/preview', 'Guru\ImportNilai::preview');
-    $routes->post('nilai/import/konfirmasi', 'Guru\ImportNilai::konfirmasi');
-    $routes->post('nilai/import/rollback/(:num)', 'Guru\ImportNilai::rollback/$1');
-
-    $routes->get('absensi/peta/(:num)', 'Guru\Absensi::peta/$1');
-    $routes->get('absensi/peta/(:num)/export/pdf', 'Guru\Absensi::exportPdf/$1');
-    $routes->post('absensi/tandai-khusus', 'Guru\Absensi::tandaiKhusus');
-    $routes->post('absensi/hapus-khusus', 'Guru\Absensi::hapusKhusus');
-
-    // Profil
-    $routes->get('profil', 'Guru\Profil::index');
-    $routes->get('profil/edit', 'Guru\Profil::edit');
-    $routes->post('profil/update', 'Guru\Profil::update');
-
-    // Jadwal
-    $routes->get('jadwal', 'Guru\Jadwal::index');
-
-    // Pengumuman
-    $routes->get('pengumuman', 'Guru\Pengumuman::index');
-    $routes->get('pengumuman/(:segment)', 'Guru\Pengumuman::detail/$1');
-
-    // Agenda
-    $routes->get('agenda', 'Guru\Agenda::index');
-
-    // PKL
-    $routes->get('pkl', 'Guru\Pkl::index');
-    $routes->get('pkl/jurnal/(:num)', 'Guru\Pkl::jurnal/$1');
-    $routes->post('pkl/jurnal/validasi/(:num)', 'Guru\Pkl::validasiJurnal/$1');
-
-    // Tugas
-    $routes->get('tugas', 'Guru\Tugas::index');
-    $routes->get('tugas/create/(:num)', 'Guru\  Tugas::create/$1');
-    $routes->post('tugas/store', 'Guru\Tugas::store');
-    $routes->get('tugas/edit/(:num)', 'Guru\Tugas::edit/$1');
-    $routes->post('tugas/update/(:num)', 'Guru\Tugas::update/$1');
-    $routes->post('tugas/delete/(:num)', 'Guru\Tugas::delete/$1');
-    $routes->get('tugas/submisi/(:num)', 'Guru\Tugas::submisi/$1');
-    $routes->post('tugas/nilai/(:num)', 'Guru\Tugas::simpanNilai/$1');
-
-    // Materi
-    $routes->get('materi', 'Guru\Materi::index');
-    $routes->get('materi/create/(:num)', 'Guru\Materi::create/$1');
-    $routes->post('materi/store', 'Guru\Materi::store');
-    $routes->get('materi/edit/(:num)', 'Guru\Materi::edit/$1');
-    $routes->post('materi/update/(:num)', 'Guru\Materi::update/$1');
-    $routes->post('materi/delete/(:num)', 'Guru\Materi::delete/$1');
-    $routes->get('materi/unduh/(:num)', 'Guru\Materi::unduhFile/$1', ['filter' => 'auth']);
-
-    // Data Kelas
-    $routes->get('kelas', 'Guru\DataKelas::index');
-    $routes->get('kelas/siswa/(:num)/(:num)', 'Guru\DataKelas::siswa/$1/$2'); // id_kelas, id_mapel
-});
-
-$routes->group('siswa', ['filter' => 'roleAuth:Siswa'], function ($routes) {
-    $routes->get('dashboard', 'Siswa\Dashboard::index');
-
-    // Nilai (read-only)
-    $routes->get('nilai', 'Siswa\Nilai::index');
-
-    // Profil
-    $routes->get('profil', 'Siswa\Profil::index');
-    $routes->get('profil/edit', 'Siswa\Profil::edit');
-    $routes->post('profil/update', 'Siswa\Profil::update');
-
-    // Jadwal
-    $routes->get('jadwal', 'Siswa\Jadwal::index');
-
-    // Absensi
-    $routes->get('absensi', 'Siswa\Absensi::index');
-
-    // Pengumuman
-    $routes->get('pengumuman', 'Siswa\Pengumuman::index');
-    $routes->get('pengumuman/(:segment)', 'Siswa\Pengumuman::detail/$1');
-
-    // PKL
-    $routes->get('pkl', 'Siswa\Pkl::index');
-    $routes->post('pkl/jurnal/simpan', 'Siswa\Pkl::simpanJurnal');
-
-    // Tugas
-    $routes->get('tugas', 'Siswa\Tugas::index');
-    $routes->get('tugas/detail/(:num)', 'Siswa\Tugas::detail/$1');
-    $routes->post('tugas/kumpulkan/(:num)', 'Siswa\Tugas::kumpulkan/$1');
-    $routes->get('tugas/unduh/(:num)', 'Siswa\Tugas::unduhJawaban/$1');
-
-    // Materi
-    $routes->get('materi', 'Siswa\Materi::index');
-});
-
 $routes->get('profil/gantipassword', 'Profil::gantipassword', ['filter' => 'auth']);
 $routes->post('profil/gantipasswordsubmit', 'Profil::gantipasswordsubmit', ['filter' => 'auth']);
 
 $routes->get('logout', 'Auth\Logout::index', ['filter' => 'auth']);
-
-// Lampiran tugas — dipakai lintas role (guru pemilik & siswa sekelas), auth check saja,
-// otorisasi detail (siapa boleh unduh file yang mana) dicek di dalam controller
-$routes->get('tugas/lampiran/(:num)', 'Guru\Tugas::unduhLampiran/$1', ['filter' => 'auth']);
-
-// File jawaban siswa — dipakai lintas role (siswa pemilik & guru pengampu tugas)
-$routes->get('tugas/jawaban/(:num)', 'Siswa\Tugas::unduhJawaban/$1', ['filter' => 'auth']);
 
 // Berita
 $routes->get('berita', 'Berita::index');
@@ -484,6 +350,3 @@ $routes->get('bk/artikel/(:segment)', 'BkArtikelPublik::detail/$1');
 // Unduhan (Pusat Download)
 $routes->get('unduhan', 'UnduhanPublik::index');
 $routes->get('unduhan/download/(:num)', 'UnduhanPublik::download/$1');
-
-// Materi
-$routes->get('materi/unduh/(:num)', 'Guru\Materi::unduhFile/$1', ['filter' => 'auth']);

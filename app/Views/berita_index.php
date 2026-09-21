@@ -8,7 +8,7 @@
             <h2>Semua Berita</h2>
         </div>
 
-        <div class="berita-utama-list">
+        <div class="berita-listing-grid">
             <?php foreach ($beritaList as $b): ?>
             <a href="<?= base_url('berita/' . $b['slug']) ?>" class="berita-card">
                 <img src="<?= $b['gambar'] ? base_url('assets/images/berita/' . $b['gambar']) : base_url('assets/images/berita/default.jpg') ?>" alt="<?= esc($b['judul']) ?>">

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class UnduhanModel extends Model
+class UnduhanModel extends BaseModel
 {
     protected $table         = 'unduhan';
     protected $primaryKey    = 'id_unduhan';

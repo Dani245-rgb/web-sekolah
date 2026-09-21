@@ -11,7 +11,8 @@
 </div>
 
 <div class="card">
-    <table class="table">
+    <div class="table-responsive-wrap">
+<table class="table">
         <thead>
             <tr>
                 <th>Status</th>
@@ -42,6 +43,7 @@
             <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <?= $this->endSection() ?>

@@ -9,11 +9,13 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'Admin' ?> - <?= esc($namaSekolahLayout) ?></title>
     <?php if (!empty($pengaturanLayout['favicon'])): ?>
         <link rel="icon" type="image/png" href="<?= base_url('assets/uploads/sekolah/' . $pengaturanLayout['favicon']) ?>">
     <?php endif; ?>
     <link rel="stylesheet" href="<?= base_url('assets/css/admin.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/dashboard/mobile.css') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
     <?= $this->renderSection('styles') ?>
@@ -108,35 +110,27 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                     class="<?= strpos(uri_string(), 'admin/organisasi') === 0 ? 'active' : '' ?>"><i class="bi bi-diagram-2"></i> <span class="label">Organisasi Sekolah</span></a>
 
 
+                <?php if (session()->get('is_superadmin')): ?>
                 <p class="menu-label">USER MANAGEMENT</p>
                 <a href="<?= base_url('admin/user/admin') ?>"
                     class="<?= uri_string() === 'admin/user' || uri_string() === 'admin/user/admin' ? 'active' : '' ?>"><i class="bi bi-person-gear"></i> <span class="label">Admin</span></a>
-                <a href="<?= base_url('admin/user/guru') ?>"
-                    class="<?= uri_string() === 'admin/user/guru' ? 'active' : '' ?>"><i class="bi bi-person-video3"></i> <span class="label">Guru</span></a>
-                <a href="<?= base_url('admin/user/siswa') ?>"
-                    class="<?= uri_string() === 'admin/user/siswa' ? 'active' : '' ?>"><i class="bi bi-person"></i> <span class="label">Siswa</span></a>
                 <a href="<?= base_url('admin/role-permission') ?>"
                     class="<?= strpos(uri_string(), 'admin/role-permission') === 0 ? 'active' : '' ?>"><i class="bi bi-shield-lock"></i> <span class="label">Role & Permission</span></a>
-
-                <p class="menu-label">LAPORAN</p>
-                <a href="<?= base_url('admin/laporan-siswa') ?>"
-                    class="<?= strpos(uri_string(), 'admin/laporan-siswa') === 0 ? 'active' : '' ?>"><i class="bi bi-file-earmark-text"></i> <span class="label">Laporan Siswa</span></a>
-                <a href="<?= base_url('admin/laporan-akademik') ?>"
-                    class="<?= strpos(uri_string(), 'admin/laporan-akademik') === 0 ? 'active' : '' ?>"><i class="bi bi-file-earmark-bar-graph"></i> <span class="label">Laporan Akademik</span></a>
-                <a href="<?= base_url('admin/nilai/rekap') ?>"
-                    class="<?= strpos(uri_string(), 'admin/nilai/rekap') === 0 ? 'active' : '' ?>"><i class="bi bi-clipboard-data"></i> <span class="label">Laporan Nilai</span></a>
-                <a href="<?= base_url('admin/rekap-absensi') ?>"
-                    class="<?= strpos(uri_string(), 'admin/rekap-absensi') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar2-check"></i> <span class="label">Laporan Absensi</span></a>
+                <?php endif; ?>
 
                 <p class="menu-label">SISTEM</p>
                 <a href="<?= base_url('admin/notifikasi') ?>"
                     class="<?= strpos(uri_string(), 'admin/notifikasi') === 0 ? 'active' : '' ?>"><i class="bi bi-bell"></i> <span class="label">Notifikasi</span></a>
+                <?php if (session()->get('is_superadmin')): ?>
                 <a href="<?= base_url('admin/backup-database') ?>"
                     class="<?= strpos(uri_string(), 'admin/backup-database') === 0 ? 'active' : '' ?>"><i class="bi bi-hdd-stack"></i> <span class="label">Backup Database</span></a>
+                <?php endif; ?>
                 <a href="<?= base_url('admin/pengaturan') ?>"
                     class="<?= strpos(uri_string(), 'admin/pengaturan') === 0 ? 'active' : '' ?>"><i class="bi bi-gear"></i> <span class="label">Pengaturan</span></a>
+                <?php if (session()->get('is_superadmin')): ?>
                 <a href="<?= base_url('admin/audit-log') ?>"
                     class="<?= strpos(uri_string(), 'admin/audit-log') === 0 ? 'active' : '' ?>"><i class="bi bi-journal-text"></i> <span class="label">Audit Log</span></a>
+                <?php endif; ?>
             </nav>
         </aside>
 
@@ -146,7 +140,7 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                 <button class="btn-toggle-sidebar" onclick="document.querySelector('.sidebar').classList.toggle('collapsed')">
                     <i class="bi bi-list"></i>
                 </button>
-                <div style="display:flex;align-items:center;gap:10px;background:#f4f6f9;padding:8px 16px;border-radius:8px;font-size:13px;color:#4b5563;flex-shrink:0;white-space:nowrap;">
+                <div class="topbar-date" style="display:flex;align-items:center;gap:10px;background:#f4f6f9;padding:8px 16px;border-radius:8px;font-size:13px;color:#4b5563;flex-shrink:0;white-space:nowrap;">
                     <i class="bi bi-calendar3"></i>
                     <?php
                     $hariIndo  = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
@@ -167,7 +161,7 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                         <div style="width:32px;height:32px;border-radius:50%;background:#3b5f8a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;">
                             <?= esc(strtoupper(substr(session()->get('username'), 0, 1))) ?>
                         </div>
-                        <span><?= esc(session()->get('username')) ?> (<?= esc(session()->get('role')) ?>)</span>
+                        <span class="topbar-username"><?= esc(session()->get('username')) ?> (<?= esc(session()->get('role')) ?>)</span>
                     </div>
                     <a href="<?= base_url('logout') ?>" class="btn-logout" onclick="return confirm('Yakin ingin logout?')">Logout</a>
                 </div>

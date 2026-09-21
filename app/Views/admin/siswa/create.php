@@ -99,20 +99,6 @@
             <input type="file" name="foto" accept="image/*">
         </div>
 
-        <div class="form-group">
-            <label>Kelas</label>
-            <select name="id_kelas" required>
-                <option value="">-- Pilih Kelas --</option>
-                <?php foreach ($kelas as $k): ?>
-                <option value="<?= $k['id_kelas'] ?>" <?= old('id_kelas') == $k['id_kelas'] ? 'selected' : '' ?>>
-                    <?= esc($k['nama_kelas']) ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
-            <small style="display:block;color:#7C8A9C;">Tahun Ajaran Aktif:
-                <strong><?= esc($tahunAktif['tahun_ajaran']) ?></strong></small>
-        </div>
-
         <div class="form-actions">
             <button type="submit" class="btn btn-primary" id="btnSimpan">Simpan</button>
             <a href="<?= base_url('admin/siswa') ?>" class="btn btn-secondary">Batal</a>

@@ -103,3 +103,16 @@ if (btnTop) {
     }
   });
 })();
+
+// Perpindahan Beira Hero (Banner)
+document.addEventListener('DOMContentLoaded', function () {
+    const heroSlides = document.querySelectorAll('.hero-slide');
+    if (heroSlides.length > 1) {
+        let currentHero = 0;
+        setInterval(function () {
+            heroSlides[currentHero].classList.remove('active');
+            currentHero = (currentHero + 1) % heroSlides.length;
+            heroSlides[currentHero].classList.add('active');
+        }, 5000); // ganti slide tiap 5 detik
+    }
+});

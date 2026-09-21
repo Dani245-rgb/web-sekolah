@@ -19,6 +19,7 @@
 <div class="alert alert-danger"><?= esc(session()->getFlashdata('error')) ?></div>
 <?php endif; ?>
 
+<div class="table-responsive-wrap">
 <table class="table table-bordered">
     <thead>
         <tr>
@@ -45,13 +46,15 @@
                 <td><?= esc($j['nama_jurusan']) ?></td>
                 <td><?= esc($j['slug']) ?></td>
                 <td>
-                    <a href="<?= base_url('admin/jurusan/edit/' . $j['id_jurusan']) ?>"
-                       class="btn btn-sm btn-outline-primary">Edit</a>
-                    <form method="post" action="<?= base_url('admin/jurusan/delete/' . $j['id_jurusan']) ?>" style="display:inline;"
-                       onsubmit="return confirm('Hapus jurusan \'<?= esc($j['nama_jurusan'], 'js') ?>\'? Tindakan ini tidak bisa dibatalkan.')">
-                        <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
-                    </form>
+                    <div class="aksi-actions">
+                        <a href="<?= base_url('admin/jurusan/edit/' . $j['id_jurusan']) ?>"
+                           class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form method="post" action="<?= base_url('admin/jurusan/delete/' . $j['id_jurusan']) ?>"
+                           onsubmit="return confirm('Hapus jurusan \'<?= esc($j['nama_jurusan'], 'js') ?>\'? Tindakan ini tidak bisa dibatalkan.')">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -60,5 +63,6 @@
         <?php endif; ?>
     </tbody>
 </table>
+</div>
 
 <?= $this->endSection() ?>

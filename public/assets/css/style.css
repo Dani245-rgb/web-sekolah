@@ -52,9 +52,8 @@ h4,
   padding: 0 12px;
 }
 
-/* =========================================================
-   TOPBAR
-   ========================================================= */
+   /* TOPBAR */
+
 .topbar {
   background: var(--hijau-tua);
   color: white;
@@ -129,9 +128,8 @@ h4,
   background: #ff0000;
 }
 
-/* =========================================================
-   HEADER
-   ========================================================= */
+   /* HEADER */
+
 .header {
   position: relative;
   padding: 0;
@@ -187,7 +185,6 @@ h4,
 .logo-text h1 span {
   color: var(--emas-terang);
   font-weight: 700;
-  /* disamakan dengan font span di topbar (ikut body: Inter) */
   font-family: "Inter", "Arial", sans-serif;
 }
 
@@ -195,7 +192,6 @@ h4,
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* search: default hanya tombol ikon, input muncul saat class "active" ditambahkan lewat JS */
 .search-box {
   display: flex;
   align-items: center;
@@ -242,9 +238,8 @@ h4,
   background: var(--hijau-pucat);
 }
 
-/* =========================================================
-   NAVBAR — Floating Glassmorphism
-   ========================================================= */
+   /* NAVBAR — Floating Glassmorphism */
+
 .navbar {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(18px) saturate(180%);
@@ -347,9 +342,55 @@ h4,
   transform: rotate(180deg);
 }
 
-/* =========================================================
-   CONTENT — LAYOUT UTAMA
-   ========================================================= */
+.nav-menu li.dropdown {
+  padding-bottom: 8px;
+  margin-bottom: -8px;
+}
+
+.dropdown-menu {
+  display: block;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 225px;
+  background-color: #ffffff;
+  list-style: none;
+  padding: 6px 0;
+  margin-top: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 32px rgba(10, 40, 25, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 500;
+  border: 1px solid rgba(15, 107, 60, 0.08);
+  pointer-events: none;
+}
+
+.dropdown:hover .dropdown-menu,
+.dropdown:focus-within .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.dropdown-menu li a {
+  color: var(--tinta) !important;
+  padding: 10px 20px;
+  font-size: 13.5px;
+  border-radius: 0;
+}
+
+.dropdown-menu li a:hover {
+  background: var(--hijau-pucat);
+  color: var(--hijau) !important;
+  padding-left: 25px;
+}
+
+   /* CONTENT — LAYOUT UTAMA */
+
 .content {
   padding: 35px 0 55px;
 }
@@ -380,6 +421,19 @@ h4,
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1s ease;
+  pointer-events: none;
+}
+
+.hero-slide.active {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .hero-overlay {
@@ -439,7 +493,6 @@ h4,
   gap: 20px;
 }
 
-/* section heading — dipakai di hampir semua section */
 .section-heading {
   display: flex;
   justify-content: space-between;
@@ -495,9 +548,8 @@ h4,
   gap: 9px;
 }
 
-/* =========================================================
-   BENTO GRID — layout blok modern
-   ========================================================= */
+   /* BENTO GRID — layout blok modern */
+
 .bento-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -516,13 +568,23 @@ h4,
   }
 }
 
-/* =========================================================
-   BERITA UTAMA (grid kartu)
-   ========================================================= */
+
+   /* BERITA UTAMA (grid kartu) */
+
 .berita-utama-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 18px;
+}
+
+.berita-listing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.berita-listing-grid .berita-card img {
+  height: 200px;
 }
 
 .berita-card {
@@ -614,9 +676,9 @@ h4,
   }
 }
 
-/* =========================================================
-   WIDGET TAB BERITA (Terbaru / Populer / Hits)
-   ========================================================= */
+
+   /* WIDGET TAB BERITA (Terbaru / Populer / Hits) */
+
 .berita-tabs {
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: var(--radius-lg);
@@ -709,9 +771,8 @@ h4,
   font-family: "JetBrains Mono", monospace;
 }
 
-/* =========================================================
-   WIDGET INFORMASI SEKOLAH / AGENDA (bentuk umum widget-info)
-   ========================================================= */
+   /* WIDGET INFORMASI SEKOLAH / AGENDA (bentuk umum widget-info) */
+
 .widget-agenda {
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: var(--radius-lg);
@@ -842,9 +903,9 @@ h4,
   margin-bottom: 0 !important;
 }
 
-/* =========================================================
-   SECTION SPLIT (2 kolom: konten utama + widget kanan)
-   ========================================================= */
+
+   /* SECTION SPLIT (2 kolom: konten utama + widget kanan) */
+   
 .section-split {
   display: grid;
   grid-template-columns: 1fr 420px;
@@ -861,9 +922,8 @@ h4,
   margin-bottom: 40px;
 }
 
-/* =========================================================
-   BERITA TERBARU (list horizontal)
-   ========================================================= */
+   /* BERITA TERBARU (list horizontal) */
+
 .berita-list {
   display: flex;
   flex-direction: column;
@@ -916,9 +976,8 @@ h4,
   font-size: 11px;
 }
 
-/* =========================================================
-   WIDGET AGENDA SEKOLAH
-   ========================================================= */
+   /* WIDGET AGENDA SEKOLAH */
+
 .agenda-list {
   list-style: none;
   padding: 8px 0;
@@ -979,9 +1038,8 @@ h4,
   color: var(--abu-teks);
 }
 
-/* =========================================================
-   GALERI KEGIATAN
-   ========================================================= */
+   /* GALERI KEGIATAN */
+
 .galeri-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1023,7 +1081,6 @@ h4,
   padding: 12px;
 }
 
-/* Ubah .galeri-item dari <a> jadi <button>, samakan reset style default button */
 .galeri-item {
   border: none;
   background: none;
@@ -1032,7 +1089,7 @@ h4,
   font: inherit;
 }
 
-/* ---------- Lightbox Modal ---------- */
+/*  Lightbox Modal  */
 .lightbox {
   position: fixed;
   inset: 0;
@@ -1134,9 +1191,8 @@ h4,
   opacity: 1;
 }
 
-/* =========================================================
-   PRESTASI SEKOLAH
-   ========================================================= */
+   /* PRESTASI SEKOLAH */
+
 .prestasi-section {
   margin-top: 40px;
 }
@@ -1221,9 +1277,8 @@ h4,
   font-family: "JetBrains Mono", monospace;
 }
 
-/* =========================================================
-   WIDGET EKSTRAKURIKULER
-   ========================================================= */
+   /* WIDGET EKSTRAKURIKULER */
+
 .widget-ekskul {
   border: 1px solid var(--garis);
   border-radius: var(--radius-lg);
@@ -1270,9 +1325,8 @@ h4,
   font-weight: 500;
 }
 
-/* =========================================================
-   PARTNER INDUSTRI
-   ========================================================= */
+   /* PARTNER INDUSTRI */
+   
 .partner-section {
   margin-top: 40px;
 }
@@ -1310,8 +1364,8 @@ h4,
 
 .partner-block {
   flex-shrink: 0;
-  width: 380px; /* sebelumnya 260px */
-  height: 220px; /* sebelumnya 160px */
+  width: 380px;
+  height: 220px;
   background: white;
   border: 1px solid var(--garis);
   border-radius: var(--radius-lg);
@@ -1331,7 +1385,7 @@ h4,
 
 .partner-block img {
   max-width: 100%;
-  max-height: 100px; /* sebelumnya 70px */
+  max-height: 100px; 
   object-fit: contain;
   filter: grayscale(100%);
   opacity: 0.75;
@@ -1344,7 +1398,7 @@ h4,
 }
 
 .partner-block span {
-  font-size: 14.5px; /* sebelumnya 12.5px */
+  font-size: 14.5px; 
   font-weight: 600;
   color: var(--abu-teks);
   text-align: center;
@@ -1388,10 +1442,10 @@ h4,
   border: 1px solid var(--garis);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  text-decoration: none; /* ⬅️ tambahkan, hilangkan garis bawah link */
+  text-decoration: none; 
   color: var(
     --tinta
-  ); /* ⬅️ tambahkan, warna teks ikut tema, bukan biru default link */
+  ); 
   transition:
     transform 0.35s cubic-bezier(0.25, 1, 0.5, 1),
     box-shadow 0.35s cubic-bezier(0.25, 1, 0.5, 1);
@@ -1433,9 +1487,9 @@ h4,
   }
 }
 
-/* =========================================================
-   PETA LOKASI & KONTAK CEPAT
-   ========================================================= */
+
+   /* PETA LOKASI & KONTAK CEPAT */
+
 .lokasi-section {
   margin-top: 40px;
 }
@@ -1452,7 +1506,6 @@ h4,
 
 .lokasi-map {
   min-height: 320px;
-  /* border & radius dihapus, sudah diambil alih oleh .lokasi-split */
 }
 
 .lokasi-map iframe {
@@ -1564,7 +1617,6 @@ h4,
   min-height: 100px;
 }
 
-/* Alert sukses/error di halaman kontak */
 .alert {
   padding: 12px 16px;
   border-radius: var(--radius);
@@ -1584,9 +1636,8 @@ h4,
   border: 1px solid #f5c6c6;
 }
 
-/* =========================================================
-   FOOTER
-   ========================================================= */
+   /* FOOTER */
+
 .footer {
   background: #0c4b2d;
   color: #fff;
@@ -1684,9 +1735,8 @@ h4,
   color: #ddd;
 }
 
-/* =========================================================
-   TOMBOL KE ATAS (floating)
-   ========================================================= */
+   /* TOMBOL KE ATAS (floating) */
+
 .btn-top {
   position: fixed;
   bottom: 24px;
@@ -1720,9 +1770,8 @@ h4,
   background: var(--hijau-tua);
 }
 
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
+   /* RESPONSIVE */
+
 @media (max-width: 768px) {
   .header .container {
     justify-content: center;
@@ -1737,88 +1786,17 @@ h4,
     flex: 1;
   }
 
-  .navbar-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 22px;
-    padding: 12px;
-    cursor: pointer;
-  }
-
-.nav-menu {
-    display: none;
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(20px);
-    overflow-x: visible;
-    gap: 0;
-    box-shadow: 0 8px 16px rgba(10, 40, 25, 0.1);
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-}
-
-  .nav-menu.open {
-    display: flex;
-  }
-
-  .navbar .container {
-    position: relative;
-    flex-wrap: wrap;
-  }
-
-  .nav-menu li {
-    width: 100%;
-  }
-
-.dropdown-menu {
-  display: block !important;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 225px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  list-style: none;
-  padding: 6px 0;
-  margin-top: 8px;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 16px 32px rgba(10, 40, 25, 0.15);
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(8px);
-  transition: 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-  z-index: 999;
-  border: 1px solid rgba(15, 107, 60, 0.08);
-  pointer-events: none;
-}
-
-.dropdown.open .dropdown-menu {
-  display: block;
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-  pointer-events: auto;
-}
   .contact-info {
     justify-content: center;
     width: 100%;
   }
 
   .content-layout {
-    grid-template-columns: 1fr; /* jadi 1 kolom di mobile */
+    grid-template-columns: 1fr;
   }
 
   .sidebar {
-    position: static; /* matikan sticky di mobile */
+    position: static; 
   }
 
   .hero img {
@@ -1898,9 +1876,8 @@ h4,
   }
 }
 
-/* =========================================================
-   FORM PPDB
-   ========================================================= */
+   /* FORM PPDB */
+
 .ppdb-form {
   background: white;
   border: 1px solid var(--garis);
@@ -1992,9 +1969,8 @@ h4,
   }
 }
 
-/* =========================================================
-   PENGUMUMAN
-   ========================================================= */
+   /* PENGUMUMAN */
+
 .pengumuman-item {
   align-items: center;
   padding: 14px 16px;
@@ -2062,9 +2038,8 @@ h4,
   color: white;
 }
 
-/* =========================================================
-   GALERI — filter & empty state
-   ========================================================= */
+   /* GALERI — filter & empty state */
+
 .galeri-filter {
   display: flex;
   gap: 10px;
@@ -2113,9 +2088,8 @@ h4,
   font-size: 13.5px;
 }
 
-/* =========================================================
-   STRUKTUR ORGANISASI
-   ========================================================= */
+   /* STRUKTUR ORGANISASI */
+
 .organisasi-block {
   margin-bottom: 44px;
 }
@@ -2178,9 +2152,8 @@ h4,
   }
 }
 
-/* =========================================================
-   TICKER BAR (Top Tags + Berita Berjalan)
-   ========================================================= */
+   /* TICKER BAR (Top Tags + Berita Berjalan) */
+
 .ticker-bar {
   background: var(--hijau-tua);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -2308,9 +2281,9 @@ h4,
   outline-offset: 2px;
 }
 
-/* =========================================================
-   SCROLL REVEAL (Intersection Observer, GPU-friendly)
-   ========================================================= */
+
+   /* SCROLL REVEAL (Intersection Observer, GPU-friendly) */
+   
 [data-reveal] {
   opacity: 0;
   transform: translateY(24px);
@@ -2352,9 +2325,8 @@ h4,
   }
 }
 
-/* =========================================================
-   HEADER — Entrance Animation (muncul saat halaman dimuat)
-   ========================================================= */
+   /* HEADER — Entrance Animation (muncul saat halaman dimuat) */
+   
 @keyframes header-rise {
   from {
     opacity: 0;
@@ -2388,20 +2360,43 @@ h4,
   }
 }
 
-/* =========================================================
-   CONTEXTUAL NAVBAR — auto-hide/show berdasarkan arah scroll
-   ========================================================= */
+
+   /* CONTEXTUAL NAVBAR — auto-hide/show berdasarkan arah scroll */
+
 .navbar {
   transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+margin-left: auto;
+}
+
+.navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
 }
 
 .navbar.nav-hidden {
   transform: translateY(-100%);
 }
 
-/* =========================================================
-   INSTANT FEEDBACK — respons visual saat tap/klik
-   ========================================================= */
+
+   /* INSTANT FEEDBACK — respons visual saat tap/klik */
+
 .btn-hero-cta,
 .btn-login,
 .btn-ppdb-nav,
@@ -2439,8 +2434,6 @@ h4,
   transform: scale(0.96);
 }
 
-/* Semua elemen yang punya transform-based interaksi:
-   pastikan transform-origin di tengah biar efek scale terasa natural */
 .btn-hero-cta,
 .btn-login,
 .berita-card,
@@ -2453,9 +2446,9 @@ h4,
   transform-origin: center;
 }
 
-/* =========================================================
-   INSTANT FEEDBACK — link menu navbar
-   ========================================================= */
+
+   /* INSTANT FEEDBACK — link menu navbar */
+  
 .nav-menu li a:active {
   transform: scale(0.95);
   transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -2469,8 +2462,6 @@ h4,
 .nav-menu li a {
   transform-origin: center;
 }
-
-/* btn nav */
 
 .btn-ppdb-nav {
   background: var(--emas);
@@ -2508,9 +2499,8 @@ h4,
   transform: translateY(-2px);
 }
 
-/* =========================================================
-   ANNOUNCEMENT BAR (menggantikan topbar lama)
-   ========================================================= */
+   /* ANNOUNCEMENT BAR (menggantikan topbar lama) */
+
 .announce-bar {
   background: var(--hijau-tua);
   color: white;
@@ -2544,4 +2534,101 @@ h4,
 
 .announce-bar-inner a:hover {
   color: white;
+}
+
+
+.guru-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.guru-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.guru-card-foto {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  display: block;
+}
+
+.guru-card-nama {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.guru-card-jabatan {
+  color: #64748b;
+  margin: 0;
+  font-size: 13px;
+}
+.table-responsive-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 20px;
+}
+
+.table-responsive-wrap .table-admin {
+  min-width: 600px;
+}
+
+.jadwal-filter {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.jadwal-filter-select {
+  flex: 1 1 150px;
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.jadwal-filter-select:focus {
+  outline: none;
+  border-color: #0f5132;
+  box-shadow: 0 0 0 3px rgba(15, 81, 50, 0.12);
+}
+
+.table-responsive-wrap .table-admin {
+  min-width: 600px;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table-responsive-wrap .table-admin th,
+.table-responsive-wrap .table-admin td {
+  border: 1px solid #cbd5e1;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.table-responsive-wrap .table-admin thead th {
+  background: #0f5132;
+  color: #fff;
+  font-weight: 600;
+}
+
+.table-responsive-wrap .table-admin tbody tr:nth-child(even) {
+  background: #f1f5f9;
+}
+
+.table-responsive-wrap .table-admin tbody tr:hover {
+  background: #e2e8f0;
 }

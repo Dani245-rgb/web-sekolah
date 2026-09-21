@@ -19,9 +19,9 @@
 
 <div class="row">
     <?php foreach ($galeri as $g): ?>
-        <div class="col-md-3 mb-4">
+        <div class="col-6 col-md-3 mb-4">
             <div class="card">
-                <img src="<?= base_url('uploads/galeri/' . $g['foto']) ?>" class="card-img-top" style="height:180px;object-fit:cover;">
+                <img src="<?= base_url('uploads/galeri/' . $g['foto']) ?>" class="card-img-top" style="width:100%;height:180px;object-fit:cover;display:block;">
                 <div class="card-body">
                     <h6 class="card-title"><?= esc($g['judul']) ?></h6>
                     <span class="badge bg-secondary"><?= esc($g['kategori']) ?></span>

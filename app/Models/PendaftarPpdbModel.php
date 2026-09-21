@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class PendaftarPpdbModel extends Model
+class PendaftarPpdbModel extends BaseModel
 {
     protected $table            = 'pendaftar_ppdb';
     protected $primaryKey       = 'id';
@@ -13,6 +13,7 @@ class PendaftarPpdbModel extends Model
     protected $allowedFields    = [
         'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin',
         'asal_sekolah', 'jurusan_pilihan', 'no_hp', 'email', 'alamat', 'status',
+        'tahun_ajaran',
     ];
 
     protected $useTimestamps = true;

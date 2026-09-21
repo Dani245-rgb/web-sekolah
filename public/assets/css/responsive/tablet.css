@@ -1,8 +1,4 @@
-/* =========================================================
-   TOPBAR — breakpoint independen, lebih lebar dari layout
-   umum 768px, supaya topbar tidak berantakan di rentang
-   laptop kecil / tablet besar.
-   ========================================================= */
+
 @media (max-width: 992px) {
   .topbar .container {
     flex-direction: column;
@@ -24,17 +20,14 @@
   }
 }
 
-/* =========================================================
-   NAVBAR HAMBURGER — breakpoint independen (lebih lebar dari
-   breakpoint layout umum 768px), khusus supaya menu navbar
-   tidak sesak di ukuran laptop kecil / tablet landscape besar.
-   ========================================================= */
+   /* NAVBAR HAMBURGER */
+
 @media (max-width: 1200px) {
   .navbar-toggle {
     display: block;
   }
 
-  .navbar .container {
+  .navbar-inner {
     position: relative;
     flex-wrap: wrap;
   }
@@ -46,11 +39,16 @@
     position: absolute;
     top: 100%;
     left: 0;
-    background: var(--hijau-tua);
+    background-color: #ffffff;
     padding: 8px 0;
-    box-shadow: 0 12px 22px rgba(10, 40, 25, 0.25);
-    z-index: 200;
+    box-shadow: 0 12px 22px rgba(10, 40, 25, 0.15);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    z-index: 500;
   }
+
+  .nav-menu li a {
+    color: var(--tinta) !important;
+  } 
 
   .nav-menu.open {
     display: flex;
@@ -66,13 +64,14 @@
     justify-content: flex-start;
     white-space: normal;
     box-sizing: border-box;
+    border-radius: 0;
   }
 
-  .nav-menu li a .fa-chevron-down {
+  .nav-menu li a .dropdown-caret {
     margin-left: auto;
   }
 
-.dropdown-menu {
+  .dropdown-menu {
     position: static;
     display: none;
     width: 100%;
@@ -80,33 +79,37 @@
     opacity: 1;
     visibility: visible;
     transform: none;
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.03);
+    margin-top: 0;
+    border-radius: 0;
+    border: none;
   }
 
   .dropdown.open .dropdown-menu {
     display: block;
   }
 
-  .dropdown.open .fa-chevron-down {
+  .dropdown.open .dropdown-caret {
     transform: rotate(180deg);
+  }
+
+  .nav-actions {
+    margin-left: auto;
   }
 }
 
-/* =========================================================
-   LAPTOP KECIL / TABLET LANDSCAPE (769px – 1024px)
-   Sidebar dipersempit dulu di sini, BELUM di-stack penuh.
-   Mengisi celah antara desktop (420px sidebar) dan
-   tablet sempit (260px sidebar).
-   ========================================================= */
+
+   /* LAPTOP KECIL / TABLET LANDSCAPE (769px – 1024px) */
+
 @media (max-width: 1024px) {
 .content-layout {
   grid-template-columns: 1fr 300px;
   grid-template-areas:
     "hero            hero"
-    "berita          sidebar-atas"
-    "berita-terbaru  sidebar-bawah"
-    "galeri          agenda"
-    "prestasi        ekskul";
+    "berita          sidebar-bawah"
+    "berita-terbaru  agenda"
+    "galeri          ekskul"
+    "prestasi        sidebar-atas";
   gap: 16px;
 }
 
@@ -117,25 +120,26 @@
 }
 }
 
-/* =========================================================
-   TABLET.CSS
-   Berlaku untuk layar <= 768px (tablet & HP besar/landscape)
-   ========================================================= */
+
+   /* TABLET.CSS */
+   /* Berlaku untuk layar <= 768px (tablet & HP besar/landscape) */
+   
 @media (max-width: 768px) {
 .content-layout {
   grid-template-columns: 1fr;
   grid-template-areas:
     "hero"
     "berita"
-    "sidebar-atas"
     "berita-terbaru"
     "sidebar-bawah"
     "galeri"
-    "agenda"
     "prestasi"
+    "sidebar-atas"
+    "agenda"
     "ekskul";
   gap: 16px;
 }
+
 .berita-terbaru-block,
 .galeri-block,
 .prestasi-block {
@@ -234,6 +238,10 @@
 
   .berita-utama-list {
     grid-template-columns: 1fr; /* kolom utama sempit, berita jadi 1 kolom */
+  }
+
+    .berita-listing-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .widget-ekskul .ekskul-grid {

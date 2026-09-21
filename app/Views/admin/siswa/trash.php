@@ -27,7 +27,8 @@
         Siswa yang dihapus akan muncul di sini. Bisa dipulihkan kapan saja, atau dihapus permanen jika sudah tidak dibutuhkan.
     </p>
 
-    <table class="table">
+    <div class="table-responsive-wrap">
+<table class="table">
         <thead>
             <tr>
                 <th>No</th>

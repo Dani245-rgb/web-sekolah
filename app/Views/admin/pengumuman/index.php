@@ -21,6 +21,7 @@
     <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
 <?php endif; ?>
 
+<div class="table-responsive-wrap">
 <table class="table-admin">
     <thead>
         <tr>
@@ -57,5 +58,6 @@
         <?php endif; ?>
     </tbody>
 </table>
+</div>
 
 <?= $this->endSection() ?>

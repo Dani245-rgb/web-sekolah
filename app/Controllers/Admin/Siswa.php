@@ -5,8 +5,6 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Models\SiswaModel;
 use App\Models\UserModel;
-use App\Models\KelasModel;
-use App\Models\TahunAjaranModel;
 use App\Libraries\ImageCompressor;
 use Config\Database;
 
@@ -14,72 +12,37 @@ class Siswa extends BaseController
 {
     protected SiswaModel $siswaModel;
     protected UserModel $userModel;
-    protected KelasModel $kelasModel;
-    protected TahunAjaranModel $tahunAjaranModel;
 
     public function __construct()
     {
-        $this->siswaModel       = new SiswaModel();
-        $this->userModel        = new UserModel();
-        $this->kelasModel       = new KelasModel();
-        $this->tahunAjaranModel = new TahunAjaranModel();
+        $this->siswaModel = new SiswaModel();
+        $this->userModel  = new UserModel();
     }
 
     public function index()
     {
-        $keyword       = $this->request->getGet('cari');
-        $jurusanFilter = $this->request->getGet('jurusan');
-        $tahunAktif    = $this->tahunAjaranModel->getActive();
-        $idTahunAktif  = $tahunAktif['id_tahun_ajaran'] ?? 0;
+        $keyword = $this->request->getGet('cari');
 
-        $builder = $this->siswaModel->getAllWithKelas($idTahunAktif);
+        $builder = $this->siswaModel->getAll();
 
         if ($keyword) {
             $builder->groupStart()
-                ->like('siswa.nama', $keyword)
-                ->orLike('siswa.nis', $keyword)
-                ->orLike('siswa.nisn', $keyword)
+                ->like('nama', $keyword)
+                ->orLike('nis', $keyword)
+                ->orLike('nisn', $keyword)
                 ->groupEnd();
         }
 
-        if (!empty($jurusanFilter)) {
-            $builder->where('kelas.jurusan', $jurusanFilter);
-        }
-
-        // Ambil daftar jurusan yang benar-benar ada di tabel kelas, untuk tombol filter
-        $daftarJurusan = $this->kelasModel
-            ->distinct()
-            ->select('jurusan')
-            ->where('jurusan IS NOT NULL')
-            ->where('jurusan !=', '')
-            ->orderBy('jurusan', 'ASC')
-            ->findAll();
-
-        $data['siswa']          = $builder->paginate(50, 'siswa');
-        $data['pager']          = $this->siswaModel->pager;
-        $data['keyword']        = $keyword;
-        $data['tahunAktif']     = $tahunAktif;
-        $data['daftarJurusan']  = $daftarJurusan;
-        $data['jurusanFilter']  = $jurusanFilter;
+        $data['siswa']   = $builder->paginate(50);
+        $data['pager']   = $this->siswaModel->pager;
+        $data['keyword'] = $keyword;
 
         return view('admin/siswa/index', $data);
     }
 
     public function create()
     {
-        $tahunAktif = $this->tahunAjaranModel->getActive();
-
-        if (!$tahunAktif) {
-            return redirect()->to('/admin/siswa')
-                ->with('errors', ['tahun' => 'Belum ada Tahun Ajaran yang berstatus Aktif. Aktifkan salah satu dulu di menu Tahun Ajaran.']);
-        }
-
-        $data['kelas']      = $this->kelasModel->where('status', 'Aktif')
-            ->where('id_tahun_ajaran', $tahunAktif['id_tahun_ajaran'])
-            ->orderBy('nama_kelas', 'ASC')->findAll();
-        $data['tahunAktif'] = $tahunAktif;
-
-        return view('admin/siswa/create', $data);
+        return view('admin/siswa/create');
     }
 
     public function store()
@@ -90,19 +53,12 @@ class Siswa extends BaseController
             'nama'           => 'required|min_length[3]|max_length[100]',
             'tanggal_lahir'  => 'required|valid_date',
             'jenis_kelamin'  => 'required|in_list[L,P]',
-            'id_kelas'       => 'required|is_natural_no_zero',
             'email'          => 'permit_empty|valid_email',
             'foto'           => 'permit_empty|is_image[foto]|max_size[foto,2048]|mime_in[foto,image/jpg,image/jpeg,image/png]',
         ];
 
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-
-        $tahunAktif = $this->tahunAjaranModel->getActive();
-        if (!$tahunAktif) {
-            return redirect()->back()->withInput()
-                ->with('errors', ['tahun' => 'Tidak ada Tahun Ajaran Aktif.']);
         }
 
         $nis           = $this->request->getPost('nis');
@@ -150,22 +106,7 @@ class Siswa extends BaseController
             'no_hp_ortu'     => $this->request->getPost('no_hp_ortu'),
             'email'          => $this->request->getPost('email'),
             'foto'           => $fotoName,
-            'status'         => 'Aktif',
         ]);
-
-        $sudahAda = $db->table('kelas_siswa')
-            ->where('id_siswa', $idSiswa)
-            ->where('id_tahun_ajaran', $tahunAktif['id_tahun_ajaran'])
-            ->countAllResults();
-
-        if ($sudahAda === 0) {
-            $db->table('kelas_siswa')->insert([
-                'id_kelas'        => $this->request->getPost('id_kelas'),
-                'id_siswa'        => $idSiswa,
-                'id_tahun_ajaran' => $tahunAktif['id_tahun_ajaran'],
-                'created_at'      => date('Y-m-d H:i:s'),
-            ]);
-        }
 
         $db->transComplete();
 
@@ -255,11 +196,6 @@ class Siswa extends BaseController
             return redirect()->to('/admin/siswa')->with('errors', ['404' => 'Data siswa tidak ditemukan.']);
         }
 
-        if ($this->siswaModel->isDipakaiDiModulLain($id_siswa)) {
-            return redirect()->to('/admin/siswa')
-                ->with('errors', ['used' => 'Tidak bisa dihapus, siswa ini sudah memiliki data akademik.']);
-        }
-
         $db = Database::connect();
         $db->transStart();
 
@@ -327,7 +263,6 @@ class Siswa extends BaseController
         $db = Database::connect();
         $db->transStart();
 
-        $db->table('kelas_siswa')->where('id_siswa', $id_siswa)->delete();
         $this->siswaModel->delete($id_siswa, true);   // true = hard delete permanen
         $this->userModel->delete($siswaData['user_id'], true);
 

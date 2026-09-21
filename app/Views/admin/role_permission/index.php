@@ -12,14 +12,18 @@
     <h5 style="margin-bottom:4px;"><?= esc($role['nama']) ?></h5>
     <p style="color:#7c8a9c;font-size:13px;margin-bottom:14px;"><?= esc($role['desc']) ?></p>
 
-    <?php foreach ($role['grup'] as $namaGrup => $modul): ?>
-        <strong style="display:block;margin-bottom:6px;"><?= esc($namaGrup) ?></strong>
-        <ul style="margin:0 0 14px 20px;">
-            <?php foreach ($modul as $m): ?>
-                <li style="font-size:13px;margin-bottom:4px;"><?= esc($m) ?></li>
-            <?php endforeach; ?>
-        </ul>
-    <?php endforeach; ?>
+    <?php if (empty($role['grup'])): ?>
+        <p style="color:#b2bec3;font-size:13px;font-style:italic;">Tidak ada akses ke sistem.</p>
+    <?php else: ?>
+        <?php foreach ($role['grup'] as $namaGrup => $modul): ?>
+            <strong style="display:block;margin-bottom:6px;"><?= esc($namaGrup) ?></strong>
+            <ul style="margin:0 0 14px 20px;">
+                <?php foreach ($modul as $m): ?>
+                    <li style="font-size:13px;margin-bottom:4px;"><?= esc($m) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endforeach; ?>
+    <?php endif; ?>
 </div>
 <?php endforeach; ?>
 

@@ -1,6 +1,3 @@
-/* =========================================================
-    RESET & BASE
-    ========================================================= */
 * {
   margin: 0;
   padding: 0;
@@ -48,9 +45,8 @@ h3,
   padding: 0 12px;
 }
 
-/* =========================================================
-    TOPBAR
-    ========================================================= */
+    /* TOPBAR */
+
 .topbar {
   background: var(--hijau-tua);
   color: white;
@@ -125,9 +121,8 @@ h3,
   background: #ff0000;
 }
 
-/* =========================================================
-    HEADER
-    ========================================================= */
+    /* HEADER */
+
 .header {
   position: relative;
   padding: 0;
@@ -191,7 +186,6 @@ h3,
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* search: default hanya tombol ikon, input muncul saat class "active" ditambahkan lewat JS */
 .search-box {
   display: flex;
   align-items: center;
@@ -238,9 +232,8 @@ h3,
   background: var(--hijau-tua);
 }
 
-/* =========================================================
-    NAVBAR
-    ========================================================= */
+    /* NAVBAR */
+
 .navbar {
   background: var(--hijau);
   padding: 0;
@@ -331,12 +324,12 @@ h3,
   border-top: 3px solid var(--emas);
 }
 
-.dropdown:hover .dropdown-menu {
+.dropdown:hover .dropdown-menu,
+.dropdown.open .dropdown-menu {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
-
 .dropdown-menu li a {
   color: var(--tinta);
   padding: 10px 20px;
@@ -349,7 +342,6 @@ h3,
   padding-left: 25px;
 }
 
-/* wrapper untuk search + login di sisi kanan navbar */
 .nav-actions {
   display: flex;
   align-items: center;
@@ -370,9 +362,8 @@ h3,
   background: var(--emas-terang);
 }
 
-/* =========================================================
-    CONTENT — LAYOUT UTAMA
-    ========================================================= */
+    /* CONTENT — LAYOUT UTAMA */
+
 .content {
   padding: 35px 0 55px;
 }
@@ -484,7 +475,6 @@ h3,
   top: 90px;
 }
 
-/* section heading — dipakai di hampir semua section */
 .section-heading {
   display: flex;
   justify-content: space-between;
@@ -540,9 +530,8 @@ h3,
   gap: 9px;
 }
 
-/* =========================================================
-    BERITA UTAMA (grid kartu)
-    ========================================================= */
+    /* BERITA UTAMA (grid kartu) */
+
 .berita-utama-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -618,9 +607,8 @@ h3,
   }
 }
 
-/* =========================================================
-    WIDGET TAB BERITA (Terbaru / Populer / Hits)
-    ========================================================= */
+    /* WIDGET TAB BERITA (Terbaru / Populer / Hits) */
+
 .berita-tabs {
   border: 1px solid var(--garis);
   border-radius: var(--radius-lg);
@@ -701,9 +689,9 @@ h3,
   font-family: "JetBrains Mono", monospace;
 }
 
-/* =========================================================
-    WIDGET INFORMASI SEKOLAH / AGENDA (bentuk umum widget-info)
-    ========================================================= */
+
+    /* WIDGET INFORMASI SEKOLAH / AGENDA (bentuk umum widget-info) */
+
 .widget-agenda {
   border: 1px solid var(--garis);
   border-radius: var(--radius-lg);
@@ -814,9 +802,8 @@ h3,
   margin-bottom: 0 !important;
 }
 
-/* =========================================================
-    SECTION SPLIT (2 kolom: konten utama + widget kanan)
-    ========================================================= */
+    /* SECTION SPLIT (2 kolom: konten utama + widget kanan) */
+
 .section-split {
   display: grid;
   grid-template-columns: 1fr 420px;
@@ -833,9 +820,9 @@ h3,
   margin-bottom: 40px;
 }
 
-/* =========================================================
-    BERITA TERBARU (list horizontal)
-    ========================================================= */
+
+    /* BERITA TERBARU (list horizontal) */
+
 .berita-list {
   display: flex;
   flex-direction: column;
@@ -888,9 +875,8 @@ h3,
   font-size: 11px;
 }
 
-/* =========================================================
-    WIDGET AGENDA SEKOLAH
-    ========================================================= */
+    /* WIDGET AGENDA SEKOLAH */
+
 .agenda-list {
   list-style: none;
   padding: 8px 0;
@@ -952,9 +938,8 @@ h3,
   color: var(--abu-teks);
 }
 
-/* =========================================================
-    GALERI KEGIATAN
-    ========================================================= */
+    /* GALERI KEGIATAN */
+
 .galeri-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -996,7 +981,6 @@ h3,
   padding: 12px;
 }
 
-/* Ubah .galeri-item dari <a> jadi <button>, samakan reset style default button */
 .galeri-item {
   border: none;
   background: none;
@@ -1005,7 +989,7 @@ h3,
   font: inherit;
 }
 
-/* ---------- Lightbox Modal ---------- */
+/* Lightbox Modal */
 .lightbox {
   position: fixed;
   inset: 0;
@@ -1107,9 +1091,8 @@ h3,
   opacity: 1;
 }
 
-/* =========================================================
-    PRESTASI SEKOLAH
-    ========================================================= */
+    /* PRESTASI SEKOLAH */
+
 .prestasi-section {
   margin-top: 40px;
 }
@@ -1199,9 +1182,8 @@ h3,
   font-family: "JetBrains Mono", monospace;
 }
 
-/* =========================================================
-    WIDGET EKSTRAKURIKULER
-    ========================================================= */
+    /* WIDGET EKSTRAKURIKULER */
+
 .widget-ekskul {
   border: 1px solid var(--garis);
   border-radius: var(--radius-lg);
@@ -1248,9 +1230,8 @@ h3,
   font-weight: 500;
 }
 
-/* =========================================================
-    PARTNER INDUSTRI
-    ========================================================= */
+    /* PARTNER INDUSTRI */
+
 .partner-section {
   margin-top: 40px;
 }
@@ -1288,8 +1269,8 @@ h3,
 
 .partner-block {
   flex-shrink: 0;
-  width: 380px; /* sebelumnya 260px */
-  height: 220px; /* sebelumnya 160px */
+  width: 380px; 
+  height: 220px; 
   background: white;
   border: 1px solid var(--garis);
   border-radius: var(--radius-lg);
@@ -1309,7 +1290,7 @@ h3,
 
 .partner-block img {
   max-width: 100%;
-  max-height: 100px; /* sebelumnya 70px */
+  max-height: 100px; 
   object-fit: contain;
   filter: grayscale(100%);
   opacity: 0.75;
@@ -1322,7 +1303,7 @@ h3,
 }
 
 .partner-block span {
-  font-size: 14.5px; /* sebelumnya 12.5px */
+  font-size: 14.5px; 
   font-weight: 600;
   color: var(--abu-teks);
   text-align: center;
@@ -1415,9 +1396,8 @@ h3,
   }
 }
 
-/* =========================================================
-    PETA LOKASI & KONTAK CEPAT
-    ========================================================= */
+    /* PETA LOKASI & KONTAK CEPAT */
+  
 .lokasi-section {
   margin-top: 40px;
 }
@@ -1434,7 +1414,6 @@ h3,
 
 .lokasi-map {
   min-height: 320px;
-  /* border & radius dihapus, sudah diambil alih oleh .lokasi-split */
 }
 
 .lokasi-map iframe {
@@ -1546,7 +1525,6 @@ h3,
   min-height: 100px;
 }
 
-/* Alert sukses/error di halaman kontak */
 .alert {
   padding: 12px 16px;
   border-radius: var(--radius);
@@ -1566,9 +1544,8 @@ h3,
   border: 1px solid #f5c6c6;
 }
 
-/* =========================================================
-    FOOTER
-    ========================================================= */
+    /* FOOTER */
+
 .footer {
   background: #0c4b2d;
   color: #fff;
@@ -1666,9 +1643,8 @@ h3,
   color: #ddd;
 }
 
-/* =========================================================
-    TOMBOL KE ATAS (floating)
-    ========================================================= */
+    /* TOMBOL KE ATAS (floating) */
+
 .btn-top {
   position: fixed;
   bottom: 24px;
@@ -1702,9 +1678,8 @@ h3,
   background: var(--hijau-tua);
 }
 
-/* =========================================================
-    RESPONSIVE
-    ========================================================= */
+    /* RESPONSIVE */
+
 @media (max-width: 768px) {
   .header .container {
     justify-content: center;
@@ -1719,10 +1694,63 @@ h3,
     flex: 1;
   }
 
+  .navbar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .navbar-inner {
+    position: relative;
+    flex-wrap: wrap;
+  }
+
   .nav-menu {
-    justify-content: flex-start;
-    overflow-x: auto;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    padding: 8px 0;
+    box-shadow: 0 12px 22px rgba(10, 40, 25, 0.12);
+    z-index: 500;
     gap: 0;
+  }
+
+  .nav-menu.open {
+    display: flex;
+  }
+
+  .nav-menu li {
+    width: 100%;
+  }
+
+  .nav-menu li a {
+    padding: 12px 20px;
+    width: 100%;
+    white-space: normal;
+    color: var(--tinta);
+  }
+
+  .dropdown-menu {
+    position: static;
+    display: none;
+    width: 100%;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    background: rgba(255, 255, 255, 0.05);
+    border-top: none;
+  }
+
+  .dropdown.open .dropdown-menu {
+    display: block;
   }
 
   .contact-info {
@@ -1731,11 +1759,11 @@ h3,
   }
 
   .content-layout {
-    grid-template-columns: 1fr; /* jadi 1 kolom di mobile */
+    grid-template-columns: 1fr; 
   }
 
   .sidebar {
-    position: static; /* matikan sticky di mobile */
+    position: static; 
   }
 
   .hero img {
@@ -1763,9 +1791,8 @@ h3,
   }
 }
 
-/* =========================================================
-    FORM PPDB
-    ========================================================= */
+    /* FORM PPDB */
+
 .ppdb-form {
   background: white;
   border: 1px solid var(--garis);
@@ -1857,9 +1884,8 @@ h3,
   }
 }
 
-/* =========================================================
-    PENGUMUMAN
-    ========================================================= */
+    /* PENGUMUMAN */
+
 .pengumuman-item {
   align-items: center;
   padding: 14px 16px;
@@ -1926,10 +1952,9 @@ h3,
   border-color: var(--hijau);
   color: white;
 }
-
-/* =========================================================
-    GALERI — filter & empty state
-    ========================================================= */
+  
+    /* GALERI — filter & empty state */
+  
 .galeri-filter {
   display: flex;
   gap: 10px;
@@ -1978,9 +2003,8 @@ h3,
   font-size: 13.5px;
 }
 
-/* =========================================================
-    STRUKTUR ORGANISASI
-    ========================================================= */
+    /* STRUKTUR ORGANISASI */
+
 .organisasi-block {
   margin-bottom: 44px;
 }
@@ -2043,9 +2067,8 @@ h3,
   }
 }
 
-/* =========================================================
-    TICKER BAR (Top Tags + Berita Berjalan)
-    ========================================================= */
+    /* TICKER BAR (Top Tags + Berita Berjalan) */
+
 .ticker-bar {
   background: var(--hijau-tua);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);

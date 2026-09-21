@@ -7,7 +7,7 @@
 
             <div class="logo-text">
                 <h1>SMK <span>Attauafiqiyyah</span></h1>
-                <p>Berprestasi Bersama Kami</p>
+                <p>Mencetak Generasi Berakhlak dan Siap Kerja</p>
             </div>
         </div>
     </div>

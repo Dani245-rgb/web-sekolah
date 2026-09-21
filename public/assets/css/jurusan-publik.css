@@ -1,171 +1,166 @@
 .jurusan-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 24px;
-    margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
 }
 
 .jurusan-flip {
-    perspective: 1200px;
-    height: 300px;
+  perspective: 1200px;
+  height: 300px;
 }
 
 .jurusan-flip-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .jurusan-flip:hover .jurusan-flip-inner {
-    transform: rotateY(180deg);
+  transform: rotateY(180deg);
 }
 
 .jurusan-flip-front,
 .jurusan-flip-back {
-    position: absolute;
-    inset: 0;
-    backface-visibility: hidden;
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 24px;
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
 }
 
-/* SISI DEPAN — Logo + Singkatan */
 .jurusan-flip-front {
-    background: linear-gradient(160deg, #0f5132 0%, #14532d 100%);
-    color: #fff;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
 }
 
 .jurusan-flip-logo {
-    width: 84px;
-    height: 84px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 34px;
-    margin-bottom: 16px;
-    overflow: hidden;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  margin-bottom: 16px;
+  overflow: hidden;
 }
 
 .jurusan-flip-logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .jurusan-flip-singkatan {
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin: 0;
+  color: #0f5132;
 }
 
 .jurusan-flip-hint {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.7);
-    margin-top: 10px;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 10px;
 }
 
 /* SISI BELAKANG — Nama lengkap + deskripsi */
 .jurusan-flip-back {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    transform: rotateY(180deg);
-    color: #0f172a;
+  background: linear-gradient(160deg, #0f5132 0%, #14532d 100%);
+  border: none;
+  transform: rotateY(180deg);
+  color: #fff;
 }
 
 .jurusan-flip-back h3 {
-    font-size: 16px;
-    margin: 0 0 10px;
-    color: #0f5132;
-    line-height: 1.35;
+  font-size: 16px;
+  margin: 0 0 10px;
+  color: #fff;
+  line-height: 1.35;
 }
 
 .jurusan-flip-back p {
-    font-size: 13px;
-    color: #64748b;
-    margin: 0 0 16px;
-    line-height: 1.5;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 16px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .jurusan-flip-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #0f5132;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 8px 18px;
-    border-radius: 24px;
-    text-decoration: none;
-    transition: background 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #0f5132;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 24px;
+  text-decoration: none;
+  transition: background 0.2s ease;
 }
 
 .jurusan-flip-btn:hover {
-    background: #ffd54f;
-    color: #0f5132;
+  background: #ffd54f;
+  color: #0f5132;
 }
 
 .jurusan-empty {
-    text-align: center;
-    color: #64748b;
-    padding: 60px 0;
+  text-align: center;
+  color: #64748b;
+  padding: 60px 0;
 }
 
-/* ============ MOBILE: matikan flip, tampilkan semua info langsung ============ */
+/*  MOBILE: matikan flip, tampilkan semua info langsung  */
 @media (max-width: 768px) {
-    .jurusan-flip {
-        perspective: none;
-        height: auto;
-    }
+  .jurusan-flip {
+    perspective: none;
+    height: auto;
+  }
 
-    .jurusan-flip-inner {
-        transform: none !important;
-        transition: none;
-        position: relative;
-        border-radius: 16px;
-        overflow: hidden;
-    }
+  .jurusan-flip-inner {
+    transform: none !important;
+    transition: none;
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    height: 100%;
+    box-shadow: none;
+  }
 
-    .jurusan-flip-front,
-    .jurusan-flip-back {
-        position: relative;
-        backface-visibility: visible;
-        transform: none !important;
-        border-radius: 0;
-    }
+  .jurusan-flip-front {
+    display: none;
+  }
 
-    .jurusan-flip-front {
-        padding-bottom: 16px;
-    }
+  .jurusan-flip-back {
+    position: relative;
+    height: 100%;
+    backface-visibility: visible;
+    transform: none !important;
+    border-radius: 16px;
+    border: none;
+    padding-top: 24px;
+  }
 
-    .jurusan-flip-hint {
-        display: none;
-    }
-
-    .jurusan-flip-back {
-        border: none;
-        border-top: 1px solid #e2e8f0;
-        padding-top: 16px;
-    }
-
-    .jurusan-flip-back p {
-        -webkit-line-clamp: unset;
-        display: block;
-    }
+  .jurusan-flip-back p {
+    -webkit-line-clamp: unset;
+    display: block;
+  }
 }

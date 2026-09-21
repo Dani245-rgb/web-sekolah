@@ -118,24 +118,6 @@ class Dashboard extends BaseController
             );
         }
 
-        // Absensi Hari Ini (rekap semua kelas)
-        $tanggalHariIni  = date('Y-m-d');
-        $rekapAbsensiRaw = $db->table('absensi_detail')
-            ->select('absensi_detail.status, COUNT(*) as jumlah')
-            ->join('absensi_jadwal', 'absensi_jadwal.id_absensi_jadwal = absensi_detail.id_absensi_jadwal')
-            ->where('absensi_jadwal.tanggal', $tanggalHariIni)
-            ->groupBy('absensi_detail.status')
-            ->get()->getResultArray();
-
-        $rekapAbsensiHariIni = ['Hadir' => 0, 'Izin' => 0, 'Sakit' => 0, 'Alfa' => 0];
-        foreach ($rekapAbsensiRaw as $row) {
-            $rekapAbsensiHariIni[$row['status']] = (int) $row['jumlah'];
-        }
-        $totalAbsensiHariIni = array_sum($rekapAbsensiHariIni);
-        $persenHadirHariIni  = $totalAbsensiHariIni > 0
-            ? round($rekapAbsensiHariIni['Hadir'] / $totalAbsensiHariIni * 100, 1)
-            : 0;
-
         // Pengumuman Terbaru
         $pengumumanTerbaru = $pengumumanModel->where('status', 'Published')
             ->orderBy('tanggal_publish', 'DESC')
@@ -163,9 +145,6 @@ class Dashboard extends BaseController
             'notifikasiTerbaru'   => $notifikasiTerbaru,
             'hariIni'             => $hariIni,
             'jadwalHariIni'       => $jadwalHariIni,
-            'rekapAbsensiHariIni' => $rekapAbsensiHariIni,
-            'totalAbsensiHariIni' => $totalAbsensiHariIni,
-            'persenHadirHariIni'  => $persenHadirHariIni,
             'pengumumanTerbaru'   => $pengumumanTerbaru,
             'aktivitasTerbaru'    => $aktivitasTerbaru,
         ];
