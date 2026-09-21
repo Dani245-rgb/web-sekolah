@@ -15,13 +15,6 @@ $routes->post('auth/gantipasswordsubmit', 'Auth\Login::gantipasswordsubmit');
 $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('dashboard', 'Admin\Dashboard::index');
 
-    // Tahun Ajaran (fondasi)
-    $routes->get('tahun-ajaran', 'Admin\TahunAjaran::index');
-    $routes->get('tahun-ajaran/create', 'Admin\TahunAjaran::create');
-    $routes->post('tahun-ajaran/store', 'Admin\TahunAjaran::store');
-    $routes->get('tahun-ajaran/edit/(:num)', 'Admin\TahunAjaran::edit/$1');
-    $routes->post('tahun-ajaran/update/(:num)', 'Admin\TahunAjaran::update/$1');
-    $routes->post('tahun-ajaran/delete/(:num)', 'Admin\TahunAjaran::delete/$1');
 
     // Data Sekolah - Guru
     $routes->get('guru', 'Admin\Guru::index');
@@ -31,26 +24,8 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->post('guru/update/(:num)', 'Admin\Guru::update/$1');
     $routes->post('guru/delete/(:num)', 'Admin\Guru::delete/$1');
 
-    // Data Sekolah - Kelas
-    $routes->get('kelas', 'Admin\Kelas::index');
-    $routes->get('kelas/create', 'Admin\Kelas::create');
-    $routes->post('kelas/store', 'Admin\Kelas::store');
-    $routes->get('kelas/edit/(:num)', 'Admin\Kelas::edit/$1');
-    $routes->post('kelas/update/(:num)', 'Admin\Kelas::update/$1');
-    $routes->post('kelas/delete/(:num)', 'Admin\Kelas::delete/$1');
-    $routes->get('kelas/siswa/(:num)', 'Admin\Kelas::siswa/$1');
 
-    // Riwayat Kelas
-    $routes->get('riwayat-kelas', 'Admin\RiwayatKelas::index');
-    $routes->get('riwayat-kelas/detail/(:num)', 'Admin\RiwayatKelas::detail/$1');
 
-    // Data Sekolah - Mata Pelajaran
-    $routes->get('mapel', 'Admin\Mapel::index');
-    $routes->get('mapel/create', 'Admin\Mapel::create');
-    $routes->post('mapel/store', 'Admin\Mapel::store');
-    $routes->get('mapel/edit/(:num)', 'Admin\Mapel::edit/$1');
-    $routes->post('mapel/update/(:num)', 'Admin\Mapel::update/$1');
-    $routes->post('mapel/delete/(:num)', 'Admin\Mapel::delete/$1');
 
     // Jurusan
     $routes->get('jurusan', 'Admin\Jurusan::index');
@@ -83,50 +58,11 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('audit-log/export/pdf', 'Admin\AuditLog::exportPdf');
     $routes->get('audit-log/export/excel', 'Admin\AuditLog::exportExcel');
 
-    // Assign Kelas Siswa
-    $routes->get('assign-kelas', 'Admin\AssignKelas::index');
-    $routes->get('assign-kelas/form', 'Admin\AssignKelas::form');
-    $routes->get('assign-kelas/siswa-belum-assign', 'Admin\AssignKelas::siswaBelumAssign');
-    $routes->post('assign-kelas/proses', 'Admin\AssignKelas::proses');
-    $routes->post('assign-kelas/batal/(:num)', 'Admin\AssignKelas::batal/$1');
 
-    // Jadwal Pelajaran
-    $routes->get('jadwal', 'Admin\Jadwal::index');
-    $routes->get('jadwal/create', 'Admin\Jadwal::create');
-    $routes->post('jadwal/store', 'Admin\Jadwal::store');
-    $routes->get('jadwal/edit/(:num)', 'Admin\Jadwal::edit/$1');
-    $routes->post('jadwal/update/(:num)', 'Admin\Jadwal::update/$1');
-    $routes->post('jadwal/delete/(:num)', 'Admin\Jadwal::delete/$1');
-    $routes->get('jadwal/template', 'Admin\Jadwal::template');
-    $routes->get('jadwal/import', 'Admin\Jadwal::importForm');
-    $routes->post('jadwal/import/preview', 'Admin\Jadwal::importPreview');
-    $routes->post('jadwal/import/confirm', 'Admin\Jadwal::importConfirm');
-    $routes->get('jadwal/export', 'Admin\Jadwal::exportExcel');
-    $routes->get('jadwal/export/pdf', 'Admin\Jadwal::exportPdf');
 
-    // Assign massal Jurusan ke Kelas
-    $routes->get('kelas/assign-jurusan', 'Admin\Kelas::assignJurusanForm');
-    $routes->post('kelas/assign-jurusan', 'Admin\Kelas::assignJurusanProses');
 
-    // Alumni siswa
-    $routes->get('alumni', 'Admin\Alumni::index');
-    $routes->get('alumni/form', 'Admin\Alumni::form');
-    $routes->get('alumni/siswa-per-kelas/(:num)', 'Admin\Alumni::siswaPerKelas/$1');
-    $routes->post('alumni/proses', 'Admin\Alumni::proses');
-    $routes->post('alumni/batal/(:num)', 'Admin\Alumni::batal/$1');
 
-    // Mutasi siswa
-    $routes->get('mutasi', 'Admin\Mutasi::index');
-    $routes->get('mutasi/form', 'Admin\Mutasi::form');
-    $routes->get('mutasi/siswa-per-kelas/(:num)', 'Admin\Mutasi::siswaPerKelas/$1');
-    $routes->post('mutasi/proses', 'Admin\Mutasi::proses');
-    $routes->post('mutasi/batal/(:num)', 'Admin\Mutasi::batal/$1');
 
-    // Kenaikan Kelas
-    $routes->get('kenaikan-kelas', 'Admin\KenaikanKelas::index');
-    $routes->get('kenaikan-kelas/form', 'Admin\KenaikanKelas::form');
-    $routes->get('kenaikan-kelas/siswa-by-kelas/(:num)/(:num)', 'Admin\KenaikanKelas::siswaByKelas/$1/$2');
-    $routes->post('kenaikan-kelas/proses', 'Admin\KenaikanKelas::proses');
 
     // Berita (CMS)
     $routes->get('berita', 'Admin\Berita::index');
@@ -246,8 +182,6 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('laporan-siswa', 'Admin\LaporanSiswa::index');
     $routes->get('laporan-siswa/export/excel', 'Admin\LaporanSiswa::exportExcel');
 
-    // Laporan Akademik
-    $routes->get('laporan-akademik', 'Admin\LaporanAkademik::index');
 
     // Notifikasi
     $routes->get('notifikasi', 'Admin\Notifikasi::index');
