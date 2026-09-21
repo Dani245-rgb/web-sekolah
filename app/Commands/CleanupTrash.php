@@ -34,7 +34,6 @@ class CleanupTrash extends BaseCommand
         foreach ($expired as $s) {
             $db->transStart();
 
-            $db->table('kelas_siswa')->where('id_siswa', $s['id_siswa'])->delete();
             $siswaModel->delete($s['id_siswa'], true); // hard delete
             $userModel->delete($s['user_id'], true);
 
