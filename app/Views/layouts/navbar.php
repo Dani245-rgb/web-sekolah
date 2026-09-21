@@ -24,7 +24,6 @@
                     <ul class="dropdown-menu">
                         <li><a href="<?= base_url('akademik/jurusan') ?>"> Jurusan </a></li>
                         <li><a href="<?= base_url('akademik/guru') ?>"> Guru & Staff </a></li>
-                        <li><a href="<?= base_url('akademik/jadwal') ?>"> Jadwal </a></li>
                         <li><a href="<?= base_url('akademik/kalender') ?>"> Kalender Akademik </a></li>
                     </ul>
                 </li>
