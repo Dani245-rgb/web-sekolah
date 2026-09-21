@@ -55,25 +55,6 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                     class="<?= strpos(uri_string(), 'admin/guru') === 0 ? 'active' : '' ?>"><i class="bi bi-person-badge"></i> <span class="label">Guru</span></a>
 
 
-                <p class="menu-label">DATA AKADEMIK</p>
-                <a href="<?= base_url('admin/tahun-ajaran') ?>"
-                    class="<?= strpos(uri_string(), 'admin/tahun-ajaran') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar3"></i> <span class="label">Tahun Ajaran</span></a>
-                <a href="<?= base_url('admin/kelas') ?>"
-                    class="<?= strpos(uri_string(), 'admin/kelas') === 0 && strpos(uri_string(), 'assign-kelas') === false ? 'active' : '' ?>"><i class="bi bi-door-open"></i> <span class="label">Kelas</span></a>
-                <a href="<?= base_url('admin/assign-kelas') ?>"
-                    class="<?= strpos(uri_string(), 'admin/assign-kelas') === 0 ? 'active' : '' ?>"><i class="bi bi-diagram-3"></i> <span class="label">Assign Kelas</span></a>
-                <a href="<?= base_url('admin/mapel') ?>"
-                    class="<?= strpos(uri_string(), 'admin/mapel') === 0 ? 'active' : '' ?>"><i class="bi bi-journal-bookmark"></i> <span class="label">Mata Pelajaran</span></a>
-                <a href="<?= base_url('admin/jadwal') ?>"
-                    class="<?= strpos(uri_string(), 'admin/jadwal') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar-week"></i> <span class="label">Jadwal Manager</span></a>
-                <a href="<?= base_url('admin/alumni') ?>"
-                    class="<?= strpos(uri_string(), 'admin/alumni') === 0 ? 'active' : '' ?>"><i class="bi bi-mortarboard"></i> <span class="label">Alumni</span></a>
-                <a href="<?= base_url('admin/mutasi') ?>"
-                    class="<?= strpos(uri_string(), 'admin/mutasi') === 0 ? 'active' : '' ?>"><i class="bi bi-arrow-left-right"></i> <span class="label">Mutasi</span></a>
-                <a href="<?= base_url('admin/kenaikan-kelas') ?>"
-                    class="<?= strpos(uri_string(), 'admin/kenaikan-kelas') === 0 ? 'active' : '' ?>"><i class="bi bi-arrow-up-circle"></i> <span class="label">Kenaikan Kelas</span></a>
-                <a href="<?= base_url('admin/riwayat-kelas') ?>"
-                    class="<?= strpos(uri_string(), 'admin/riwayat-kelas') === 0 ? 'active' : '' ?>"><i class="bi bi-clock-history"></i> <span class="label">Riwayat Kelas</span></a>
 
                 <p class="menu-label">WEBSITE</p>
                 <a href="<?= base_url('admin/bk-artikel') ?>"

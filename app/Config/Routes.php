@@ -259,8 +259,6 @@ $routes->post('kontak/kirim', 'Kontak::kirim', ['filter' => 'throttle:kontak,3,6
 // Akademik - Guru & Staff
 $routes->get('akademik/guru', 'GuruPublik::index');
 
-// Akademik - Jadwal
-$routes->get('akademik/jadwal', 'JadwalPublik::index');
 
 // Akademik - Kalender Akademik
 $routes->get('akademik/kalender', 'KalenderAkademikPublik::index');
