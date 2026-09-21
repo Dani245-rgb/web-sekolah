@@ -12,7 +12,7 @@
                 <?php if (!empty($berita_hero)): ?>
                     <?php foreach ($berita_hero as $i => $bh): ?>
                         <div class="hero-slide <?= $i === 0 ? 'active' : '' ?>">
-                            <img src="<?= $bh['gambar'] ? base_url('assets/images/berita/' . $bh['gambar']) : base_url('assets/images/hero/hero1.jpg') ?>" alt="<?= esc($bh['judul']) ?>">
+                            <img src="<?= $bh['gambar'] ? base_url('assets/images/berita/' . $bh['gambar']) : base_url('assets/images/hero_header/header1.jpg') ?>" alt="<?= esc($bh['judul']) ?>">
                             <div class="hero-overlay">
                                 <h1><?= esc($bh['judul']) ?></h1>
                                 <p><?= esc($bh['ringkasan'] ?? '') ?></p>
@@ -22,7 +22,7 @@
                     <?php endforeach; ?>
                 <?php else: ?>
                     <div class="hero-slide active">
-                        <img src="<?= base_url('assets/images/hero/hero1.jpg') ?>" alt="Hero SMK Attaufiqiyyah">
+                        <img src="<?= base_url('assets/images/hero_header/header1.jpg') ?>" alt="Hero SMK Attaufiqiyyah">
                         <div class="hero-overlay">
                             <h1>Membentuk Generasi Kompeten & Berakhlak Mulia</h1>
                             <p>Sekolah Menengah Kejuruan unggulan dengan fasilitas modern dan mitra industri terpercaya.</p>
