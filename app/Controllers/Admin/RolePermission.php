@@ -20,8 +20,7 @@ class RolePermission extends BaseController
                 'nama'  => 'Admin',
                 'desc'  => 'Akses penuh ke seluruh sistem.',
                 'grup'  => [
-                    'Data Sekolah'   => ['Tahun Ajaran', 'Siswa', 'Guru', 'Kelas', 'Assign Kelas', 'MataPelajaran', 'Jadwal Manager'],
-                    'Data Akademik'  => ['Alumni', 'Mutasi', 'Kenaikan Kelas', 'Riwayat Kelas'],
+                    'Data Sekolah'   => ['Siswa', 'Guru'],
                     'Website (CMS)'  => ['Berita', 'Galeri', 'Pengumuman', 'Prestasi', 'Agenda', 'Ekstrakurikuler', 'Industri Mitra', 'PPDB', 'Pesan Masuk', 'Kalender Akademik', 'Profil Sekolah', 'Organisasi Sekolah'],
                     'User & Akses'   => ['User (Admin)', 'Audit Log', 'Role & Permission'],
                 ],
