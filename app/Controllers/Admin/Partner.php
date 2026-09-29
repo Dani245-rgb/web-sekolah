@@ -4,14 +4,26 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\PartnerModel;
+use App\Services\FileUploadService;
+use App\Services\SlugService;
+use InvalidArgumentException;
+use RuntimeException;
 
 class Partner extends BaseController
 {
-    protected $partnerModel;
+    private const FOLDER = 'partner'; // public/uploads/partner
+
+    protected PartnerModel $partnerModel;
+    protected FileUploadService $fileUpload;
+    protected SlugService $slugService;
 
     public function __construct()
     {
+        helper('teks');
+
         $this->partnerModel = new PartnerModel();
+        $this->fileUpload   = service('fileUploadService');
+        $this->slugService  = service('slugService');
     }
 
     public function index()
@@ -32,27 +44,42 @@ class Partner extends BaseController
             'nama'      => 'required|min_length[3]|max_length[255]',
             'deskripsi' => 'required',
             'status'    => 'required|in_list[Published,Draft]',
-            'foto'      => 'uploaded[foto]|is_image[foto]|mime_in[foto,image/jpg,image/jpeg,image/png,image/webp]|max_size[foto,2048]',
+            'foto'      => 'uploaded[foto]',
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $file    = $this->request->getFile('foto');
-        $newName = $file->getRandomName();
-        $file->move(FCPATH . 'uploads/partner', $newName);
+        $nama = rapikan_teks((string) $this->request->getPost('nama'));
 
-        $nama = $this->request->getPost('nama');
-        $slug = $this->partnerModel->generateUniqueSlug($nama);
+        if ($this->partnerModel->namaSudahAda($nama)) {
+            return $this->kembaliDenganError(['nama' => 'Nama partner sudah dipakai.']);
+        }
 
-        $this->partnerModel->insert([
+        try {
+            $foto = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
+        }
+
+        if ($foto === null) {
+            return $this->kembaliDenganError(['foto' => 'Foto gagal diupload.']);
+        }
+
+        $berhasil = $this->partnerModel->insert([
             'nama'      => $nama,
-            'slug'      => $slug,
-            'foto'      => $newName,
+            'slug'      => $this->slugService->buatUnik($nama, 'partner', 'id', null, 'partner'),
+            'foto'      => $foto,
             'deskripsi' => $this->request->getPost('deskripsi'),
             'status'    => $this->request->getPost('status'),
         ]);
+
+        if (!$berhasil) {
+            // Data gagal masuk DB, file yang sudah terlanjur diupload dibuang lagi
+            $this->fileUpload->hapus($foto, self::FOLDER);
+            return $this->kembaliDenganError($this->partnerModel->errors());
+        }
 
         return redirect()->to('/admin/partner')->with('success', 'Partner berhasil ditambahkan.');
     }
@@ -81,37 +108,45 @@ class Partner extends BaseController
             'status'    => 'required|in_list[Published,Draft]',
         ];
 
-        if ($this->request->getFile('foto')->isValid()) {
-            $rules['foto'] = 'is_image[foto]|mime_in[foto,image/jpg,image/jpeg,image/png,image/webp]|max_size[foto,2048]';
-        }
-
         if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $nama = $this->request->getPost('nama');
-        $slug = $this->partnerModel->generateUniqueSlug($nama, $id);
+        $nama = rapikan_teks((string) $this->request->getPost('nama'));
 
-        $updateData = [
+        if ($this->partnerModel->namaSudahAda($nama, (int) $id)) {
+            return $this->kembaliDenganError(['nama' => 'Nama partner sudah dipakai.']);
+        }
+
+        $dataUpdate = [
             'nama'      => $nama,
-            'slug'      => $slug,
+            'slug'      => $this->slugService->buatUnik($nama, 'partner', 'id', (int) $id, 'partner'),
             'deskripsi' => $this->request->getPost('deskripsi'),
             'status'    => $this->request->getPost('status'),
         ];
 
-        $file = $this->request->getFile('foto');
-        if ($file->isValid() && !$file->hasMoved()) {
-            $newName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/partner', $newName);
-            $updateData['foto'] = $newName;
-
-            $oldPath = FCPATH . 'uploads/partner/' . $partner['foto'];
-            if (is_file($oldPath)) {
-                unlink($oldPath);
-            }
+        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
+        try {
+            $fotoBaru = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
         }
 
-        $this->partnerModel->update($id, $updateData);
+        if ($fotoBaru !== null) {
+            $dataUpdate['foto'] = $fotoBaru;
+        }
+
+        if (!$this->partnerModel->update($id, $dataUpdate)) {
+            if ($fotoBaru !== null) {
+                $this->fileUpload->hapus($fotoBaru, self::FOLDER);
+            }
+            return $this->kembaliDenganError($this->partnerModel->errors());
+        }
+
+        // Foto lama baru dihapus SETELAH update DB sukses
+        if ($fotoBaru !== null) {
+            $this->fileUpload->hapus($partner['foto'], self::FOLDER);
+        }
 
         return redirect()->to('/admin/partner')->with('success', 'Partner berhasil diperbarui.');
     }
@@ -123,13 +158,16 @@ class Partner extends BaseController
             return redirect()->to('/admin/partner')->with('error', 'Data tidak ditemukan.');
         }
 
-        $path = FCPATH . 'uploads/partner/' . $partner['foto'];
-        if (is_file($path)) {
-            unlink($path);
-        }
-
         $this->partnerModel->delete($id);
 
+        // File dihapus SETELAH record DB terhapus
+        $this->fileUpload->hapus($partner['foto'], self::FOLDER);
+
         return redirect()->to('/admin/partner')->with('success', 'Partner berhasil dihapus.');
+    }
+
+    private function kembaliDenganError(array $errors)
+    {
+        return redirect()->back()->withInput()->with('errors', $errors);
     }
 }

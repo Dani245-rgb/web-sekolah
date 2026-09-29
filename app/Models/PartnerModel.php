@@ -36,24 +36,14 @@ class PartnerModel extends BaseModel
             ->first();
     }
 
-    public function generateUniqueSlug(string $nama, ?int $excludeId = null): string
+    public function namaSudahAda(string $nama, ?int $excludeId = null): bool
     {
-        $baseSlug = url_title($nama, '-', true);
-        $slug     = $baseSlug;
-        $i        = 1;
+        $builder = $this->where('nama', $nama);
 
-        while (true) {
-            $builder = $this->where('slug', $slug);
-            if ($excludeId !== null) {
-                $builder->where('id !=', $excludeId);
-            }
-            if (!$builder->first()) {
-                break;
-            }
-            $slug = $baseSlug . '-' . $i;
-            $i++;
+        if ($excludeId !== null) {
+            $builder->where('id !=', $excludeId);
         }
 
-        return $slug;
+        return $builder->first() !== null;
     }
 }
