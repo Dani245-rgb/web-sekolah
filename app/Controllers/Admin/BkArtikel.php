@@ -4,17 +4,28 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\BkArtikelModel;
+use App\Services\FileUploadService;
+use App\Services\SlugService;
+use Config\Database;
 use Throwable;
 
 class BkArtikel extends BaseController
 {
-    protected $artikelModel;
+    private const FOLDER_FOTO = 'bk_artikel';
 
-    protected $kategoriValid = ['kesehatan_mental', 'karier', 'tes_minat'];
+    protected BkArtikelModel $artikelModel;
+    protected FileUploadService $uploader;
+    protected SlugService $slugService;
+
+    protected array $kategoriValid = ['kesehatan_mental', 'karier', 'tes_minat'];
 
     public function __construct()
     {
+        helper('teks');
+
         $this->artikelModel = new BkArtikelModel();
+        $this->uploader     = service('fileUploadService');
+        $this->slugService  = service('slugService');
     }
 
     public function index()
@@ -40,20 +51,21 @@ class BkArtikel extends BaseController
 
     public function store()
     {
-        $rules = $this->baseRules();
-        $rules['judul'] .= '|is_unique[bk_artikel.judul]';
-
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->baseRules())) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $judul = trim((string) $this->request->getPost('judul'));
+        $judul = rapikan_teks($this->request->getPost('judul'));
 
         if ($judul === '') {
             return redirect()->back()->withInput()->with('error', 'Judul tidak boleh kosong/hanya spasi.');
         }
 
-        $db = \Config\Database::connect();
+        if ($this->judulSudahDipakai($judul)) {
+            return redirect()->back()->withInput()->with('errors', ['judul' => 'Judul artikel ini sudah ada.']);
+        }
+
+        $db = Database::connect();
         $db->transStart();
 
         $fotoBaru = null;
@@ -62,15 +74,14 @@ class BkArtikel extends BaseController
             $insertData = [
                 'kategori'        => $this->request->getPost('kategori'),
                 'judul'           => $judul,
-                'slug'            => $this->generateUniqueSlug($judul),
+                'slug'            => $this->slugService->buatUnik($judul, 'bk_artikel', 'id_artikel', null, 'artikel-bk'),
                 'konten'          => $this->request->getPost('konten'),
                 'link_eksternal'  => $this->request->getPost('link_eksternal') ?: null,
                 'deadline'        => $this->request->getPost('deadline') ?: null,
                 'status'          => $this->request->getPost('status') ?: 'Draft',
-                'id_guru_penulis' => $this->resolveIdGuruPenulis(),
             ];
 
-            $fotoBaru = $this->handleUploadFoto();
+            $fotoBaru = $this->uploader->simpan($this->request->getFile('foto'), self::FOLDER_FOTO);
             if ($fotoBaru) {
                 $insertData['foto'] = $fotoBaru;
             }
@@ -85,14 +96,15 @@ class BkArtikel extends BaseController
         } catch (Throwable $e) {
             $db->transRollback();
 
-            if ($fotoBaru && is_file(FCPATH . 'uploads/bk_artikel/' . $fotoBaru)) {
-                unlink(FCPATH . 'uploads/bk_artikel/' . $fotoBaru);
-            }
+            $this->uploader->hapus($fotoBaru, self::FOLDER_FOTO);
 
             log_message('error', 'Gagal simpan Artikel BK: ' . $e->getMessage());
 
-            return redirect()->back()->withInput()
-                ->with('error', 'Gagal menyimpan data. Silakan coba lagi.');
+            $pesan = $e instanceof \InvalidArgumentException
+                ? $e->getMessage()
+                : 'Gagal menyimpan data. Silakan coba lagi.';
+
+            return redirect()->back()->withInput()->with('error', $pesan);
         }
 
         return redirect()->to('/admin/bk-artikel')->with('success', 'Artikel berhasil ditambahkan.');
@@ -116,20 +128,21 @@ class BkArtikel extends BaseController
             return redirect()->to('/admin/bk-artikel')->with('error', 'Artikel tidak ditemukan.');
         }
 
-        $rules = $this->baseRules();
-        $rules['judul'] .= "|is_unique[bk_artikel.judul,id_artikel,{$id}]";
-
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->baseRules())) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $judul = trim((string) $this->request->getPost('judul'));
+        $judul = rapikan_teks($this->request->getPost('judul'));
 
         if ($judul === '') {
             return redirect()->back()->withInput()->with('error', 'Judul tidak boleh kosong/hanya spasi.');
         }
 
-        $db = \Config\Database::connect();
+        if ($this->judulSudahDipakai($judul, (int) $id)) {
+            return redirect()->back()->withInput()->with('errors', ['judul' => 'Judul artikel ini sudah ada.']);
+        }
+
+        $db = Database::connect();
         $db->transStart();
 
         $fotoBaru = null;
@@ -146,10 +159,10 @@ class BkArtikel extends BaseController
             ];
 
             if ($judul !== $item['judul']) {
-                $updateData['slug'] = $this->generateUniqueSlug($judul, (int) $id);
+                $updateData['slug'] = $this->slugService->buatUnik($judul, 'bk_artikel', 'id_artikel', (int) $id, 'artikel-bk');
             }
 
-            $fotoBaru = $this->handleUploadFoto();
+            $fotoBaru = $this->uploader->simpan($this->request->getFile('foto'), self::FOLDER_FOTO);
             if ($fotoBaru) {
                 $updateData['foto'] = $fotoBaru;
             }
@@ -162,20 +175,22 @@ class BkArtikel extends BaseController
                 throw new \RuntimeException('Transaksi database gagal.');
             }
 
-            if ($fotoBaru && $fotoLama && is_file(FCPATH . 'uploads/bk_artikel/' . $fotoLama)) {
-                unlink(FCPATH . 'uploads/bk_artikel/' . $fotoLama);
+            // Foto lama baru dihapus SETELAH transaksi sukses
+            if ($fotoBaru) {
+                $this->uploader->hapus($fotoLama, self::FOLDER_FOTO);
             }
         } catch (Throwable $e) {
             $db->transRollback();
 
-            if ($fotoBaru && is_file(FCPATH . 'uploads/bk_artikel/' . $fotoBaru)) {
-                unlink(FCPATH . 'uploads/bk_artikel/' . $fotoBaru);
-            }
+            $this->uploader->hapus($fotoBaru, self::FOLDER_FOTO);
 
             log_message('error', 'Gagal update Artikel BK: ' . $e->getMessage());
 
-            return redirect()->back()->withInput()
-                ->with('error', 'Gagal memperbarui data. Silakan coba lagi.');
+            $pesan = $e instanceof \InvalidArgumentException
+                ? $e->getMessage()
+                : 'Gagal memperbarui data. Silakan coba lagi.';
+
+            return redirect()->back()->withInput()->with('error', $pesan);
         }
 
         return redirect()->to('/admin/bk-artikel')->with('success', 'Artikel berhasil diperbarui.');
@@ -190,10 +205,7 @@ class BkArtikel extends BaseController
 
         try {
             $this->artikelModel->delete($id);
-
-            if (!empty($item['foto']) && is_file(FCPATH . 'uploads/bk_artikel/' . $item['foto'])) {
-                unlink(FCPATH . 'uploads/bk_artikel/' . $item['foto']);
-            }
+            $this->uploader->hapus($item['foto'] ?? null, self::FOLDER_FOTO);
         } catch (Throwable $e) {
             log_message('error', 'Gagal hapus Artikel BK: ' . $e->getMessage());
             return redirect()->to('/admin/bk-artikel')->with('error', 'Gagal menghapus data. Silakan coba lagi.');
@@ -206,21 +218,26 @@ class BkArtikel extends BaseController
 
     private function baseRules(): array
     {
-        $rules = [
-            'kategori' => 'required|in_list[kesehatan_mental,karier,tes_minat]',
-            'judul'    => 'required|max_length[255]',
-            'konten'   => 'permit_empty|max_length[20000]',
+        return [
+            'kategori'       => 'required|in_list[kesehatan_mental,karier,tes_minat]',
+            'judul'          => 'required|max_length[255]',
+            'konten'         => 'permit_empty|max_length[20000]',
             'link_eksternal' => 'permit_empty|valid_url_strict|max_length[255]',
-            'deadline' => 'permit_empty|valid_date',
-            'status'   => 'permit_empty|in_list[Draft,Published]',
+            'deadline'       => 'permit_empty|valid_date',
+            'status'         => 'permit_empty|in_list[Draft,Published]',
+            // Foto sengaja tidak divalidasi di sini: tipe dan ukuran dicek di FileUploadService.
         ];
+    }
 
-        $file = $this->request->getFile('foto');
-        if ($file !== null && $file->isValid() && !$file->hasMoved()) {
-            $rules['foto'] = 'is_image[foto]|mime_in[foto,image/jpg,image/jpeg,image/png,image/webp]|max_size[foto,2048]';
+    private function judulSudahDipakai(string $judul, ?int $excludeId = null): bool
+    {
+        $builder = $this->artikelModel->where('judul', $judul);
+
+        if ($excludeId !== null) {
+            $builder->where('id_artikel !=', $excludeId);
         }
 
-        return $rules;
+        return $builder->first() !== null;
     }
 
     private function findOrFail($id): ?array
@@ -230,67 +247,5 @@ class BkArtikel extends BaseController
         }
 
         return $this->artikelModel->find((int) $id);
-    }
-
-    private function handleUploadFoto(): ?string
-    {
-        $file = $this->request->getFile('foto');
-
-        if ($file === null || !$file->isValid() || $file->hasMoved()) {
-            return null;
-        }
-
-        $targetDir = FCPATH . 'uploads/bk_artikel';
-
-        if (!is_dir($targetDir)) {
-            if (!mkdir($targetDir, 0755, true) && !is_dir($targetDir)) {
-                throw new \RuntimeException('Folder upload tidak dapat dibuat.');
-            }
-        }
-
-        if (!is_writable($targetDir)) {
-            throw new \RuntimeException('Folder upload tidak dapat ditulis (cek permission).');
-        }
-
-        $newName = $file->getRandomName();
-
-        if (!$file->move($targetDir, $newName)) {
-            throw new \RuntimeException('Gagal memindahkan file upload.');
-        }
-
-        return $newName;
-    }
-
-    private function generateUniqueSlug(string $judul, ?int $excludeId = null): string
-    {
-        $slugAsli = url_title($judul, '-', true);
-
-        if ($slugAsli === '') {
-            $slugAsli = 'artikel-bk-' . time();
-        }
-
-        $slug    = $slugAsli;
-        $counter = 1;
-
-        while (true) {
-            $builder = $this->artikelModel->where('slug', $slug);
-            if ($excludeId !== null) {
-                $builder->where('id_artikel !=', $excludeId);
-            }
-
-            if (!$builder->first()) {
-                break;
-            }
-
-            $slug = $slugAsli . '-' . $counter;
-            $counter++;
-
-            if ($counter > 1000) {
-                $slug = $slugAsli . '-' . uniqid();
-                break;
-            }
-        }
-
-        return $slug;
     }
 }
