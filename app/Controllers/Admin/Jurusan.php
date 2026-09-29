@@ -4,23 +4,24 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\JurusanModel;
+use App\Services\FileUploadService;
+use App\Services\SlugService;
+use Config\Database;
 use Throwable;
 
 class Jurusan extends BaseController
 {
-    protected $jurusanModel;
+    private const FOLDER_FOTO = 'jurusan';
 
-    protected $rulesLabel = [
-        'nama_jurusan'  => 'Nama Jurusan',
-        'deskripsi'     => 'Deskripsi',
-        'kompetensi'    => 'Kompetensi',
-        // 'prospek_kerja' => 'Prospek Kerja',
-        'foto'          => 'Foto',
-    ];
+    protected JurusanModel $jurusanModel;
+    protected FileUploadService $uploader;
+    protected SlugService $slugService;
 
     public function __construct()
     {
         $this->jurusanModel = new JurusanModel();
+        $this->uploader     = service('fileUploadService');
+        $this->slugService  = service('slugService');
     }
 
     public function index()
@@ -36,25 +37,21 @@ class Jurusan extends BaseController
 
     public function store()
     {
-        $rules = [
-            'nama_jurusan'  => 'required|max_length[100]|is_unique[jurusan.nama_jurusan]',
-            'singkatan'     => 'permit_empty|max_length[20]',
-            'deskripsi'     => 'permit_empty',
-            'kompetensi'    => 'permit_empty',
-            'prospek_kerja' => 'permit_empty',
-        ];
-
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->aturanValidasi())) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $namaJurusan = trim((string) $this->request->getPost('nama_jurusan'));
+        $namaJurusan = $this->normalisasiNama($this->request->getPost('nama_jurusan'));
 
         if ($namaJurusan === '') {
             return redirect()->back()->withInput()->with('error', 'Nama jurusan tidak boleh kosong/hanya spasi.');
         }
 
-        $db = \Config\Database::connect();
+        if ($this->namaSudahDipakai($namaJurusan)) {
+            return redirect()->back()->withInput()->with('errors', ['nama_jurusan' => 'Nama jurusan ini sudah terdaftar.']);
+        }
+
+        $db = Database::connect();
         $db->transStart();
 
         $fotoBaru = null;
@@ -62,13 +59,13 @@ class Jurusan extends BaseController
         try {
             $insertData = [
                 'nama_jurusan'  => $namaJurusan,
-                'slug'          => $this->generateUniqueSlug($namaJurusan),
+                'slug'          => $this->slugService->buatUnik($namaJurusan, 'jurusan', 'id_jurusan', null, 'jurusan'),
                 'deskripsi'     => $this->request->getPost('deskripsi'),
                 'kompetensi'    => $this->request->getPost('kompetensi'),
                 'prospek_kerja' => $this->request->getPost('prospek_kerja'),
             ];
 
-            $fotoBaru = $this->handleUploadFoto();
+            $fotoBaru = $this->uploader->simpan($this->request->getFile('foto'), self::FOLDER_FOTO);
             if ($fotoBaru) {
                 $insertData['foto'] = $fotoBaru;
             }
@@ -84,14 +81,15 @@ class Jurusan extends BaseController
             $db->transRollback();
 
             // Kalau sempat upload foto tapi transaksi gagal, hapus filenya biar tidak jadi sampah
-            if ($fotoBaru && is_file(FCPATH . 'uploads/jurusan/' . $fotoBaru)) {
-                unlink(FCPATH . 'uploads/jurusan/' . $fotoBaru);
-            }
+            $this->uploader->hapus($fotoBaru, self::FOLDER_FOTO);
 
             log_message('error', 'Gagal simpan Jurusan: ' . $e->getMessage());
 
-            return redirect()->back()->withInput()
-                ->with('error', 'Gagal menyimpan data. Silakan coba lagi.');
+            $pesan = $e instanceof \InvalidArgumentException
+                ? $e->getMessage()
+                : 'Gagal menyimpan data. Silakan coba lagi.';
+
+            return redirect()->back()->withInput()->with('error', $pesan);
         }
 
         return redirect()->to('/admin/jurusan')->with('success', 'Jurusan berhasil ditambahkan.');
@@ -115,29 +113,25 @@ class Jurusan extends BaseController
             return redirect()->to('/admin/jurusan')->with('error', 'Jurusan tidak ditemukan.');
         }
 
-        $rules = [
-            'nama_jurusan'  => "required|max_length[100]|is_unique[jurusan.nama_jurusan,id_jurusan,{$id}]",
-            'singkatan'     => 'permit_empty|max_length[20]',
-            'deskripsi'     => 'permit_empty',
-            'kompetensi'    => 'permit_empty',
-            'prospek_kerja' => 'permit_empty',
-        ];
-
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->aturanValidasi((int) $id))) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $namaJurusan = trim((string) $this->request->getPost('nama_jurusan'));
+        $namaJurusan = $this->normalisasiNama($this->request->getPost('nama_jurusan'));
 
         if ($namaJurusan === '') {
             return redirect()->back()->withInput()->with('error', 'Nama jurusan tidak boleh kosong/hanya spasi.');
         }
 
-        $db = \Config\Database::connect();
+        if ($this->namaSudahDipakai($namaJurusan, (int) $id)) {
+            return redirect()->back()->withInput()->with('errors', ['nama_jurusan' => 'Nama jurusan ini sudah terdaftar.']);
+        }
+
+        $db = Database::connect();
         $db->transStart();
 
-        $fotoBaru  = null;
-        $fotoLama  = $item['foto'] ?? null;
+        $fotoBaru = null;
+        $fotoLama = $item['foto'] ?? null;
 
         try {
             $updateData = [
@@ -148,10 +142,10 @@ class Jurusan extends BaseController
             ];
 
             if ($namaJurusan !== $item['nama_jurusan']) {
-                $updateData['slug'] = $this->generateUniqueSlug($namaJurusan, (int) $id);
+                $updateData['slug'] = $this->slugService->buatUnik($namaJurusan, 'jurusan', 'id_jurusan', (int) $id, 'jurusan');
             }
 
-            $fotoBaru = $this->handleUploadFoto();
+            $fotoBaru = $this->uploader->simpan($this->request->getFile('foto'), self::FOLDER_FOTO);
             if ($fotoBaru) {
                 $updateData['foto'] = $fotoBaru;
             }
@@ -165,20 +159,21 @@ class Jurusan extends BaseController
             }
 
             // Baru hapus foto lama SETELAH transaksi sukses, biar aman kalau gagal di tengah
-            if ($fotoBaru && $fotoLama && is_file(FCPATH . 'uploads/jurusan/' . $fotoLama)) {
-                unlink(FCPATH . 'uploads/jurusan/' . $fotoLama);
+            if ($fotoBaru) {
+                $this->uploader->hapus($fotoLama, self::FOLDER_FOTO);
             }
         } catch (Throwable $e) {
             $db->transRollback();
 
-            if ($fotoBaru && is_file(FCPATH . 'uploads/jurusan/' . $fotoBaru)) {
-                unlink(FCPATH . 'uploads/jurusan/' . $fotoBaru);
-            }
+            $this->uploader->hapus($fotoBaru, self::FOLDER_FOTO);
 
             log_message('error', 'Gagal update Jurusan: ' . $e->getMessage());
 
-            return redirect()->back()->withInput()
-                ->with('error', 'Gagal memperbarui data. Silakan coba lagi.');
+            $pesan = $e instanceof \InvalidArgumentException
+                ? $e->getMessage()
+                : 'Gagal memperbarui data. Silakan coba lagi.';
+
+            return redirect()->back()->withInput()->with('error', $pesan);
         }
 
         return redirect()->to('/admin/jurusan')->with('success', 'Jurusan berhasil diperbarui.');
@@ -191,12 +186,9 @@ class Jurusan extends BaseController
             return redirect()->to('/admin/jurusan')->with('error', 'Jurusan tidak ditemukan.');
         }
 
-        try {   
+        try {
             $this->jurusanModel->delete($id);
-
-            if (!empty($item['foto']) && is_file(FCPATH . 'uploads/jurusan/' . $item['foto'])) {
-                unlink(FCPATH . 'uploads/jurusan/' . $item['foto']);
-            }
+            $this->uploader->hapus($item['foto'] ?? null, self::FOLDER_FOTO);
         } catch (Throwable $e) {
             log_message('error', 'Gagal hapus Jurusan: ' . $e->getMessage());
             return redirect()->to('/admin/jurusan')->with('error', 'Gagal menghapus data. Silakan coba lagi.');
@@ -205,23 +197,43 @@ class Jurusan extends BaseController
         return redirect()->to('/admin/jurusan')->with('success', 'Jurusan berhasil dihapus.');
     }
 
-    // ================= Helper privat =================
-
-    private function baseRules(): array
+    /**
+     * Rapikan nama: buang spasi di pinggir dan ubah spasi ganda jadi satu.
+     */
+    private function normalisasiNama($nama): string
     {
-        $rules = [
-            'nama_jurusan'  => 'required|max_length[100]',
-            'deskripsi'     => 'permit_empty|max_length[5000]',
-            'kompetensi'    => 'permit_empty|max_length[5000]',
-            'prospek_kerja' => 'permit_empty|max_length[5000]',
-        ];
+        return trim((string) preg_replace('/\s+/u', ' ', (string) $nama));
+    }
 
-        $file = $this->request->getFile('foto');
-        if ($file !== null && $file->isValid() && !$file->hasMoved()) {
-            $rules['foto'] = 'is_image[foto]|mime_in[foto,image/jpg,image/jpeg,image/png,image/webp]|max_size[foto,2048]';
+    private function namaSudahDipakai(string $nama, ?int $excludeId = null): bool
+    {
+        $builder = $this->jurusanModel->withDeleted()->where('nama_jurusan', $nama);
+
+        if ($excludeId !== null) {
+            $builder->where('id_jurusan !=', $excludeId);
         }
 
-        return $rules;
+        return $builder->first() !== null;
+    }
+
+    /**
+     * Aturan validasi form jurusan, dipakai bersama oleh store() dan update().
+     * $excludeId diisi saat update supaya nama jurusan tidak dianggap bentrok dengan dirinya sendiri.
+     */
+    private function aturanValidasi(?int $excludeId = null): array
+    {
+        $uniqueNama = $excludeId === null
+            ? 'is_unique[jurusan.nama_jurusan]'
+            : "is_unique[jurusan.nama_jurusan,id_jurusan,{$excludeId}]";
+
+        return [
+            'nama_jurusan'  => "required|max_length[100]|{$uniqueNama}",
+            'singkatan'     => 'permit_empty|max_length[20]',
+            'deskripsi'     => 'permit_empty',
+            'kompetensi'    => 'permit_empty',
+            'prospek_kerja' => 'permit_empty',
+            // Foto sengaja tidak divalidasi di sini: tipe dan ukuran dicek di FileUploadService.
+        ];
     }
 
     /**
@@ -234,77 +246,5 @@ class Jurusan extends BaseController
         }
 
         return $this->jurusanModel->find((int) $id);
-    }
-
-    /**
-     * Upload foto kalau ada file valid. Return nama file baru, atau null kalau tidak ada upload.
-     * Melempar exception kalau file gagal dipindah (misal folder tidak writable),
-     * biar caller bisa rollback transaksi alih-alih data setengah tersimpan.
-     */
-    private function handleUploadFoto(): ?string
-    {
-        $file = $this->request->getFile('foto');
-
-        if ($file === null || !$file->isValid() || $file->hasMoved()) {
-            return null;
-        }
-
-        $targetDir = FCPATH . 'uploads/jurusan';
-
-        if (!is_dir($targetDir)) {
-            if (!mkdir($targetDir, 0755, true) && !is_dir($targetDir)) {
-                throw new \RuntimeException('Folder upload tidak dapat dibuat.');
-            }
-        }
-
-        if (!is_writable($targetDir)) {
-            throw new \RuntimeException('Folder upload tidak dapat ditulis (cek permission).');
-        }
-
-        $newName = $file->getRandomName();
-
-        if (!$file->move($targetDir, $newName)) {
-            throw new \RuntimeException('Gagal memindahkan file upload.');
-        }
-
-        return $newName;
-    }
-
-    /**
-     * Generate slug unik. $excludeId dipakai saat update biar tidak bentrok sama dirinya sendiri.
-     */
-    private function generateUniqueSlug(string $nama, ?int $excludeId = null): string
-    {
-        $slugAsli = url_title($nama, '-', true);
-
-        if ($slugAsli === '') {
-            // Fallback kalau nama_jurusan isinya karakter aneh semua & url_title menghasilkan string kosong
-            $slugAsli = 'jurusan-' . time();
-        }
-
-        $slug    = $slugAsli;
-        $counter = 1;
-
-        while (true) {
-            $builder = $this->jurusanModel->where('slug', $slug);
-            if ($excludeId !== null) {
-                $builder->where('id_jurusan !=', $excludeId);
-            }
-
-            if (!$builder->first()) {
-                break;
-            }
-
-            $slug = $slugAsli . '-' . $counter;
-            $counter++;
-
-            // Guard rail: jangan sampai infinite loop kalau ada bug lain
-            if ($counter > 1000) {
-                $slug = $slugAsli . '-' . uniqid();
-                break;
-            }
-        }
-
-        return $slug;
     }
 }
