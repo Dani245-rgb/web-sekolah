@@ -4,17 +4,45 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\UnduhanModel;
+use App\Services\FileUploadService;
+use Config\Database;
+use InvalidArgumentException;
 use Throwable;
 
 class Unduhan extends BaseController
 {
-    protected $unduhanModel;
+    private const FOLDER_FILE = 'unduhan';
+    private const MAKS_BYTES  = 10 * 1024 * 1024; // 10MB
 
-    protected $ekstensiDiizinkan = ['jpg', 'jpeg', 'png', 'webp', 'svg', 'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip'];
+    /**
+     * Ekstensi yang boleh diupload => tipe isi file (MIME) yang sah untuk ekstensi itu.
+     * File OOXML (docx/pptx/xlsx) kadang terdeteksi sebagai application/zip, jadi ikut diizinkan.
+     * File Office lama (doc/ppt/xls) kadang terdeteksi sebagai application/CDFV2.
+     */
+    private const TIPE_FILE = [
+        'jpg'  => ['image/jpeg'],
+        'jpeg' => ['image/jpeg'],
+        'png'  => ['image/png'],
+        'webp' => ['image/webp'],
+        'pdf'  => ['application/pdf'],
+        'doc'  => ['application/msword', 'application/CDFV2'],
+        'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'],
+        'ppt'  => ['application/vnd.ms-powerpoint', 'application/CDFV2'],
+        'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/zip'],
+        'xls'  => ['application/vnd.ms-excel', 'application/CDFV2'],
+        'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'],
+        'zip'  => ['application/zip'],
+    ];
+
+    protected UnduhanModel $unduhanModel;
+    protected FileUploadService $uploader;
 
     public function __construct()
     {
+        helper('teks');
+
         $this->unduhanModel = new UnduhanModel();
+        $this->uploader     = service('fileUploadService');
     }
 
     public function index()
@@ -42,42 +70,38 @@ class Unduhan extends BaseController
 
     public function store()
     {
-        $rules = $this->baseRules();
-        $rules['file'] = 'uploaded[file]|' . $this->fileRule();
+        $rules         = $this->baseRules();
+        $rules['file'] = 'uploaded[file]';
 
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $judul = trim((string) $this->request->getPost('judul'));
+        $judul = rapikan_teks($this->request->getPost('judul'));
 
         if ($judul === '') {
             return redirect()->back()->withInput()->with('error', 'Judul tidak boleh kosong/hanya spasi.');
         }
 
-        $db = \Config\Database::connect();
+        $db = Database::connect();
         $db->transStart();
 
         $fileBaru = null;
 
         try {
-            $file = $this->request->getFile('file');
+            $info     = $this->simpanFile($this->request->getFile('file'));
+            $fileBaru = $info['nama_file'];
 
-            $fileInfo = $this->handleUploadFile($file);
-            $fileBaru = $fileInfo['nama_file'];
-
-            $insertData = [
-                'kategori'       => trim((string) $this->request->getPost('kategori')),
+            $this->unduhanModel->insert([
+                'kategori'       => rapikan_teks($this->request->getPost('kategori')),
                 'judul'          => $judul,
                 'deskripsi'      => $this->request->getPost('deskripsi'),
-                'file'           => $fileInfo['nama_file'],
-                'nama_file_asli' => $fileInfo['nama_asli'],
-                'ukuran_file'    => $fileInfo['ukuran'],
-                'ekstensi'       => $fileInfo['ekstensi'],
+                'file'           => $info['nama_file'],
+                'nama_file_asli' => $info['nama_asli'],
+                'ukuran_file'    => $info['ukuran'],
+                'ekstensi'       => $info['ekstensi'],
                 'status'         => $this->request->getPost('status') ?: 'Draft',
-            ];
-
-            $this->unduhanModel->insert($insertData);
+            ]);
 
             $db->transComplete();
 
@@ -87,14 +111,15 @@ class Unduhan extends BaseController
         } catch (Throwable $e) {
             $db->transRollback();
 
-            if ($fileBaru && is_file(FCPATH . 'uploads/unduhan/' . $fileBaru)) {
-                unlink(FCPATH . 'uploads/unduhan/' . $fileBaru);
-            }
+            $this->uploader->hapus($fileBaru, self::FOLDER_FILE);
 
             log_message('error', 'Gagal simpan Unduhan: ' . $e->getMessage());
 
-            return redirect()->back()->withInput()
-                ->with('error', 'Gagal menyimpan data. Silakan coba lagi.');
+            $pesan = $e instanceof InvalidArgumentException
+                ? $e->getMessage()
+                : 'Gagal menyimpan data. Silakan coba lagi.';
+
+            return redirect()->back()->withInput()->with('error', $pesan);
         }
 
         return redirect()->to('/admin/unduhan')->with('success', 'File berhasil ditambahkan.');
@@ -120,24 +145,20 @@ class Unduhan extends BaseController
             return redirect()->to('/admin/unduhan')->with('error', 'Data tidak ditemukan.');
         }
 
-        $rules = $this->baseRules();
-
-        $file = $this->request->getFile('file');
-        if ($file !== null && $file->isValid() && !$file->hasMoved()) {
-            $rules['file'] = $this->fileRule();
-        }
-
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->baseRules())) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $judul = trim((string) $this->request->getPost('judul'));
+        $judul = rapikan_teks($this->request->getPost('judul'));
 
         if ($judul === '') {
             return redirect()->back()->withInput()->with('error', 'Judul tidak boleh kosong/hanya spasi.');
         }
 
-        $db = \Config\Database::connect();
+        $file        = $this->request->getFile('file');
+        $adaFileBaru = $file !== null && $file->isValid() && !$file->hasMoved();
+
+        $db = Database::connect();
         $db->transStart();
 
         $fileBaru = null;
@@ -145,20 +166,20 @@ class Unduhan extends BaseController
 
         try {
             $updateData = [
-                'kategori'  => trim((string) $this->request->getPost('kategori')),
+                'kategori'  => rapikan_teks($this->request->getPost('kategori')),
                 'judul'     => $judul,
                 'deskripsi' => $this->request->getPost('deskripsi'),
                 'status'    => $this->request->getPost('status') ?: 'Draft',
             ];
 
-            if ($file !== null && $file->isValid() && !$file->hasMoved()) {
-                $fileInfo = $this->handleUploadFile($file);
-                $fileBaru = $fileInfo['nama_file'];
+            if ($adaFileBaru) {
+                $info     = $this->simpanFile($file);
+                $fileBaru = $info['nama_file'];
 
-                $updateData['file']           = $fileInfo['nama_file'];
-                $updateData['nama_file_asli'] = $fileInfo['nama_asli'];
-                $updateData['ukuran_file']    = $fileInfo['ukuran'];
-                $updateData['ekstensi']       = $fileInfo['ekstensi'];
+                $updateData['file']           = $info['nama_file'];
+                $updateData['nama_file_asli'] = $info['nama_asli'];
+                $updateData['ukuran_file']    = $info['ukuran'];
+                $updateData['ekstensi']       = $info['ekstensi'];
             }
 
             $this->unduhanModel->update($id, $updateData);
@@ -169,20 +190,22 @@ class Unduhan extends BaseController
                 throw new \RuntimeException('Transaksi database gagal.');
             }
 
-            if ($fileBaru && $fileLama && is_file(FCPATH . 'uploads/unduhan/' . $fileLama)) {
-                unlink(FCPATH . 'uploads/unduhan/' . $fileLama);
+            // File lama baru dihapus SETELAH transaksi sukses
+            if ($fileBaru) {
+                $this->uploader->hapus($fileLama, self::FOLDER_FILE);
             }
         } catch (Throwable $e) {
             $db->transRollback();
 
-            if ($fileBaru && is_file(FCPATH . 'uploads/unduhan/' . $fileBaru)) {
-                unlink(FCPATH . 'uploads/unduhan/' . $fileBaru);
-            }
+            $this->uploader->hapus($fileBaru, self::FOLDER_FILE);
 
             log_message('error', 'Gagal update Unduhan: ' . $e->getMessage());
 
-            return redirect()->back()->withInput()
-                ->with('error', 'Gagal memperbarui data. Silakan coba lagi.');
+            $pesan = $e instanceof InvalidArgumentException
+                ? $e->getMessage()
+                : 'Gagal memperbarui data. Silakan coba lagi.';
+
+            return redirect()->back()->withInput()->with('error', $pesan);
         }
 
         return redirect()->to('/admin/unduhan')->with('success', 'File berhasil diperbarui.');
@@ -197,10 +220,7 @@ class Unduhan extends BaseController
 
         try {
             $this->unduhanModel->delete($id);
-
-            if (!empty($item['file']) && is_file(FCPATH . 'uploads/unduhan/' . $item['file'])) {
-                unlink(FCPATH . 'uploads/unduhan/' . $item['file']);
-            }
+            $this->uploader->hapus($item['file'] ?? null, self::FOLDER_FILE);
         } catch (Throwable $e) {
             log_message('error', 'Gagal hapus Unduhan: ' . $e->getMessage());
             return redirect()->to('/admin/unduhan')->with('error', 'Gagal menghapus data. Silakan coba lagi.');
@@ -221,12 +241,6 @@ class Unduhan extends BaseController
         ];
     }
 
-    private function fileRule(): string
-    {
-        $ekstensiStr = implode(',', $this->ekstensiDiizinkan);
-        return "ext_in[file,{$ekstensiStr}]|max_size[file,10240]";
-    }
-
     private function findOrFail($id): ?array
     {
         if (!is_numeric($id)) {
@@ -236,35 +250,36 @@ class Unduhan extends BaseController
         return $this->unduhanModel->find((int) $id);
     }
 
-    private function handleUploadFile($file): array
+    /**
+     * Simpan file upload: ekstensi harus ada di daftar TIPE_FILE, dan isi file asli
+     * harus cocok dengan ekstensi itu (dicek di FileUploadService).
+     *
+     * @return array{nama_file: string, nama_asli: string, ukuran: int, ekstensi: string}
+     */
+    private function simpanFile($file): array
     {
         if ($file === null || !$file->isValid() || $file->hasMoved()) {
-            throw new \RuntimeException('File tidak valid.');
+            throw new InvalidArgumentException('File tidak valid.');
         }
 
-        $targetDir = FCPATH . 'uploads/unduhan';
-
-        if (!is_dir($targetDir)) {
-            if (!mkdir($targetDir, 0755, true) && !is_dir($targetDir)) {
-                throw new \RuntimeException('Folder upload tidak dapat dibuat.');
-            }
-        }
-
-        if (!is_writable($targetDir)) {
-            throw new \RuntimeException('Folder upload tidak dapat ditulis (cek permission).');
-        }
-
-        $namaAsli = $file->getClientName();
-        $ukuran   = $file->getSize();
         $ekstensi = strtolower($file->getClientExtension());
-        $newName  = $file->getRandomName();
 
-        if (!$file->move($targetDir, $newName)) {
-            throw new \RuntimeException('Gagal memindahkan file upload.');
+        if (!isset(self::TIPE_FILE[$ekstensi])) {
+            throw new InvalidArgumentException('Ekstensi file tidak diizinkan.');
+        }
+
+        // Ambil info dulu, sebelum file dipindah
+        $namaAsli = $file->getClientName();
+        $ukuran   = (int) $file->getSize();
+
+        $namaFile = $this->uploader->simpan($file, self::FOLDER_FILE, self::TIPE_FILE[$ekstensi], self::MAKS_BYTES);
+
+        if ($namaFile === null) {
+            throw new InvalidArgumentException('File tidak valid.');
         }
 
         return [
-            'nama_file' => $newName,
+            'nama_file' => $namaFile,
             'nama_asli' => $namaAsli,
             'ukuran'    => $ukuran,
             'ekstensi'  => $ekstensi,
