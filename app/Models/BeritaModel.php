@@ -105,24 +105,4 @@ class BeritaModel extends BaseModel
             ->limit($limit)
             ->findAll();
     }
-
-    public function generateUniqueSlug(string $judul, ?int $excludeId = null): string
-    {
-        $baseSlug = url_title($judul, '-', true);
-        $slug = $baseSlug;
-        $i = 1;
-
-        while (true) {
-            $query = $this->where('slug', $slug);
-            if ($excludeId) {
-                $query->where('id_berita !=', $excludeId);
-            }
-            if (!$query->first()) {
-                break;
-            }
-            $slug = $baseSlug . '-' . $i++;
-        }
-
-        return $slug;
-    }
 }
