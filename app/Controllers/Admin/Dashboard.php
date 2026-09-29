@@ -40,9 +40,7 @@ class Dashboard extends BaseController
             ->get()->getResultArray();
 
         // Pengumuman terbaru
-        $pengumumanTerbaru = $pengumumanModel->where('status', 'Published')
-            ->orderBy('tanggal_publish', 'DESC')
-            ->findAll(5);
+        $pengumumanTerbaru = $pengumumanModel->getTerbaru(5);
 
         // Aktivitas terbaru (audit log)
         $aktivitasTerbaru = $db->table('audit_log')

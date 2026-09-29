@@ -54,9 +54,6 @@ class Berita extends BaseController
     {
         $pengumumanModel = new PengumumanModel();
 
-        return $pengumumanModel->where('status', 'Published')
-            ->orderBy('created_at', 'DESC')
-            ->limit($limit)
-            ->findAll();
+        return $pengumumanModel->getTerbaru($limit);
     }
 }

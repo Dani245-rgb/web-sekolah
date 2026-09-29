@@ -31,13 +31,21 @@ class PengumumanModel extends BaseModel
             ->orderBy('tanggal_publish', 'DESC')
             ->paginate($limit, 'default', ($offset / $limit) + 1);
     }
-    
+
     public function getBySlug(string $slug)
     {
         return $this->where('slug', $slug)
             ->where('status', 'Published')
             ->where('tanggal_publish <=', date('Y-m-d'))
             ->first();
+    }
+
+    public function getTerbaru(int $limit = 5): array
+    {
+        return $this->where('status', 'Published')
+            ->where('tanggal_publish <=', date('Y-m-d'))
+            ->orderBy('tanggal_publish', 'DESC')
+            ->findAll($limit);
     }
 
     public function judulSudahAda(string $judul, ?int $excludeId = null): bool
