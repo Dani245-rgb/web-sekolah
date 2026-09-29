@@ -4,9 +4,17 @@ namespace App\Controllers\Auth;
 
 use App\Controllers\BaseController;
 use App\Models\UserModel;
+use App\Services\AuthService;
 
 class Login extends BaseController
 {
+    protected AuthService $authService;
+
+    public function __construct()
+    {
+        $this->authService = service('authService');
+    }
+
     public function index()
     {
         // Kalau sudah login, jangan biarkan buka halaman login lagi
@@ -23,76 +31,19 @@ class Login extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $username = $this->request->getPost('username');
-        $password = $this->request->getPost('password');
+        $hasil = $this->authService->login(
+            (string) $this->request->getPost('username'),
+            (string) $this->request->getPost('password')
+        );
 
-        $userModel     = new UserModel();
-        $auditLogModel = new \App\Models\AuditLogModel();
-        $calon         = $userModel->where('username', $username)->first();
-
-        if ($calon && $calon['locked_until'] && strtotime($calon['locked_until']) > time()) {
-            $sisaMenit = (int) ceil((strtotime($calon['locked_until']) - time()) / 60);
-            $auditLogModel->catat($calon['id_user'], $username, 'login_ditolak_terkunci', 'Percobaan login saat akun masih terkunci.');
-            return redirect()->back()->withInput()
-                ->with('errors', ['login' => "Akun terkunci sementara karena terlalu banyak percobaan gagal. Coba lagi dalam {$sisaMenit} menit."]);
+        if ($hasil['status'] !== AuthService::SUKSES) {
+            return redirect()->back()->withInput()->with('errors', ['login' => $hasil['pesan']]);
         }
 
-        $user = $userModel->verifyCredentials($username, $password);
+        $user = $hasil['user'];
 
-        // Kasus khusus: password benar, tapi akun nonaktif -> JANGAN hitung sebagai percobaan gagal
-        if ($user === 'inactive') {
-            $auditLogModel->catat($calon['id_user'], $username, 'login_ditolak_nonaktif', 'Password benar, tapi akun berstatus nonaktif.');
-            return redirect()->back()->withInput()
-                ->with('errors', ['login' => 'Akun ini sudah tidak aktif. Silakan hubungi Admin.']);
-        }
-
-        // Portal Guru & Siswa belum tersedia -> tolak login untuk role selain Admin
-        if ($user && $user['nama_role'] !== 'Admin') {
-            $auditLogModel->catat($user['id_user'], $username, 'login_ditolak_role_belum_tersedia', 'Role ' . $user['nama_role'] . ' mencoba login, portal belum tersedia.');
-            return redirect()->back()->withInput()
-                ->with('errors', ['login' => 'Portal untuk role ini belum tersedia. Silakan hubungi Admin.']);
-        }
-
-        if (!$user) {
-            if ($calon) {
-                // Increment atomik di level database — hindari race condition
-                // kalau ada beberapa request login gagal masuk bersamaan
-                $userModel->where('id_user', $calon['id_user'])
-                    ->set('login_attempts', 'login_attempts + 1', false)
-                    ->update();
-
-                // Ambil ulang nilai terbaru SETELAH increment atomik di atas
-                $calonTerbaru = $userModel->find($calon['id_user']);
-                $attempts     = $calonTerbaru['login_attempts'];
-
-                $auditLogModel->catat($calon['id_user'], $username, 'login_gagal', "Percobaan ke-{$attempts}.");
-
-                if ($attempts >= 5) {
-                    $userModel->update($calon['id_user'], [
-                        'locked_until'   => date('Y-m-d H:i:s', time() + 15 * MINUTE),
-                        'login_attempts' => 0,
-                    ]);
-                    $auditLogModel->catat($calon['id_user'], $username, 'akun_terkunci', 'Terkunci 15 menit setelah 5x gagal berturut-turut.');
-
-                    (new \App\Models\NotifikasiModel())->buat(
-                        null,
-                        'Akun Terkunci',
-                        'akun_terkunci',
-                        "Akun {$username} terkunci setelah 5x gagal login berturut-turut.",
-                        '/admin/user'
-                    );
-                }
-            }
-
-            return redirect()->back()->withInput()
-                ->with('errors', ['login' => 'Username atau password salah, atau akun tidak aktif.']);
-        }
-
-
-        $userModel->update($user['id_user'], ['login_attempts' => 0, 'locked_until' => null]);
-        $auditLogModel->catat($user['id_user'], $user['username'], 'login_sukses', '');
-
-        session()->regenerate();
+        // true = session lama dibuang sepenuhnya, jadi session ID sebelum login tidak bisa dipakai lagi
+        session()->regenerate(true);
 
         session()->set([
             'id_user'              => $user['id_user'],
@@ -120,8 +71,15 @@ class Login extends BaseController
 
     public function gantipasswordsubmit()
     {
+        $idUser = session()->get('id_user');
+
+        // Tanpa session login, jangan lanjut ke pembaruan password
+        if (!$idUser) {
+            return redirect()->to('/login');
+        }
+
         $validation = $this->validate([
-            'password_baru' => 'required|strongPassword',
+            'password_baru'       => 'required|strongPassword',
             'konfirmasi_password' => 'required|matches[password_baru]',
         ]);
 
@@ -130,10 +88,9 @@ class Login extends BaseController
         }
 
         $userModel    = new UserModel();
-        $idUser       = session()->get('id_user');
         $passwordBaru = $this->request->getPost('password_baru');
 
-        // Cegah ganti ke password yang sama persis dengan username (mis. NIS)
+        // Cegah ganti ke password yang sama persis dengan username
         $user = $userModel->find($idUser);
         if (strcasecmp($passwordBaru, $user['username']) === 0) {
             return redirect()->back()
@@ -152,6 +109,7 @@ class Login extends BaseController
         return redirect()->to($this->redirectByRole(session()->get('role')))
             ->with('success', 'Password berhasil diubah.');
     }
+
     /**
      * Tentukan tujuan redirect berdasarkan nama role.
      */
