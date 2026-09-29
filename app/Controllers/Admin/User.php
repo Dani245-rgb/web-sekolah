@@ -3,31 +3,37 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\UserModel;
 use App\Models\AuditLogModel;
+use App\Models\UserModel;
+use CodeIgniter\Exceptions\PageNotFoundException;
 
 class User extends BaseController
 {
-    protected $userModel;
+    private const ROLE_MAP = [
+        'admin' => 1,
+        'guru'  => 2,
+        'siswa' => 3,
+    ];
+
+    protected UserModel $userModel;
+    protected AuditLogModel $auditLogModel;
 
     public function __construct()
     {
+        helper('teks');
+
+        // Halaman ini khusus superadmin. Non-superadmin dianggap seolah rute tidak ada.
         if (!session()->get('is_superadmin')) {
-            throw new \CodeIgniter\Exceptions\PageNotFoundException('Halaman tidak ditemukan.');
+            throw new PageNotFoundException('Halaman tidak ditemukan.');
         }
 
-        $this->userModel = new UserModel();
+        $this->userModel     = new UserModel();
+        $this->auditLogModel = new AuditLogModel();
     }
 
     public function index(string $role = 'admin')
     {
-        $roleMap = [
-            'admin' => 1,
-            'guru'  => 2,
-            'siswa' => 3,
-        ];
-
-        $roleId     = $roleMap[$role] ?? 1;
+        $roleId     = self::ROLE_MAP[$role] ?? 1;
         $pagerGroup = 'user_' . $role;
         $keyword    = $this->request->getGet('q');
 
@@ -43,18 +49,11 @@ class User extends BaseController
 
     public function createAdmin()
     {
-        if (!session()->get('is_superadmin')) {
-            return redirect()->to('/admin/user')->with('error', 'Hanya superadmin yang bisa menambah akun admin.');
-        }
         return view('admin/user/create_admin');
     }
 
     public function storeAdmin()
     {
-        if (!session()->get('is_superadmin')) {
-            return redirect()->to('/admin/user')->with('error', 'Hanya superadmin yang bisa menambah akun admin.');
-        }
-
         $rules = [
             'username' => 'required|min_length[4]|is_unique[users.username]',
             'password' => 'required|strongPassword',
@@ -64,13 +63,23 @@ class User extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        $username = rapikan_teks($this->request->getPost('username'));
+
+        if ($username === '') {
+            return redirect()->back()->withInput()->with('error', 'Username tidak boleh kosong/hanya spasi.');
+        }
+
+        if ($this->userModel->where('username', $username)->first()) {
+            return redirect()->back()->withInput()->with('errors', ['username' => 'Username ini sudah terdaftar.']);
+        }
+
         $this->userModel->insert([
-            'username'              => $this->request->getPost('username'),
-            'password'              => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
-            'role_id'               => 1, // sesuai role_id Admin (guru=2, siswa=3 dari kode Guru/Siswa kamu)
-            'status'                => 'Aktif',
-            'must_change_password'  => 1,
-            'login_attempts'        => 0,
+            'username'             => $username,
+            'password'             => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
+            'role_id'              => self::ROLE_MAP['admin'],
+            'status'               => 'Aktif',
+            'must_change_password' => 1,
+            'login_attempts'       => 0,
         ]);
 
         return redirect()->to('/admin/user')->with('success', 'Akun admin baru berhasil dibuat.');
@@ -87,10 +96,9 @@ class User extends BaseController
             return redirect()->to('/admin/user')->with('error', 'Akun tidak ditemukan.');
         }
 
-        $this->userModel->unlockAccount($id);
+        $this->userModel->unlockAccount((int) $id);
 
-        $auditLogModel = new AuditLogModel();
-        $auditLogModel->catat(
+        $this->auditLogModel->catat(
             session()->get('id_user'),
             session()->get('username'),
             'unlock_akun',
@@ -101,9 +109,8 @@ class User extends BaseController
     }
 
     /**
-     * Reset password akun apapun (Admin/Guru/Siswa), lewat user_id langsung.
-     * Siswa: password baru = tanggal lahir (ddmmyyyy), sesuai pola lama.
-     * Guru/Admin: password baru = acak 8 karakter.
+     * Reset password akun apa pun (Admin/Guru/Siswa) lewat user_id.
+     * Password baru selalu acak 8 karakter, ditandai wajib ganti password saat login berikutnya.
      */
     public function resetPassword($idUser)
     {
@@ -126,8 +133,7 @@ class User extends BaseController
             'locked_until'          => null,
         ]);
 
-        $auditLogModel = new AuditLogModel();
-        $auditLogModel->catat(
+        $this->auditLogModel->catat(
             session()->get('id_user'),
             session()->get('username'),
             'reset_password_admin',

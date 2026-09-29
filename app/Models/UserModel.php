@@ -61,6 +61,18 @@ class UserModel extends BaseModel
      * Ambil semua user lintas role, dengan nama tampilan
      * (nama guru/siswa kalau ada, atau username untuk admin).
      */
+    
+    /**
+     * Buka kunci akun: reset percobaan gagal dan hapus status terkunci.
+     */
+    public function unlockAccount(int $idUser): bool
+    {
+        return $this->update($idUser, [
+            'login_attempts' => 0,
+            'locked_until'   => null,
+        ]);
+    }
+
     public function getAllWithDetail(int $perPage = 100, ?string $keyword = null, ?int $roleId = null, string $pagerGroup = 'user')
     {
         $builder = $this->select("
