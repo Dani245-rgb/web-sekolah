@@ -4,14 +4,19 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\PengumumanModel;
+use App\Services\SlugService;
 
 class Pengumuman extends BaseController
 {
-    protected $pengumumanModel;
+    protected PengumumanModel $pengumumanModel;
+    protected SlugService $slugService;
 
     public function __construct()
     {
+        helper('teks');
+
         $this->pengumumanModel = new PengumumanModel();
+        $this->slugService     = service('slugService');
     }
 
     public function index()
@@ -28,27 +33,27 @@ class Pengumuman extends BaseController
 
     public function store()
     {
-        $rules = [
-            'judul'           => 'required|min_length[3]|max_length[255]',
-            'isi'             => 'required',
-            'tanggal_publish' => 'required|valid_date',
-            'status'          => 'required|in_list[Published,Draft]',
-        ];
-
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        if (!$this->validate($this->rules())) {
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $judul = $this->request->getPost('judul');
-        $slug  = $this->pengumumanModel->generateUniqueSlug($judul);
+        $judul = rapikan_teks((string) $this->request->getPost('judul'));
 
-        $this->pengumumanModel->insert([
+        if ($this->pengumumanModel->judulSudahAda($judul)) {
+            return $this->kembaliDenganError(['judul' => 'Judul pengumuman sudah dipakai.']);
+        }
+
+        $berhasil = $this->pengumumanModel->insert([
             'judul'           => $judul,
-            'slug'            => $slug,
+            'slug'            => $this->slugService->buatUnik($judul, 'pengumuman', 'id', null, 'pengumuman'),
             'isi'             => $this->request->getPost('isi'),
             'tanggal_publish' => $this->request->getPost('tanggal_publish'),
             'status'          => $this->request->getPost('status'),
         ]);
+
+        if (!$berhasil) {
+            return $this->kembaliDenganError($this->pengumumanModel->errors());
+        }
 
         return redirect()->to('/admin/pengumuman')->with('success', 'Pengumuman berhasil ditambahkan.');
     }
@@ -71,27 +76,27 @@ class Pengumuman extends BaseController
             return redirect()->to('/admin/pengumuman')->with('error', 'Data tidak ditemukan.');
         }
 
-        $rules = [
-            'judul'           => 'required|min_length[3]|max_length[255]',
-            'isi'             => 'required',
-            'tanggal_publish' => 'required|valid_date',
-            'status'          => 'required|in_list[Published,Draft]',
-        ];
-
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        if (!$this->validate($this->rules())) {
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $judul = $this->request->getPost('judul');
-        $slug  = $this->pengumumanModel->generateUniqueSlug($judul, $id);
+        $judul = rapikan_teks((string) $this->request->getPost('judul'));
 
-        $this->pengumumanModel->update($id, [
+        if ($this->pengumumanModel->judulSudahAda($judul, (int) $id)) {
+            return $this->kembaliDenganError(['judul' => 'Judul pengumuman sudah dipakai.']);
+        }
+
+        $berhasil = $this->pengumumanModel->update($id, [
             'judul'           => $judul,
-            'slug'            => $slug,
+            'slug'            => $this->slugService->buatUnik($judul, 'pengumuman', 'id', (int) $id, 'pengumuman'),
             'isi'             => $this->request->getPost('isi'),
             'tanggal_publish' => $this->request->getPost('tanggal_publish'),
             'status'          => $this->request->getPost('status'),
         ]);
+
+        if (!$berhasil) {
+            return $this->kembaliDenganError($this->pengumumanModel->errors());
+        }
 
         return redirect()->to('/admin/pengumuman')->with('success', 'Pengumuman berhasil diperbarui.');
     }
@@ -106,5 +111,20 @@ class Pengumuman extends BaseController
         $this->pengumumanModel->delete($id);
 
         return redirect()->to('/admin/pengumuman')->with('success', 'Pengumuman berhasil dihapus.');
+    }
+
+    private function rules(): array
+    {
+        return [
+            'judul'           => 'required|min_length[3]|max_length[255]',
+            'isi'             => 'required',
+            'tanggal_publish' => 'required|valid_date',
+            'status'          => 'required|in_list[Published,Draft]',
+        ];
+    }
+
+    private function kembaliDenganError(array $errors)
+    {
+        return redirect()->back()->withInput()->with('errors', $errors);
     }
 }
