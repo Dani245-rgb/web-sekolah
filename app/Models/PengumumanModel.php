@@ -27,6 +27,7 @@ class PengumumanModel extends BaseModel
     public function getPublished(int $limit = 10, int $offset = 0)
     {
         return $this->where('status', 'Published')
+            ->where('tanggal_publish <=', date('Y-m-d'))
             ->orderBy('tanggal_publish', 'DESC')
             ->paginate($limit, 'default', ($offset / $limit) + 1);
     }
@@ -35,27 +36,18 @@ class PengumumanModel extends BaseModel
     {
         return $this->where('slug', $slug)
             ->where('status', 'Published')
+            ->where('tanggal_publish <=', date('Y-m-d'))
             ->first();
     }
 
-    public function generateUniqueSlug(string $judul, ?int $excludeId = null): string
+    public function judulSudahAda(string $judul, ?int $excludeId = null): bool
     {
-        $baseSlug = url_title($judul, '-', true);
-        $slug     = $baseSlug;
-        $i        = 1;
+        $builder = $this->where('judul', $judul);
 
-        while (true) {
-            $builder = $this->where('slug', $slug);
-            if ($excludeId !== null) {
-                $builder->where('id !=', $excludeId);
-            }
-            if (!$builder->first()) {
-                break;
-            }
-            $slug = $baseSlug . '-' . $i;
-            $i++;
+        if ($excludeId !== null) {
+            $builder->where('id !=', $excludeId);
         }
 
-        return $slug;
+        return $builder->first() !== null;
     }
 }
