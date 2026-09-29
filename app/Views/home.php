@@ -21,13 +21,9 @@
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <div class="hero-slide active">
-                        <img src="<?= base_url('assets/images/hero_header/header1.jpg') ?>" alt="Hero SMK Attaufiqiyyah">
-                        <div class="hero-overlay">
-                            <h1>Membentuk Generasi Kompeten & Berakhlak Mulia</h1>
-                            <p>Sekolah Menengah Kejuruan unggulan dengan fasilitas modern dan mitra industri terpercaya.</p>
-                            <a href="<?= base_url('ppdb') ?>" class="btn-hero-cta">Daftar PPDB Sekarang <i class="bi bi-arrow-right"></i></a>
-                        </div>
+                    <div class="empty-state" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:400px;">
+                        <i class="bi bi-newspaper"></i>
+                        <p>Belum ada berita atau konten saat ini.</p>
                     </div>
                 <?php endif; ?>
             </div>

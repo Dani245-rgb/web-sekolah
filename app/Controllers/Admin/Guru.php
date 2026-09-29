@@ -4,19 +4,16 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\GuruModel;
-use App\Models\UserModel;
 use App\Libraries\ImageCompressor;
 use Config\Database;
 
 class Guru extends BaseController
 {
     protected GuruModel $guruModel;
-    protected UserModel $userModel;
 
     public function __construct()
     {
         $this->guruModel = new GuruModel();
-        $this->userModel = new UserModel();
     }
 
     public function index()
@@ -65,31 +62,8 @@ class Guru extends BaseController
             $compressor->compressAndSave($fotoFile->getTempName(), FCPATH . 'uploads/guru/' . $fotoName);
         }
 
-        $db = Database::connect();
-        $db->transStart();
-
-        $nip          = $this->request->getPost('nip');
-        $tanggalLahir = $this->request->getPost('tanggal_lahir');
-        $passwordAwal = date('dmY', strtotime($tanggalLahir));
-
-        $userId = $this->userModel->insert([
-            'username'             => $nip,
-            'password'             => password_hash($passwordAwal, PASSWORD_DEFAULT),
-            'role_id'              => 2,
-            'status'               => 'Aktif',
-            'must_change_password' => true,
-        ]);
-
-        if (!$userId) {
-            $db->transRollback();
-            $errors = $this->userModel->errors();
-            $pesanError = $errors ? implode('; ', $errors) : 'Gagal membuat akun user.';
-            return redirect()->back()->withInput()->with('errors', ['user' => $pesanError]);
-        }
-
-        $this->guruModel->skipValidation(true)->insert([
-            'user_id'       => $userId,
-            'nip'           => $nip,
+        $idGuru = $this->guruModel->skipValidation(true)->insert([
+            'nip'           => $this->request->getPost('nip'),
             'nuptk'         => $this->request->getPost('nuptk'),
             'nama'          => $this->request->getPost('nama'),
             'tempat_lahir'  => $this->request->getPost('tempat_lahir'),
@@ -102,10 +76,10 @@ class Guru extends BaseController
             'status'        => 'Aktif',
         ]);
 
-        $db->transComplete();
-
-        if ($db->transStatus() === false) {
-            return redirect()->back()->withInput()->with('errors', ['db' => 'Gagal menyimpan data guru.']);
+        if (!$idGuru) {
+            $errors = $this->guruModel->errors();
+            $pesanError = $errors ? implode('; ', $errors) : 'Gagal menyimpan data guru.';
+            return redirect()->back()->withInput()->with('errors', ['db' => $pesanError]);
         }
 
         return redirect()->to('/admin/guru')->with('success', 'Data guru berhasil ditambahkan.');
@@ -172,11 +146,6 @@ class Guru extends BaseController
                 ->with('errors', ['update' => 'Gagal memperbarui data guru.']);
         }
 
-        // Sinkronkan status akun login (users) mengikuti status guru
-        $this->userModel->update($guru['user_id'], [
-            'status' => $dataUpdate['status'],
-        ]);
-
         return redirect()->to('/admin/guru')->with('success', 'Data guru berhasil diperbarui.');
     }
 
@@ -188,7 +157,6 @@ class Guru extends BaseController
         }
 
         $berhasil = $this->guruModel->skipValidation(true)->update($id_guru, ['status' => 'Nonaktif']);
-        $this->userModel->update($guru['user_id'], ['status' => 'Nonaktif']);
 
         if (!$berhasil) {
             return redirect()->to('/admin/guru')->with('errors', ['delete' => 'Gagal menonaktifkan guru.']);

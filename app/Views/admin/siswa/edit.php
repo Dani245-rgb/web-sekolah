@@ -43,6 +43,18 @@
             <input type="text" name="nama" value="<?= old('nama', $siswaData['nama']) ?>" required>
         </div>
 
+        <div class="form-group">
+            <label>Jurusan</label>
+            <select name="jurusan_id">
+                <option value="">-- Pilih Jurusan (opsional) --</option>
+                <?php foreach ($jurusanList as $j): ?>
+                    <option value="<?= $j['id_jurusan'] ?>" <?= (string) old('jurusan_id', $siswaData['jurusan_id'] ?? '') === (string) $j['id_jurusan'] ? 'selected' : '' ?>>
+                        <?= esc($j['kode_jurusan']) ?> - <?= esc($j['nama_jurusan']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
         <div class="form-row">
             <div class="form-group">
                 <label>Tempat Lahir</label>

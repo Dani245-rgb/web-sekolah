@@ -33,17 +33,12 @@ class GuruModel extends BaseModel
 
     public function getAllWithUser()
     {
-        return $this->select('guru.*, users.username, users.status as status_akun')
-                    ->join('users', 'users.id_user = guru.user_id')
-                    ->orderBy('guru.nama', 'ASC');
+        return $this->orderBy('nama', 'ASC');
     }
 
     public function findWithUser($id_guru)
     {
-        return $this->select('guru.*, users.username')
-                    ->join('users', 'users.id_user = guru.user_id')
-                    ->where('id_guru', $id_guru)
-                    ->first();
+        return $this->where('id_guru', $id_guru)->first();
     }
 
         public function getGuruBk()

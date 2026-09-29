@@ -4,7 +4,6 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\ImportLogModel;
-use App\Models\UserModel;
 use App\Models\SiswaModel;
 use Config\Database;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -15,16 +14,18 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
 class ImportSiswa extends BaseController
 {
     protected ImportLogModel $importLogModel;
-    protected UserModel $userModel;
     protected SiswaModel $siswaModel;
+    protected \App\Services\SiswaService $siswaService;
 
     protected int $batchSize = 500;
+
+    protected array $jurusanMap = [];
 
     public function __construct()
     {
         $this->importLogModel = new ImportLogModel();
-        $this->userModel      = (new UserModel())->skipAudit();
         $this->siswaModel     = (new SiswaModel())->skipAudit();
+        $this->siswaService   = service('siswaService');
     }
 
     // Ambil token CSRF terbaru untuk dikirim balik ke JS
@@ -63,6 +64,7 @@ class ImportSiswa extends BaseController
             'Pekerjaan Ortu',
             'No HP Ortu',
             'Email',
+            'Jurusan (Kode/Singkatan/Nama)',
         ];
         $sheet->fromArray($header, null, 'A1');
 
@@ -81,6 +83,7 @@ class ImportSiswa extends BaseController
             'Wiraswasta',
             '081234567890',
             'contoh@email.com',
+            'TKJ',
         ], null, 'A2');
 
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
@@ -200,6 +203,8 @@ class ImportSiswa extends BaseController
         $barisMulai = $offset + 2; // +1 karena header, +1 karena Excel row dimulai dari 1
         $barisSelesaiBatch = min($barisMulai + $this->batchSize - 1, $sheet->getHighestDataRow());
 
+        $this->muatJurusanMap();
+
         $suksesBatch = 0;
         $gagalBatch = 0;
         $errorBatch = [];
@@ -221,6 +226,7 @@ class ImportSiswa extends BaseController
                 'pekerjaan_ortu' => trim((string) $sheet->getCell("K{$row}")->getValue()),
                 'no_hp_ortu'     => trim((string) $sheet->getCell("L{$row}")->getValue()),
                 'email'          => trim((string) $sheet->getCell("M{$row}")->getValue()),
+                'jurusan'        => trim((string) $sheet->getCell("N{$row}")->getValue()),
             ];
 
             // Baris kosong total → lewati diam-diam, tidak dihitung sukses/gagal
@@ -279,6 +285,16 @@ class ImportSiswa extends BaseController
             return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Format email '{$data['email']}' tidak valid."];
         }
 
+        // Cocokkan Jurusan (kosong = diperbolehkan, tidak dicocokkan = ditolak)
+        $jurusanId = null;
+        if (!empty($data['jurusan'])) {
+            $kunci = mb_strtolower($data['jurusan']);
+            if (!isset($this->jurusanMap[$kunci])) {
+                return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Jurusan '{$data['jurusan']}' tidak ditemukan di data Jurusan."];
+            }
+            $jurusanId = $this->jurusanMap[$kunci];
+        }
+
         // Cek duplikat NIS/NISN
         if ($this->siswaModel->where('nis', $data['nis'])->first()) {
             return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: NIS '{$data['nis']}' sudah terdaftar, dilewati."];
@@ -293,65 +309,47 @@ class ImportSiswa extends BaseController
             return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Format Tanggal Lahir tidak dikenali."];
         }
 
-        $passwordAwal = date('dmY', strtotime($tanggalLahir));
+        $hasil = $this->siswaService->buatSiswaBaru([
+            'nis'            => $data['nis'],
+            'nisn'           => $data['nisn'],
+            'jurusan_id'     => $jurusanId,
+            'nama'           => $data['nama'],
+            'tempat_lahir'   => $data['tempat_lahir'],
+            'tanggal_lahir'  => $tanggalLahir,
+            'jenis_kelamin'  => $data['jenis_kelamin'],
+            'agama'          => $data['agama'],
+            'alamat'         => $data['alamat'],
+            'nama_ayah'      => $data['nama_ayah'],
+            'nama_ibu'       => $data['nama_ibu'],
+            'pekerjaan_ortu' => $data['pekerjaan_ortu'],
+            'no_hp_ortu'     => $data['no_hp_ortu'],
+            'email'          => $data['email'] ?: null,
+        ]);
 
-        $db = Database::connect();
+        if (!$hasil['sukses']) {
+            return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: {$hasil['pesan']}"];
+        }
 
-        try {
-            $db->transStart();
+        return ['sukses' => true, 'pesan' => ''];
+    }
 
-            // --- Insert user ---
-            $userId = $this->userModel->skipValidation(true)->insert([
-                'username'             => $data['nis'],
-                'password'             => password_hash($passwordAwal, PASSWORD_DEFAULT),
-                'role_id'              => 3,
-                'status'               => 'Aktif',
-                'must_change_password' => true,
-            ]);
+    // Peta kode/singkatan/nama jurusan (huruf kecil) → id_jurusan, dimuat sekali per batch
+    protected function muatJurusanMap(): void
+    {
+        $this->jurusanMap = [];
 
-            if (!$userId) {
-                $db->transRollback();
-                $errors = $this->userModel->errors();
-                $pesanError = $errors ? implode('; ', $errors) : ($db->error()['message'] ?? 'unknown error');
-                return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Gagal buat akun user - {$pesanError}"];
+        $rows = Database::connect()->table('jurusan')
+            ->select('id_jurusan, kode_jurusan, nama_jurusan, singkatan')
+            ->where('deleted_at', null)
+            ->get()
+            ->getResultArray();
+
+        foreach ($rows as $j) {
+            foreach ([$j['kode_jurusan'], $j['singkatan'], $j['nama_jurusan']] as $kunci) {
+                if (!empty($kunci)) {
+                    $this->jurusanMap[mb_strtolower(trim($kunci))] = (int) $j['id_jurusan'];
+                }
             }
-
-            // --- Insert siswa ---
-            $idSiswa = $this->siswaModel->skipValidation(true)->insert([
-                'user_id'        => $userId,
-                'nis'            => $data['nis'],
-                'nisn'           => $data['nisn'],
-                'nama'           => $data['nama'],
-                'tempat_lahir'   => $data['tempat_lahir'],
-                'tanggal_lahir'  => $tanggalLahir,
-                'jenis_kelamin'  => $data['jenis_kelamin'],
-                'agama'          => $data['agama'],
-                'alamat'         => $data['alamat'],
-                'nama_ayah'      => $data['nama_ayah'],
-                'nama_ibu'       => $data['nama_ibu'],
-                'pekerjaan_ortu' => $data['pekerjaan_ortu'],
-                'no_hp_ortu'     => $data['no_hp_ortu'],
-                'email'          => $data['email'] ?: null,
-                'status'         => 'Aktif',
-            ]);
-
-            if (!$idSiswa) {
-                $db->transRollback();
-                $errors = $this->siswaModel->errors();
-                $pesanError = $errors ? implode('; ', $errors) : ($db->error()['message'] ?? 'unknown error');
-                return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Gagal buat data siswa - {$pesanError}"];
-            }
-
-            $db->transComplete();
-
-            if ($db->transStatus() === false) {
-                return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Gagal insert ke database (transaksi rollback)."];
-            }
-
-            return ['sukses' => true, 'pesan' => ''];
-        } catch (\Throwable $e) {
-            $db->transRollback();
-            return ['sukses' => false, 'pesan' => "Baris {$nomorBaris}: Terjadi error tak terduga - " . $e->getMessage()];
         }
     }
 

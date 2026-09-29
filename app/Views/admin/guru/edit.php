@@ -19,15 +19,6 @@
         <?= csrf_field() ?>
 
         <fieldset>
-            <legend>Akun Login</legend>
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" value="<?= esc($guru['username']) ?>" disabled>
-                <small>Username tidak bisa diubah di sini.</small>
-            </div>
-        </fieldset>
-
-        <fieldset>
             <legend>Data Guru</legend>
 
             <div class="form-group">

@@ -29,6 +29,8 @@ class SiswaModel extends BaseModel
         'no_hp_ortu',
         'email',
         'foto',
+        'jurusan_id',
+        'deleted_at',
     ];
 
     protected $validationRules = [
@@ -37,6 +39,7 @@ class SiswaModel extends BaseModel
         'nama'          => 'required|min_length[3]|max_length[100]',
         'jenis_kelamin' => 'required|in_list[L,P]',
         'email'         => 'permit_empty|valid_email',
+        'jurusan_id'    => 'permit_empty|is_natural_no_zero',
     ];
 
     protected $validationMessages = [
@@ -47,7 +50,7 @@ class SiswaModel extends BaseModel
             'is_unique' => 'NISN ini sudah terdaftar.',
         ],
     ];
-    
+
     public function getAll()
     {
         return $this->orderBy('nama', 'ASC');
