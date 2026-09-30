@@ -21,4 +21,9 @@ class PesanKontakModel extends BaseModel
         'email' => 'required|valid_email',
         'pesan' => 'required',
     ];
+
+        public function tandaiSudahDibaca(int $id): bool
+    {
+        return (bool) $this->update($id, ['status' => 'Sudah Dibaca']);
+    }
 }

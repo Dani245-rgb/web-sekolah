@@ -7,7 +7,7 @@ use App\Models\PesanKontakModel;
 
 class KontakAdmin extends BaseController
 {
-    protected $kontakModel;
+    protected PesanKontakModel $kontakModel;
 
     public function __construct()
     {
@@ -28,8 +28,7 @@ class KontakAdmin extends BaseController
             return redirect()->to('/admin/kontak')->with('error', 'Pesan tidak ditemukan.');
         }
 
-        if ($pesan['status'] === 'Belum Dibaca') {
-            $this->kontakModel->update($id, ['status' => 'Sudah Dibaca']);
+        if ($pesan['status'] === 'Belum Dibaca' && $this->kontakModel->tandaiSudahDibaca((int) $id)) {
             $pesan['status'] = 'Sudah Dibaca';
         }
 
@@ -48,4 +47,4 @@ class KontakAdmin extends BaseController
 
         return redirect()->to('/admin/kontak')->with('success', 'Pesan berhasil dihapus.');
     }
-}   
+}
