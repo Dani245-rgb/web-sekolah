@@ -34,4 +34,15 @@ class OrganisasiModel extends BaseModel
 
         return $organisasiList;
     }
+
+        public function namaSudahAda(string $nama, ?int $excludeId = null): bool
+    {
+        $builder = $this->where('nama', $nama);
+
+        if ($excludeId !== null) {
+            $builder->where('id !=', $excludeId);
+        }
+
+        return $builder->first() !== null;
+    }
 }
