@@ -70,6 +70,17 @@ class Services extends BaseService
         return new \App\Services\BackupService();
     }
 
+    public static function laporanSiswaService($getShared = true): \App\Services\LaporanSiswaService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('laporanSiswaService');
+        }
+
+        return new \App\Services\LaporanSiswaService(
+            model(\App\Models\SiswaModel::class),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {

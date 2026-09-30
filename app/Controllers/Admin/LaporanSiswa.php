@@ -3,30 +3,23 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\SiswaModel;
+use App\Services\LaporanSiswaService;
 
 class LaporanSiswa extends BaseController
 {
-    protected SiswaModel $siswaModel;
+    protected LaporanSiswaService $laporan;
 
     public function __construct()
     {
-        $this->siswaModel = new SiswaModel();
+        $this->laporan = service('laporanSiswaService');
     }
 
     public function index()
     {
-        $siswa = $this->siswaModel->orderBy('nama', 'ASC')->findAll();
-
-        $totalPerGender = ['L' => 0, 'P' => 0];
-        foreach ($siswa as $s) {
-            if (isset($totalPerGender[$s['jenis_kelamin']])) {
-                $totalPerGender[$s['jenis_kelamin']]++;
-            }
-        }
+        $siswa = $this->laporan->ambilSiswa();
 
         $data['siswa']          = $siswa;
-        $data['totalPerGender'] = $totalPerGender;
+        $data['totalPerGender'] = $this->laporan->hitungPerGender($siswa);
         $data['totalSiswa']     = count($siswa);
 
         return view('admin/laporan_siswa/index', $data);
@@ -34,41 +27,8 @@ class LaporanSiswa extends BaseController
 
     public function exportExcel()
     {
-        $siswa = $this->siswaModel->orderBy('nama', 'ASC')->findAll();
+        $isi = $this->laporan->buatExcel($this->laporan->ambilSiswa());
 
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Laporan Siswa');
-
-        $header = ['No', 'NIS', 'NISN', 'Nama', 'Jenis Kelamin'];
-        $sheet->fromArray($header, null, 'A1');
-
-        helper('excel');
-
-        $row = 2;
-        foreach ($siswa as $i => $s) {
-            $sheet->fromArray([
-                $i + 1,
-                sanitize_excel_cell($s['nis']),
-                sanitize_excel_cell($s['nisn']),
-                sanitize_excel_cell($s['nama']),
-                $s['jenis_kelamin'],
-            ], null, "A{$row}");
-            $row++;
-        }
-
-        foreach (range('A', 'E') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-
-        $filename = 'laporan_siswa_' . date('Y-m-d_His') . '.xlsx';
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-
-        $writer->save('php://output');
-        exit;
+        return $this->response->download('laporan_siswa_' . date('Y-m-d_His') . '.xlsx', $isi, true);
     }
 }
