@@ -11,6 +11,8 @@ class GaleriModel extends BaseModel
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
+    public const KATEGORI = ['Kegiatan', 'Fasilitas', 'Prestasi', 'Lainnya'];
+
     protected $allowedFields    = ['judul', 'foto', 'kategori', 'deskripsi', 'status'];
 
     protected $useTimestamps = true;
