@@ -12,9 +12,22 @@ class GuruModel extends BaseModel
     protected $returnType       = 'array';
     protected $useTimestamps    = true;
 
+    public const STATUS = ['Aktif', 'Nonaktif'];
+
     protected $allowedFields = [
-        'user_id', 'nip', 'nuptk', 'nama', 'tempat_lahir', 'tanggal_lahir',
-        'jenis_kelamin', 'jabatan', 'no_hp', 'email', 'foto', 'status', 'is_bk',
+        'user_id',
+        'nip',
+        'nuptk',
+        'nama',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'jenis_kelamin',
+        'jabatan',
+        'no_hp',
+        'email',
+        'foto',
+        'status',
+        'is_bk',
     ];
 
     protected $validationRules = [
@@ -36,16 +49,33 @@ class GuruModel extends BaseModel
         return $this->orderBy('nama', 'ASC');
     }
 
+    /**
+     * Query daftar guru dengan pencarian nama/NIP (kosong = semua), urut nama.
+     */
+    public function cari(?string $keyword = null)
+    {
+        $builder = $this->orderBy('nama', 'ASC');
+
+        if ($keyword !== null && $keyword !== '') {
+            $builder->groupStart()
+                ->like('nama', $keyword)
+                ->orLike('nip', $keyword)
+                ->groupEnd();
+        }
+
+        return $builder;
+    }
+
     public function findWithUser($id_guru)
     {
         return $this->where('id_guru', $id_guru)->first();
     }
 
-        public function getGuruBk()
+    public function getGuruBk()
     {
         return $this->where('is_bk', 1)
-                    ->where('status', 'Aktif')
-                    ->orderBy('nama', 'ASC')
-                    ->findAll();
+            ->where('status', 'Aktif')
+            ->orderBy('nama', 'ASC')
+            ->findAll();
     }
 }

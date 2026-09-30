@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Libraries\ImageCompressor;
 use CodeIgniter\HTTP\Files\UploadedFile;
 use InvalidArgumentException;
 use RuntimeException;
+use Throwable;
 
 /**
  * Urusan upload & hapus file di folder public/uploads/<folder>.
@@ -28,6 +30,76 @@ class FileUploadService
         array $mimeDiizinkan = self::MIME_GAMBAR,
         int $maksBytes = self::MAKS_BYTES
     ): ?string {
+        $targetDir = $this->siapkan($file, $folder, $mimeDiizinkan, $maksBytes);
+
+        if ($targetDir === null) {
+            return null;
+        }
+
+        $namaBaru = $file->getRandomName();
+
+        if (!$file->move($targetDir, $namaBaru)) {
+            throw new RuntimeException('Gagal memindahkan file upload.');
+        }
+
+        return $namaBaru;
+    }
+
+    /**
+     * Sama seperti simpan(), tapi gambar dikecilkan dulu lewat ImageCompressor.
+     */
+    public function simpanKompres(
+        ?UploadedFile $file,
+        string $folder,
+        array $mimeDiizinkan = self::MIME_GAMBAR,
+        int $maksBytes = self::MAKS_BYTES
+    ): ?string {
+        $targetDir = $this->siapkan($file, $folder, $mimeDiizinkan, $maksBytes);
+
+        if ($targetDir === null) {
+            return null;
+        }
+
+        $namaBaru = $file->getRandomName();
+        $tujuan   = $targetDir . DIRECTORY_SEPARATOR . $namaBaru;
+
+        try {
+            (new ImageCompressor())->compressAndSave($file->getTempName(), $tujuan);
+        } catch (Throwable $e) {
+            throw new RuntimeException('Gagal memproses gambar.');
+        }
+
+        if (!is_file($tujuan)) {
+            throw new RuntimeException('Gagal menyimpan gambar.');
+        }
+
+        return $namaBaru;
+    }
+
+    /**
+     * Hapus file dari public/uploads/<folder>. Aman dipanggil dengan nama kosong
+     * atau file yang sudah tidak ada.
+     */
+    public function hapus(?string $namaFile, string $folder): void
+    {
+        if (empty($namaFile)) {
+            return;
+        }
+
+        // basename() mencegah nama file berisi "../" keluar dari folder upload
+        $path = $this->pathFolder($folder) . DIRECTORY_SEPARATOR . basename($namaFile);
+
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+
+    /**
+     * Cek file (ada, tipe dari isi asli, ukuran) dan siapkan foldernya.
+     * Return path folder tujuan, atau null kalau tidak ada file yang diupload.
+     */
+    private function siapkan(?UploadedFile $file, string $folder, array $mimeDiizinkan, int $maksBytes): ?string
+    {
         if ($file === null || !$file->isValid() || $file->hasMoved()) {
             return null;
         }
@@ -55,31 +127,7 @@ class FileUploadService
             throw new RuntimeException('Folder upload tidak dapat ditulis (cek permission).');
         }
 
-        $namaBaru = $file->getRandomName();
-
-        if (!$file->move($targetDir, $namaBaru)) {
-            throw new RuntimeException('Gagal memindahkan file upload.');
-        }
-
-        return $namaBaru;
-    }
-
-    /**
-     * Hapus file dari public/uploads/<folder>. Aman dipanggil dengan nama kosong
-     * atau file yang sudah tidak ada.
-     */
-    public function hapus(?string $namaFile, string $folder): void
-    {
-        if (empty($namaFile)) {
-            return;
-        }
-
-        // basename() mencegah nama file berisi "../" keluar dari folder upload
-        $path = $this->pathFolder($folder) . DIRECTORY_SEPARATOR . basename($namaFile);
-
-        if (is_file($path)) {
-            unlink($path);
-        }
+        return $targetDir;
     }
 
     /**
