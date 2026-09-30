@@ -2,15 +2,17 @@
 
 namespace App\Controllers;
 
-use App\Models\PesanKontakModel;
+use App\Services\KontakService;
 
 class Kontak extends BaseController
 {
-    protected $kontakModel;
+    protected KontakService $kontak;
 
     public function __construct()
     {
-        $this->kontakModel = new PesanKontakModel();
+        helper('teks');
+
+        $this->kontak = service('kontakService');
     }
 
     public function index()
@@ -20,37 +22,51 @@ class Kontak extends BaseController
 
     public function kirim()
     {
-        $throttler = \Config\Services::throttler();
-        if ($throttler->check(md5($this->request->getIPAddress()), 3, 600) === false) {
-            return redirect()->back()->withInput()
-                ->with('errors', ['limit' => 'Terlalu banyak percobaan pengiriman pesan. Silakan coba lagi dalam beberapa menit.']);
+        if ($this->terlaluBanyakKirim()) {
+            return $this->kembaliDenganError([
+                'limit' => 'Terlalu banyak percobaan pengiriman pesan. Silakan coba lagi dalam beberapa menit.',
+            ]);
         }
 
-        $rules = [
-            'nama'  => 'required|min_length[3]|max_length[255]',
-            'email' => 'required|valid_email',
-            'pesan' => 'required',
+        $data = [
+            'nama'   => rapikan_teks((string) $this->request->getPost('nama')),
+            'email'  => trim((string) $this->request->getPost('email')),
+            'subjek' => rapikan_teks((string) $this->request->getPost('subjek')),
+            'pesan'  => trim((string) $this->request->getPost('pesan')),
         ];
 
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        $rules = [
+            'nama'   => 'required|min_length[3]|max_length[255]',
+            'email'  => 'required|valid_email',
+            'subjek' => 'permit_empty|max_length[255]',
+            'pesan'  => 'required|max_length[5000]',
+        ];
+
+        if (!$this->validateData($data, $rules)) {
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $idPesan = $this->kontakModel->insert([
-            'nama'   => $this->request->getPost('nama'),
-            'email'  => $this->request->getPost('email'),
-            'subjek' => $this->request->getPost('subjek'),
-            'pesan'  => $this->request->getPost('pesan'),
-        ]);
+        $id = $this->kontak->kirim($data['nama'], $data['email'], $data['subjek'], $data['pesan']);
 
-        (new \App\Models\NotifikasiModel())->buat(
-            null,
-            'Pesan Masuk Baru',
-            'pesan_masuk',
-            'Pesan dari ' . $this->request->getPost('nama') . ': ' . $this->request->getPost('subjek'),
-            '/admin/kontak/detail/' . $idPesan
-        );
+        if ($id === false) {
+            return $this->kembaliDenganError(
+                $this->kontak->errors() ?: ['gagal' => 'Pesan gagal dikirim. Silakan coba lagi.']
+            );
+        }
 
         return redirect()->to('/kontak')->with('success', 'Pesan Anda berhasil dikirim. Terima kasih!');
+    }
+
+    /**
+     * Maksimal 3 pesan per 10 menit per IP.
+     */
+    private function terlaluBanyakKirim(): bool
+    {
+        return \Config\Services::throttler()->check(md5($this->request->getIPAddress()), 3, 600) === false;
+    }
+
+    private function kembaliDenganError(array $errors)
+    {
+        return redirect()->back()->withInput()->with('errors', $errors);
     }
 }

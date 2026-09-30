@@ -113,6 +113,31 @@ class Services extends BaseService
         );
     }
 
+    public static function kontakService($getShared = true): \App\Services\KontakService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('kontakService');
+        }
+
+        return new \App\Services\KontakService(
+            model(\App\Models\PesanKontakModel::class),
+            model(\App\Models\NotifikasiModel::class),
+        );
+    }
+
+    public static function ppdbService($getShared = true): \App\Services\PpdbService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('ppdbService');
+        }
+
+        return new \App\Services\PpdbService(
+            model(\App\Models\PendaftarPpdbModel::class),
+            model(\App\Models\PengaturanPpdbModel::class),
+            model(\App\Models\NotifikasiModel::class),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {
