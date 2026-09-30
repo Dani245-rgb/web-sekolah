@@ -29,6 +29,13 @@ class PartnerModel extends BaseModel
             ->findAll($limit);
     }
 
+    public function getSemuaPublished(): array
+    {
+        return $this->where('status', 'Published')
+            ->orderBy('nama', 'ASC')
+            ->findAll();
+    }
+
     public function getBySlug(string $slug)
     {
         return $this->where('slug', $slug)

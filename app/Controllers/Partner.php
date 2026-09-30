@@ -3,10 +3,11 @@
 namespace App\Controllers;
 
 use App\Models\PartnerModel;
+use CodeIgniter\Exceptions\PageNotFoundException;
 
 class Partner extends BaseController
 {
-    protected $partnerModel;
+    protected PartnerModel $partnerModel;
 
     public function __construct()
     {
@@ -15,7 +16,8 @@ class Partner extends BaseController
 
     public function index()
     {
-        $data['partner'] = $this->partnerModel->where('status', 'Published')->orderBy('nama', 'ASC')->findAll();
+        $data['partner'] = $this->partnerModel->getSemuaPublished();
+
         return view('partner/index', $data);
     }
 
@@ -24,10 +26,11 @@ class Partner extends BaseController
         $partner = $this->partnerModel->getBySlug($slug);
 
         if (!$partner) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+            throw PageNotFoundException::forPageNotFound();
         }
 
         $data['partner'] = $partner;
+
         return view('partner/detail', $data);
     }
 }
