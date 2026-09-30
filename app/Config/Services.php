@@ -61,6 +61,15 @@ class Services extends BaseService
         );
     }
 
+    public static function backupService($getShared = true): \App\Services\BackupService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('backupService');
+        }
+
+        return new \App\Services\BackupService();
+    }
+
     /*
      * public static function example($getShared = true)
      * {

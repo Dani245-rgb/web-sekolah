@@ -3,116 +3,77 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
+use App\Models\AuditLogModel;
+use App\Services\BackupService;
+use CodeIgniter\Exceptions\PageNotFoundException;
+use RuntimeException;
 
 class BackupDatabase extends BaseController
 {
-    protected string $backupPath;
+    protected BackupService $backup;
+    protected AuditLogModel $auditLogModel;
 
     public function __construct()
     {
         if (!session()->get('is_superadmin')) {
-            throw new \CodeIgniter\Exceptions\PageNotFoundException('Halaman tidak ditemukan.');
+            throw new PageNotFoundException('Halaman tidak ditemukan.');
         }
 
-        $this->backupPath = WRITEPATH . 'backup/';
-
-        if (!is_dir($this->backupPath)) {
-            mkdir($this->backupPath, 0755, true);
-        }
+        $this->backup        = service('backupService');
+        $this->auditLogModel = new AuditLogModel();
     }
 
     public function index()
     {
-        $files = glob($this->backupPath . '*.sql');
-        $files = array_reverse($files); // terbaru duluan
-
-        $data['backups'] = array_map(function ($f) {
-            return [
-                'nama'    => basename($f),
-                'ukuran'  => round(filesize($f) / 1024, 1) . ' KB',
-                'tanggal' => date('d M Y H:i', filemtime($f)),
-            ];
-        }, $files);
+        $data['backups'] = $this->backup->daftar();
 
         return view('admin/backup_database/index', $data);
     }
 
     public function create()
     {
-        $db = \Config\Database::connect();
-        $config = $db->getConnection() ? $db : null;
-
-        $hostname = $db->hostname;
-        $username = $db->username;
-        $password = $db->password;
-        $database = $db->database;
-        $port     = $db->port ?? 3306;
-
-        $filename = 'backup_' . preg_replace('/[^a-zA-Z0-9_-]/', '', $database) . '_' . date('Y-m-d_His') . '.sql';
-        $filepath = $this->backupPath . $filename;
-
-        // Command mysqldump — semua argumen dibungkus escapeshellarg() untuk cegah command injection
-        $mysqldumpPath = 'C:\\laragon\\bin\\mysql\\mysql-8.4.3-winx64\\bin\\mysqldump.exe';
-        $passwordPart  = $password !== '' ? '-p' . escapeshellarg($password) : '';
-        $command = escapeshellarg($mysqldumpPath)
-            . ' -h ' . escapeshellarg($hostname)
-            . ' -P ' . escapeshellarg((string) $port)
-            . ' -u ' . escapeshellarg($username)
-            . ' ' . $passwordPart
-            . ' ' . escapeshellarg($database)
-            . ' > ' . escapeshellarg($filepath) . ' 2>&1';
-
-        exec($command, $output, $resultCode);
-
-        if ($resultCode !== 0 || !file_exists($filepath) || filesize($filepath) === 0) {
-            // Bersihkan file gagal/kosong kalau ada
-            if (file_exists($filepath)) {
-                unlink($filepath);
-            }
-            return redirect()->to('/admin/backup-database')
-                ->with('error', 'Backup gagal. Pastikan mysqldump terpasang dan bisa diakses dari server. Detail: ' . implode(' ', $output));
+        try {
+            $nama = $this->backup->buat();
+        } catch (RuntimeException $e) {
+            return redirect()->to('/admin/backup-database')->with('error', $e->getMessage());
         }
 
-        (new \App\Models\AuditLogModel())->catat(
-            session()->get('id_user'),
-            session()->get('username'),
-            'backup_database',
-            "Membuat backup database: {$filename}"
-        );
+        $this->catatAudit('backup_database', "Membuat backup database: {$nama}");
 
-        return redirect()->to('/admin/backup-database')->with('success', "Backup berhasil dibuat: {$filename}");
+        return redirect()->to('/admin/backup-database')->with('success', "Backup berhasil dibuat: {$nama}");
     }
 
     public function download(string $filename)
     {
-        $filename = basename($filename); // cegah path traversal
-        $filepath = $this->backupPath . $filename;
+        $path = $this->backup->path($filename);
 
-        if (!file_exists($filepath)) {
+        if ($path === null) {
             return redirect()->to('/admin/backup-database')->with('error', 'File backup tidak ditemukan.');
         }
 
-        return $this->response->download($filepath, null);
+        return $this->response->download($path, null);
     }
 
     public function delete(string $filename)
     {
-        $filename = basename($filename);
-        $filepath = $this->backupPath . $filename;
+        $nama = basename($filename);
 
-        if (file_exists($filepath)) {
-            unlink($filepath);
-
-            (new \App\Models\AuditLogModel())->catat(
-                session()->get('id_user'),
-                session()->get('username'),
-                'hapus_backup_database',
-                "Menghapus file backup: {$filename}"
-            );
-
-            return redirect()->to('/admin/backup-database')->with('success', 'Backup berhasil dihapus.');
+        if (!$this->backup->hapus($nama)) {
+            return redirect()->to('/admin/backup-database')->with('error', 'File backup tidak ditemukan.');
         }
 
-        return redirect()->to('/admin/backup-database')->with('error', 'File backup tidak ditemukan.');
+        $this->catatAudit('hapus_backup_database', "Menghapus file backup: {$nama}");
+
+        return redirect()->to('/admin/backup-database')->with('success', 'Backup berhasil dihapus.');
+    }
+
+    private function catatAudit(string $aksi, string $keterangan): void
+    {
+        $this->auditLogModel->catat(
+            session()->get('id_user'),
+            session()->get('username'),
+            $aksi,
+            $keterangan
+        );
     }
 }
