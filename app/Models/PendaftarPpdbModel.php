@@ -6,6 +6,8 @@ use CodeIgniter\Model;
 
 class PendaftarPpdbModel extends BaseModel
 {
+    public const STATUS = ['Menunggu', 'Diterima', 'Ditolak'];
+
     protected $table            = 'pendaftar_ppdb';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
@@ -33,4 +35,13 @@ class PendaftarPpdbModel extends BaseModel
             'is_unique' => 'Nomor HP ini sudah pernah digunakan untuk mendaftar. Jika ini bukan Anda yang mendaftar, silakan hubungi pihak sekolah.',
         ],
     ];
+
+        public function ubahStatus(int $id, string $status): bool
+    {
+        if (!in_array($status, self::STATUS, true)) {
+            return false;
+        }
+
+        return (bool) $this->update($id, ['status' => $status]);
+    }
 }

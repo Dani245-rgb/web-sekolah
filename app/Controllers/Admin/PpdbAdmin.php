@@ -8,11 +8,13 @@ use App\Models\PengaturanPpdbModel;
 
 class PpdbAdmin extends BaseController
 {
-    protected $ppdbModel;
-    protected $settingModel;
+    protected PendaftarPpdbModel $ppdbModel;
+    protected PengaturanPpdbModel $settingModel;
 
     public function __construct()
     {
+        helper('teks');
+
         $this->ppdbModel    = new PendaftarPpdbModel();
         $this->settingModel = new PengaturanPpdbModel();
     }
@@ -41,12 +43,15 @@ class PpdbAdmin extends BaseController
             return redirect()->to('/admin/ppdb')->with('error', 'Data tidak ditemukan.');
         }
 
-        $status = $this->request->getPost('status');
-        if (!in_array($status, ['Menunggu', 'Diterima', 'Ditolak'], true)) {
+        $status = (string) $this->request->getPost('status');
+
+        if (!in_array($status, PendaftarPpdbModel::STATUS, true)) {
             return redirect()->back()->with('error', 'Status tidak valid.');
         }
 
-        $this->ppdbModel->update($id, ['status' => $status]);
+        if (!$this->ppdbModel->ubahStatus((int) $id, $status)) {
+            return redirect()->back()->with('error', 'Status gagal disimpan.');
+        }
 
         return redirect()->to('/admin/ppdb/detail/' . $id)->with('success', 'Status pendaftar berhasil diperbarui.');
     }
@@ -71,17 +76,34 @@ class PpdbAdmin extends BaseController
 
     public function updatePengaturan()
     {
-        $status = $this->request->getPost('status');
-        if (!in_array($status, ['buka', 'tutup'], true)) {
-            return redirect()->back()->with('error', 'Status tidak valid.');
+        $rules = [
+            'status'       => 'required|in_list[' . implode(',', PengaturanPpdbModel::STATUS) . ']',
+            'pesan_tutup'  => 'permit_empty|max_length[255]',
+            'tahun_ajaran' => 'permit_empty|max_length[20]',
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('error', implode(' ', $this->validator->getErrors()));
         }
 
-        $this->settingModel->update(1, [
+        $status      = (string) $this->request->getPost('status');
+        $tahunAjaran = rapikan_teks((string) $this->request->getPost('tahun_ajaran'));
+
+        // Pendaftaran tidak boleh dibuka tanpa tahun ajaran, supaya data pendaftar tercatat lengkap
+        if ($status === 'buka' && $tahunAjaran === '') {
+            return redirect()->back()->withInput()
+                ->with('error', 'Isi tahun ajaran dulu sebelum membuka pendaftaran.');
+        }
+
+        $berhasil = $this->settingModel->simpan([
             'status'       => $status,
             'pesan_tutup'  => $this->request->getPost('pesan_tutup'),
-            'tahun_ajaran' => $this->request->getPost('tahun_ajaran'),
-            'updated_at'   => date('Y-m-d H:i:s'),
+            'tahun_ajaran' => $tahunAjaran !== '' ? $tahunAjaran : null,
         ]);
+
+        if (!$berhasil) {
+            return redirect()->back()->withInput()->with('error', 'Pengaturan PPDB gagal disimpan.');
+        }
 
         return redirect()->to('/admin/ppdb/pengaturan')->with('success', 'Pengaturan PPDB berhasil diperbarui.');
     }
