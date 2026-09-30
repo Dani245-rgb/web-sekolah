@@ -6,7 +6,7 @@ use App\Models\PrestasiModel;
 
 class Prestasi extends BaseController
 {
-    protected $prestasiModel;
+    protected PrestasiModel $prestasiModel;
 
     public function __construct()
     {
@@ -15,10 +15,7 @@ class Prestasi extends BaseController
 
     public function index()
     {
-        $data['prestasi'] = $this->prestasiModel
-            ->where('status', 'Published')
-            ->orderBy('tanggal', 'DESC')
-            ->findAll();
+        $data['prestasi'] = $this->prestasiModel->getSemuaPublished();
 
         return view('prestasi/index', $data);
     }

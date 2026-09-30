@@ -29,4 +29,11 @@ class PrestasiModel extends BaseModel
             ->orderBy('tanggal', 'DESC')
             ->findAll($limit, $offset);
     }
+
+    public function getSemuaPublished(): array
+    {
+        return $this->where('status', 'Published')
+            ->orderBy('tanggal', 'DESC')
+            ->findAll();
+    }
 }
