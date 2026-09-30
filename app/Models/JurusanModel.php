@@ -16,4 +16,12 @@ class JurusanModel extends BaseModel
     {
         return $this->where('slug', $slug)->first();
     }
+
+    /**
+     * Semua jurusan, urut nama (untuk halaman jurusan publik).
+     */
+    public function getSemuaUrut(): array
+    {
+        return $this->orderBy('nama_jurusan', 'ASC')->findAll();
+    }
 }
