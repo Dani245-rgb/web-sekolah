@@ -5,23 +5,32 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Models\AnggotaOrganisasiModel;
 use App\Models\OrganisasiModel;
+use App\Services\FileUploadService;
+use InvalidArgumentException;
+use RuntimeException;
 
 class AnggotaOrganisasi extends BaseController
 {
-    protected $anggotaModel;
-    protected $organisasiModel;
+    private const FOLDER = 'organisasi'; // public/uploads/organisasi
+
+    protected AnggotaOrganisasiModel $anggotaModel;
+    protected OrganisasiModel $organisasiModel;
+    protected FileUploadService $fileUpload;
 
     public function __construct()
     {
+        helper('teks');
+
         $this->anggotaModel    = new AnggotaOrganisasiModel();
         $this->organisasiModel = new OrganisasiModel();
+        $this->fileUpload      = service('fileUploadService');
     }
 
     public function index($idOrganisasi)
     {
         $organisasi = $this->organisasiModel->find($idOrganisasi);
         if (!$organisasi) {
-            return redirect()->to('/admin/organisasi')->with('error', 'Organisasi tidak ditemukan.');
+            return $this->organisasiTidakDitemukan();
         }
 
         $data['organisasi'] = $organisasi;
@@ -36,7 +45,7 @@ class AnggotaOrganisasi extends BaseController
     {
         $organisasi = $this->organisasiModel->find($idOrganisasi);
         if (!$organisasi) {
-            return redirect()->to('/admin/organisasi')->with('error', 'Organisasi tidak ditemukan.');
+            return $this->organisasiTidakDitemukan();
         }
 
         $data['organisasi'] = $organisasi;
@@ -47,93 +56,145 @@ class AnggotaOrganisasi extends BaseController
 
     public function store($idOrganisasi)
     {
-        $rules = [
-            'nama'    => 'required|min_length[2]|max_length[255]',
-            'jabatan' => 'required|max_length[100]',
-        ];
-
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        if (!$this->organisasiModel->find($idOrganisasi)) {
+            return $this->organisasiTidakDitemukan();
         }
 
-        $fotoName = null;
-        $file = $this->request->getFile('foto');
-        if ($file && $file->isValid() && !$file->hasMoved()) {
-            $fotoName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/organisasi', $fotoName);
+        if (!$this->validate($this->rules())) {
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $this->anggotaModel->insert([
-            'id_organisasi' => $idOrganisasi,
-            'nama'          => $this->request->getPost('nama'),
-            'jabatan'       => $this->request->getPost('jabatan'),
-            'foto'          => $fotoName,
+        // Foto opsional. Kalau tidak diupload, hasilnya null.
+        try {
+            $foto = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
+        }
+
+        $berhasil = $this->anggotaModel->insert([
+            'id_organisasi' => (int) $idOrganisasi,
+            'nama'          => rapikan_teks((string) $this->request->getPost('nama')),
+            'jabatan'       => rapikan_teks((string) $this->request->getPost('jabatan')),
+            'foto'          => $foto,
             'urutan'        => (int) $this->request->getPost('urutan'),
         ]);
 
-        return redirect()->to('/admin/organisasi/' . $idOrganisasi . '/anggota')->with('success', 'Anggota berhasil ditambahkan.');
+        if (!$berhasil) {
+            $this->fileUpload->hapus($foto, self::FOLDER);
+            return $this->kembaliDenganError($this->anggotaModel->errors());
+        }
+
+        return redirect()->to($this->urlDaftar($idOrganisasi))->with('success', 'Anggota berhasil ditambahkan.');
     }
 
     public function edit($idOrganisasi, $id)
     {
-        $data['organisasi'] = $this->organisasiModel->find($idOrganisasi);
-        $data['item']       = $this->anggotaModel->find($id);
-
-        if (!$data['item']) {
-            return redirect()->to('/admin/organisasi/' . $idOrganisasi . '/anggota')->with('error', 'Data tidak ditemukan.');
+        $organisasi = $this->organisasiModel->find($idOrganisasi);
+        if (!$organisasi) {
+            return $this->organisasiTidakDitemukan();
         }
+
+        $item = $this->cariAnggota($idOrganisasi, $id);
+        if (!$item) {
+            return redirect()->to($this->urlDaftar($idOrganisasi))->with('error', 'Data tidak ditemukan.');
+        }
+
+        $data['organisasi'] = $organisasi;
+        $data['item']       = $item;
 
         return view('admin/anggota_organisasi/form', $data);
     }
 
     public function update($idOrganisasi, $id)
     {
-        $item = $this->anggotaModel->find($id);
+        $item = $this->cariAnggota($idOrganisasi, $id);
         if (!$item) {
-            return redirect()->to('/admin/organisasi/' . $idOrganisasi . '/anggota')->with('error', 'Data tidak ditemukan.');
+            return redirect()->to($this->urlDaftar($idOrganisasi))->with('error', 'Data tidak ditemukan.');
         }
 
-        $rules = [
-            'nama'    => 'required|min_length[2]|max_length[255]',
-            'jabatan' => 'required|max_length[100]',
-        ];
-
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        if (!$this->validate($this->rules())) {
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $updateData = [
-            'nama'    => $this->request->getPost('nama'),
-            'jabatan' => $this->request->getPost('jabatan'),
+        $dataUpdate = [
+            'nama'    => rapikan_teks((string) $this->request->getPost('nama')),
+            'jabatan' => rapikan_teks((string) $this->request->getPost('jabatan')),
             'urutan'  => (int) $this->request->getPost('urutan'),
         ];
 
-        $file = $this->request->getFile('foto');
-        if ($file && $file->isValid() && !$file->hasMoved()) {
-            $newName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/organisasi', $newName);
-            $updateData['foto'] = $newName;
-
-            if ($item['foto'] && is_file(FCPATH . 'uploads/organisasi/' . $item['foto'])) {
-                unlink(FCPATH . 'uploads/organisasi/' . $item['foto']);
-            }
+        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
+        try {
+            $fotoBaru = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
         }
 
-        $this->anggotaModel->update($id, $updateData);
+        if ($fotoBaru !== null) {
+            $dataUpdate['foto'] = $fotoBaru;
+        }
 
-        return redirect()->to('/admin/organisasi/' . $idOrganisasi . '/anggota')->with('success', 'Anggota berhasil diperbarui.');
+        if (!$this->anggotaModel->update($id, $dataUpdate)) {
+            $this->fileUpload->hapus($fotoBaru, self::FOLDER);
+            return $this->kembaliDenganError($this->anggotaModel->errors());
+        }
+
+        // Foto lama baru dihapus SETELAH update DB sukses
+        if ($fotoBaru !== null) {
+            $this->fileUpload->hapus($item['foto'], self::FOLDER);
+        }
+
+        return redirect()->to($this->urlDaftar($idOrganisasi))->with('success', 'Anggota berhasil diperbarui.');
     }
 
     public function delete($idOrganisasi, $id)
     {
-        $item = $this->anggotaModel->find($id);
+        $item = $this->cariAnggota($idOrganisasi, $id);
+
         if ($item) {
-            if ($item['foto'] && is_file(FCPATH . 'uploads/organisasi/' . $item['foto'])) {
-                unlink(FCPATH . 'uploads/organisasi/' . $item['foto']);
-            }
             $this->anggotaModel->delete($id);
+
+            // File dihapus SETELAH record DB terhapus
+            $this->fileUpload->hapus($item['foto'], self::FOLDER);
         }
 
-        return redirect()->to('/admin/organisasi/' . $idOrganisasi . '/anggota')->with('success', 'Anggota berhasil dihapus.');
+        return redirect()->to($this->urlDaftar($idOrganisasi))->with('success', 'Anggota berhasil dihapus.');
+    }
+
+    /**
+     * Cari anggota, sekaligus pastikan dia memang milik organisasi di URL.
+     */
+    private function cariAnggota($idOrganisasi, $id): ?array
+    {
+        $item = $this->anggotaModel->find($id);
+
+        if (!$item || (int) $item['id_organisasi'] !== (int) $idOrganisasi) {
+            return null;
+        }
+
+        return $item;
+    }
+
+    private function rules(): array
+    {
+        return [
+            'nama'    => 'required|min_length[2]|max_length[255]',
+            'jabatan' => 'required|max_length[100]',
+            'urutan'  => 'permit_empty|is_natural',
+        ];
+    }
+
+    private function urlDaftar($idOrganisasi): string
+    {
+        return '/admin/organisasi/' . $idOrganisasi . '/anggota';
+    }
+
+    private function organisasiTidakDitemukan()
+    {
+        return redirect()->to('/admin/organisasi')->with('error', 'Organisasi tidak ditemukan.');
+    }
+
+    private function kembaliDenganError(array $errors)
+    {
+        return redirect()->back()->withInput()->with('errors', $errors);
     }
 }
