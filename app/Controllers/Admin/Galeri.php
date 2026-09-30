@@ -4,14 +4,23 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\GaleriModel;
+use App\Services\FileUploadService;
+use InvalidArgumentException;
+use RuntimeException;
 
 class Galeri extends BaseController
 {
-    protected $galeriModel;
+    private const FOLDER = 'galeri'; // public/uploads/galeri
+
+    protected GaleriModel $galeriModel;
+    protected FileUploadService $fileUpload;
 
     public function __construct()
     {
+        helper('teks');
+
         $this->galeriModel = new GaleriModel();
+        $this->fileUpload  = service('fileUploadService');
     }
 
     public function index()
@@ -28,28 +37,35 @@ class Galeri extends BaseController
 
     public function store()
     {
-        $rules = [
-            'judul'    => 'required|min_length[3]|max_length[255]',
-            'kategori' => 'required|in_list[Kegiatan,Fasilitas,Prestasi,Lainnya]',
-            'status'   => 'required|in_list[Published,Draft]',
-            'foto'     => 'uploaded[foto]|is_image[foto]|mime_in[foto,image/jpg,image/jpeg,image/png,image/webp]|max_size[foto,2048]',
-        ];
+        $rules = $this->rules() + ['foto' => 'uploaded[foto]'];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $file = $this->request->getFile('foto');
-        $newName = $file->getRandomName();
-        $file->move(FCPATH . 'uploads/galeri', $newName);
+        try {
+            $foto = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
+        }
 
-        $this->galeriModel->insert([
-            'judul'     => $this->request->getPost('judul'),
-            'foto'      => $newName,
+        if ($foto === null) {
+            return $this->kembaliDenganError(['foto' => 'Foto gagal diupload.']);
+        }
+
+        $berhasil = $this->galeriModel->insert([
+            'judul'     => rapikan_teks((string) $this->request->getPost('judul')),
+            'foto'      => $foto,
             'kategori'  => $this->request->getPost('kategori'),
             'deskripsi' => $this->request->getPost('deskripsi'),
             'status'    => $this->request->getPost('status'),
         ]);
+
+        if (!$berhasil) {
+            // Data gagal masuk DB, file yang sudah terlanjur diupload dibuang lagi
+            $this->fileUpload->hapus($foto, self::FOLDER);
+            return $this->kembaliDenganError($this->galeriModel->errors());
+        }
 
         return redirect()->to('/admin/galeri')->with('success', 'Foto berhasil ditambahkan.');
     }
@@ -72,42 +88,39 @@ class Galeri extends BaseController
             return redirect()->to('/admin/galeri')->with('error', 'Data tidak ditemukan.');
         }
 
-        $rules = [
-            'judul'    => 'required|min_length[3]|max_length[255]',
-            'kategori' => 'required|in_list[Kegiatan,Fasilitas,Prestasi,Lainnya]',
-            'status'   => 'required|in_list[Published,Draft]',
-        ];
-
-        // foto hanya divalidasi kalau user upload foto baru
-        if ($this->request->getFile('foto')->isValid()) {
-            $rules['foto'] = 'is_image[foto]|mime_in[foto,image/jpg,image/jpeg,image/png,image/webp]|max_size[foto,2048]';
+        if (!$this->validate($this->rules())) {
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-
-        $updateData = [
-            'judul'     => $this->request->getPost('judul'),
+        $dataUpdate = [
+            'judul'     => rapikan_teks((string) $this->request->getPost('judul')),
             'kategori'  => $this->request->getPost('kategori'),
             'deskripsi' => $this->request->getPost('deskripsi'),
             'status'    => $this->request->getPost('status'),
         ];
 
-        $file = $this->request->getFile('foto');
-        if ($file->isValid() && !$file->hasMoved()) {
-            $newName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/galeri', $newName);
-            $updateData['foto'] = $newName;
-
-            // hapus foto lama
-            $oldPath = FCPATH . 'uploads/galeri/' . $galeri['foto'];
-            if (is_file($oldPath)) {
-                unlink($oldPath);
-            }
+        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
+        try {
+            $fotoBaru = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
         }
 
-        $this->galeriModel->update($id, $updateData);
+        if ($fotoBaru !== null) {
+            $dataUpdate['foto'] = $fotoBaru;
+        }
+
+        if (!$this->galeriModel->update($id, $dataUpdate)) {
+            if ($fotoBaru !== null) {
+                $this->fileUpload->hapus($fotoBaru, self::FOLDER);
+            }
+            return $this->kembaliDenganError($this->galeriModel->errors());
+        }
+
+        // Foto lama baru dihapus SETELAH update DB sukses
+        if ($fotoBaru !== null) {
+            $this->fileUpload->hapus($galeri['foto'], self::FOLDER);
+        }
 
         return redirect()->to('/admin/galeri')->with('success', 'Foto berhasil diperbarui.');
     }
@@ -119,13 +132,25 @@ class Galeri extends BaseController
             return redirect()->to('/admin/galeri')->with('error', 'Data tidak ditemukan.');
         }
 
-        $path = FCPATH . 'uploads/galeri/' . $galeri['foto'];
-        if (is_file($path)) {
-            unlink($path);
-        }
-
         $this->galeriModel->delete($id);
 
+        // File dihapus SETELAH record DB terhapus
+        $this->fileUpload->hapus($galeri['foto'], self::FOLDER);
+
         return redirect()->to('/admin/galeri')->with('success', 'Foto berhasil dihapus.');
+    }
+
+    private function rules(): array
+    {
+        return [
+            'judul'    => 'required|min_length[3]|max_length[255]',
+            'kategori' => 'required|in_list[Kegiatan,Fasilitas,Prestasi,Lainnya]',
+            'status'   => 'required|in_list[Published,Draft]',
+        ];
+    }
+
+    private function kembaliDenganError(array $errors)
+    {
+        return redirect()->back()->withInput()->with('errors', $errors);
     }
 }
