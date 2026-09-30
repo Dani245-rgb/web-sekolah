@@ -77,6 +77,10 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                     class="<?= strpos(uri_string(), 'admin/ekstrakurikuler') === 0 ? 'active' : '' ?>"><i class="bi bi-stars"></i> <span class="label">Ekstrakurikuler</span></a>
                 <a href="<?= base_url('admin/partner') ?>"
                     class="<?= strpos(uri_string(), 'admin/partner') === 0 ? 'active' : '' ?>"><i class="bi bi-briefcase"></i> <span class="label">Industri Mitra</span></a>
+                <a href="<?= base_url('admin/pkl') ?>"
+                    class="<?= strpos(uri_string(), 'admin/pkl') === 0 ? 'active' : '' ?>"><i class="bi bi-person-workspace"></i> <span class="label">PKL</span></a>
+                <a href="<?= base_url('admin/laporan-siswa') ?>"
+                    class="<?= strpos(uri_string(), 'admin/laporan-siswa') === 0 ? 'active' : '' ?>"><i class="bi bi-file-earmark-bar-graph"></i> <span class="label">Laporan Siswa</span></a>
                 <a href="<?= base_url('admin/ppdb') ?>"
                     class="<?= strpos(uri_string(), 'admin/ppdb') === 0 && strpos(uri_string(), 'pengaturan') === false ? 'active' : '' ?>"><i class="bi bi-file-earmark-person"></i> <span class="label">PPDB</span></a>
                 <a href="<?= base_url('admin/ppdb/pengaturan') ?>"
@@ -92,25 +96,25 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
 
 
                 <?php if (session()->get('is_superadmin')): ?>
-                <p class="menu-label">USER MANAGEMENT</p>
-                <a href="<?= base_url('admin/user/admin') ?>"
-                    class="<?= uri_string() === 'admin/user' || uri_string() === 'admin/user/admin' ? 'active' : '' ?>"><i class="bi bi-person-gear"></i> <span class="label">Admin</span></a>
-                <a href="<?= base_url('admin/role-permission') ?>"
-                    class="<?= strpos(uri_string(), 'admin/role-permission') === 0 ? 'active' : '' ?>"><i class="bi bi-shield-lock"></i> <span class="label">Role & Permission</span></a>
+                    <p class="menu-label">USER MANAGEMENT</p>
+                    <a href="<?= base_url('admin/user/admin') ?>"
+                        class="<?= uri_string() === 'admin/user' || uri_string() === 'admin/user/admin' ? 'active' : '' ?>"><i class="bi bi-person-gear"></i> <span class="label">Admin</span></a>
+                    <a href="<?= base_url('admin/role-permission') ?>"
+                        class="<?= strpos(uri_string(), 'admin/role-permission') === 0 ? 'active' : '' ?>"><i class="bi bi-shield-lock"></i> <span class="label">Role & Permission</span></a>
                 <?php endif; ?>
 
                 <p class="menu-label">SISTEM</p>
                 <a href="<?= base_url('admin/notifikasi') ?>"
                     class="<?= strpos(uri_string(), 'admin/notifikasi') === 0 ? 'active' : '' ?>"><i class="bi bi-bell"></i> <span class="label">Notifikasi</span></a>
                 <?php if (session()->get('is_superadmin')): ?>
-                <a href="<?= base_url('admin/backup-database') ?>"
-                    class="<?= strpos(uri_string(), 'admin/backup-database') === 0 ? 'active' : '' ?>"><i class="bi bi-hdd-stack"></i> <span class="label">Backup Database</span></a>
+                    <a href="<?= base_url('admin/backup-database') ?>"
+                        class="<?= strpos(uri_string(), 'admin/backup-database') === 0 ? 'active' : '' ?>"><i class="bi bi-hdd-stack"></i> <span class="label">Backup Database</span></a>
                 <?php endif; ?>
                 <a href="<?= base_url('admin/pengaturan') ?>"
                     class="<?= strpos(uri_string(), 'admin/pengaturan') === 0 ? 'active' : '' ?>"><i class="bi bi-gear"></i> <span class="label">Pengaturan</span></a>
                 <?php if (session()->get('is_superadmin')): ?>
-                <a href="<?= base_url('admin/audit-log') ?>"
-                    class="<?= strpos(uri_string(), 'admin/audit-log') === 0 ? 'active' : '' ?>"><i class="bi bi-journal-text"></i> <span class="label">Audit Log</span></a>
+                    <a href="<?= base_url('admin/audit-log') ?>"
+                        class="<?= strpos(uri_string(), 'admin/audit-log') === 0 ? 'active' : '' ?>"><i class="bi bi-journal-text"></i> <span class="label">Audit Log</span></a>
                 <?php endif; ?>
             </nav>
         </aside>
