@@ -27,4 +27,15 @@ class EkstrakurikulerModel extends BaseModel
             ->orderBy('nama', 'ASC')
             ->findAll($limit);
     }
+
+        public function namaSudahAda(string $nama, ?int $excludeId = null): bool
+    {
+        $builder = $this->where('nama', $nama);
+
+        if ($excludeId !== null) {
+            $builder->where('id !=', $excludeId);
+        }
+
+        return $builder->first() !== null;
+    }
 }
