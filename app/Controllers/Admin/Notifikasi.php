@@ -16,8 +16,7 @@ class Notifikasi extends BaseController
 
     public function index()
     {
-        $userId = session()->get('id_user');
-        $data['notifikasi'] = $this->model->getForUser($userId, 50);
+        $data['notifikasi'] = $this->model->getForUser($this->idUser(), 50);
 
         return view('admin/notifikasi/index', $data);
     }
@@ -27,7 +26,7 @@ class Notifikasi extends BaseController
      */
     public function poll()
     {
-        $userId = session()->get('id_user');
+        $userId = $this->idUser();
 
         return $this->response->setJSON([
             'unread_count' => $this->model->countUnread($userId),
@@ -37,27 +36,42 @@ class Notifikasi extends BaseController
 
     public function baca($idNotif)
     {
-        $userId = session()->get('id_user');
-        $notif  = $this->model->find($idNotif);
+        $notif = $this->model->cariUntukUser((int) $idNotif, $this->idUser());
 
-        // Boleh ditandai kalau: milik sendiri, ATAU broadcast (user_id null, buat semua Admin)
-        $bolehAkses = $notif && ($notif['user_id'] === null || (int) $notif['user_id'] === (int) $userId);
-
-        if (!$bolehAkses) {
+        if (!$notif) {
             return redirect()->to('/admin/notifikasi')->with('error', 'Notifikasi tidak ditemukan.');
         }
 
-        $this->model->tandaiDibaca($idNotif);
+        $this->model->tandaiDibaca((int) $idNotif);
 
-        if (!empty($notif['link'])) {
+        if (!empty($notif['link']) && $this->linkInternal($notif['link'])) {
             return redirect()->to($notif['link']);
         }
 
         return redirect()->to('/admin/notifikasi');
     }
+
     public function bacaSemua()
     {
-        $this->model->tandaiSemuaDibaca(session()->get('id_user'));
+        $this->model->tandaiSemuaDibaca($this->idUser());
         return redirect()->back();
+    }
+
+    private function idUser(): int
+    {
+        return (int) session()->get('id_user');
+    }
+
+    /**
+     * Link boleh relatif (admin/kontak/...) atau alamat situs ini sendiri.
+     * Alamat luar (https://situs-lain.com, //situs-lain.com, javascript:...) ditolak.
+     */
+    private function linkInternal(string $link): bool
+    {
+        if (str_starts_with($link, base_url())) {
+            return true;
+        }
+
+        return !preg_match('#^([a-z][a-z0-9+.\-]*:|//)#i', $link);
     }
 }

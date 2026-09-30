@@ -51,6 +51,25 @@ class NotifikasiModel extends Model
             ->countAllResults();
     }
 
+    /**
+     * Cari satu notifikasi, tapi hanya kalau boleh diakses user ini:
+     * milik sendiri, ATAU broadcast (user_id null, buat semua Admin).
+     */
+    public function cariUntukUser(int $idNotif, int $userId): ?array
+    {
+        $notif = $this->find($idNotif);
+
+        if (!$notif) {
+            return null;
+        }
+
+        if ($notif['user_id'] !== null && (int) $notif['user_id'] !== $userId) {
+            return null;
+        }
+
+        return $notif;
+    }
+
     public function tandaiDibaca(int $idNotif)
     {
         return $this->update($idNotif, ['is_read' => 1]);
