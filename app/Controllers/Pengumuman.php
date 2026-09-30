@@ -3,10 +3,11 @@
 namespace App\Controllers;
 
 use App\Models\PengumumanModel;
+use CodeIgniter\Exceptions\PageNotFoundException;
 
 class Pengumuman extends BaseController
 {
-    protected $pengumumanModel;
+    protected PengumumanModel $pengumumanModel;
 
     public function __construct()
     {
@@ -15,11 +16,7 @@ class Pengumuman extends BaseController
 
     public function index()
     {
-        $perPage = 10;
-        $page    = (int) ($this->request->getGet('page') ?? 1);
-        $offset  = ($page - 1) * $perPage;
-
-        $data['pengumuman'] = $this->pengumumanModel->getPublished($perPage, $offset);
+        $data['pengumuman'] = $this->pengumumanModel->getPublished(10);
         $data['pager']      = $this->pengumumanModel->pager;
 
         return view('pengumuman/index', $data);
@@ -30,7 +27,7 @@ class Pengumuman extends BaseController
         $pengumuman = $this->pengumumanModel->getBySlug($slug);
 
         if (!$pengumuman) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+            throw PageNotFoundException::forPageNotFound();
         }
 
         $data['pengumuman'] = $pengumuman;

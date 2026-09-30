@@ -24,12 +24,12 @@ class PengumumanModel extends BaseModel
         'status'          => 'required|in_list[Published,Draft]',
     ];
 
-    public function getPublished(int $limit = 10, int $offset = 0)
+    public function getPublished(int $limit = 10)
     {
         return $this->where('status', 'Published')
             ->where('tanggal_publish <=', date('Y-m-d'))
             ->orderBy('tanggal_publish', 'DESC')
-            ->paginate($limit, 'default', ($offset / $limit) + 1);
+            ->paginate($limit);
     }
 
     public function getBySlug(string $slug)
