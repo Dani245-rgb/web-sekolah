@@ -6,13 +6,16 @@ use App\Models\GuruModel;
 
 class GuruPublik extends BaseController
 {
+    protected GuruModel $guruModel;
+
+    public function __construct()
+    {
+        $this->guruModel = new GuruModel();
+    }
+
     public function index()
     {
-        $guruModel = new GuruModel();
-
-        $data['guru'] = $guruModel->where('status', 'Aktif')
-            ->orderBy('nama', 'ASC')
-            ->findAll();
+        $data['guru'] = $this->guruModel->getAktif();
 
         return view('guru_publik/index', $data);
     }

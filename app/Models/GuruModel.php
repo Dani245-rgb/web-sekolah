@@ -15,19 +15,8 @@ class GuruModel extends BaseModel
     public const STATUS = ['Aktif', 'Nonaktif'];
 
     protected $allowedFields = [
-        'user_id',
-        'nip',
-        'nuptk',
-        'nama',
-        'tempat_lahir',
-        'tanggal_lahir',
-        'jenis_kelamin',
-        'jabatan',
-        'no_hp',
-        'email',
-        'foto',
-        'status',
-        'is_bk',
+        'user_id', 'nip', 'nuptk', 'nama', 'tempat_lahir', 'tanggal_lahir',
+        'jenis_kelamin', 'jabatan', 'no_hp', 'email', 'foto', 'status', 'is_bk',
     ];
 
     protected $validationRules = [
@@ -74,7 +63,17 @@ class GuruModel extends BaseModel
     public function getGuruBk()
     {
         return $this->where('is_bk', 1)
-            ->where('status', 'Aktif')
+                    ->where('status', 'Aktif')
+                    ->orderBy('nama', 'ASC')
+                    ->findAll();
+    }
+
+    /**
+     * Semua guru berstatus Aktif, urut nama (untuk halaman guru publik).
+     */
+    public function getAktif(): array
+    {
+        return $this->where('status', 'Aktif')
             ->orderBy('nama', 'ASC')
             ->findAll();
     }
