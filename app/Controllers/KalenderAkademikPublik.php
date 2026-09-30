@@ -6,11 +6,16 @@ use App\Models\KalenderAkademikModel;
 
 class KalenderAkademikPublik extends BaseController
 {
+    protected KalenderAkademikModel $kalenderModel;
+
+    public function __construct()
+    {
+        $this->kalenderModel = new KalenderAkademikModel();
+    }
+
     public function index()
     {
-        $kalenderModel = new KalenderAkademikModel();
-
-        $data['kalender'] = $kalenderModel->getPublished();
+        $data['kalender'] = $this->kalenderModel->getPublished();
 
         return view('kalender_akademik_publik/index', $data);
     }
