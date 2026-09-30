@@ -30,4 +30,14 @@ class AgendaModel extends BaseModel
             ->orderBy('tanggal', 'ASC')
             ->findAll($limit);
     }
+
+    /**
+     * Semua agenda yang dipublikasikan (termasuk yang sudah lewat), urut tanggal.
+     */
+    public function getSemuaPublished(): array
+    {
+        return $this->where('status', 'Published')
+            ->orderBy('tanggal', 'ASC')
+            ->findAll();
+    }
 }

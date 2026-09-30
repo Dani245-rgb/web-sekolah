@@ -6,7 +6,7 @@ use App\Models\AgendaModel;
 
 class Agenda extends BaseController
 {
-    protected $agendaModel;
+    protected AgendaModel $agendaModel;
 
     public function __construct()
     {
@@ -15,10 +15,7 @@ class Agenda extends BaseController
 
     public function index()
     {
-        $data['agenda'] = $this->agendaModel
-            ->where('status', 'Published')
-            ->orderBy('tanggal', 'ASC')
-            ->findAll();
+        $data['agenda'] = $this->agendaModel->getSemuaPublished();
 
         return view('agenda/index', $data);
     }
