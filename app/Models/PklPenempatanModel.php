@@ -13,13 +13,23 @@ class PklPenempatanModel extends BaseModel
     protected $useTimestamps    = true;
 
     protected $allowedFields = [
-        'id_siswa', 'id_guru_pembimbing', 'nama_perusahaan', 'alamat_perusahaan',
-        'nama_pembimbing_industri', 'no_hp_pembimbing_industri',
-        'tanggal_mulai', 'tanggal_selesai', 'status', 'catatan',
+        'id_siswa',
+        'id_guru_pembimbing',
+        'nama_perusahaan',
+        'alamat_perusahaan',
+        'nama_pembimbing_industri',
+        'no_hp_pembimbing_industri',
+        'tanggal_mulai',
+        'tanggal_selesai',
+        'status',
+        'catatan',
     ];
 
+    public const STATUS = ['Aktif', 'Selesai', 'Dibatalkan'];
+
     protected $validationRules = [
-        'id_siswa'         => 'required|is_natural_no_zero',
+        'id_siswa'           => 'required|is_natural_no_zero|is_not_unique[siswa.id_siswa]',
+        'id_guru_pembimbing' => 'permit_empty|is_natural_no_zero|is_not_unique[guru.id_guru]',
         'nama_perusahaan'  => 'required|min_length[3]|max_length[150]',
         'tanggal_mulai'    => 'required|valid_date',
         'tanggal_selesai'  => 'permit_empty|valid_date',
@@ -66,4 +76,36 @@ class PklPenempatanModel extends BaseModel
 
         return $builder->orderBy('pkl_penempatan.tanggal_mulai', 'DESC')->findAll();
     }
+
+    /**
+     * Aturan bisnis di luar validasi biasa. Return pesan error, atau null kalau lolos.
+     */
+    public function cekAturan(array $data, ?int $kecualiId = null): ?string
+    {
+        if (
+            !empty($data['tanggal_selesai'])
+            && strtotime($data['tanggal_selesai']) < strtotime($data['tanggal_mulai'])
+        ) {
+            return 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.';
+        }
+
+        if (($data['status'] ?? null) === 'Aktif'
+            && $this->sudahAdaAktif((int) $data['id_siswa'], $kecualiId)
+        ) {
+            return 'Siswa ini sudah punya penempatan PKL yang berstatus Aktif.';
+        }
+
+        return null;
+    }
+
+    public function sudahAdaAktif(int $idSiswa, ?int $kecualiId = null): bool
+    {
+        $builder = $this->where('id_siswa', $idSiswa)->where('status', 'Aktif');
+
+        if ($kecualiId !== null) {
+            $builder->where('id_penempatan !=', $kecualiId);
+        }
+
+        return $builder->countAllResults() > 0;
+    }   
 }

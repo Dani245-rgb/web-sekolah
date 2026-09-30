@@ -3,60 +3,57 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
+use App\Models\GuruModel;
 use App\Models\PklPenempatanModel;
 use App\Models\SiswaModel;
-use App\Models\GuruModel;
 
 class Pkl extends BaseController
 {
+    protected PklPenempatanModel $pklModel;
+    protected SiswaModel $siswaModel;
+    protected GuruModel $guruModel;
+
+    public function __construct()
+    {
+        helper('teks');
+
+        $this->pklModel   = new PklPenempatanModel();
+        $this->siswaModel = new SiswaModel();
+        $this->guruModel  = new GuruModel();
+    }
+
     public function index()
     {
-        $pklModel = new PklPenempatanModel();
+        $keyword = $this->request->getGet('keyword');
+        $status  = $this->request->getGet('status');
 
         $filter = [
-            'keyword' => $this->request->getGet('keyword'),
-            'status'  => $this->request->getGet('status'),
+            'keyword' => is_string($keyword) && trim($keyword) !== '' ? trim($keyword) : null,
+            'status'  => in_array($status, PklPenempatanModel::STATUS, true) ? $status : null,
         ];
 
-        $daftar = $pklModel->getAllWithRelasi($filter);
-
         return view('admin/pkl/index', [
-            'daftar' => $daftar,
+            'daftar' => $this->pklModel->getAllWithRelasi($filter),
             'filter' => $filter,
         ]);
     }
 
     public function create()
     {
-        $siswaModel = new SiswaModel();
-        $guruModel  = new GuruModel();
-
-        return view('admin/pkl/form', [
-            'siswaList' => $siswaModel->orderBy('nama', 'ASC')->findAll(),
-            'guruList'  => $guruModel->where('status', 'Aktif')->orderBy('nama', 'ASC')->findAll(),
-            'penempatan' => null,
-        ]);
+        return view('admin/pkl/form', $this->dataForm(null));
     }
 
     public function store()
     {
-        $pklModel = new PklPenempatanModel();
+        $data = $this->dataDariForm();
 
-        $data = [
-            'id_siswa'                  => $this->request->getPost('id_siswa'),
-            'id_guru_pembimbing'        => $this->request->getPost('id_guru_pembimbing') ?: null,
-            'nama_perusahaan'           => $this->request->getPost('nama_perusahaan'),
-            'alamat_perusahaan'         => $this->request->getPost('alamat_perusahaan'),
-            'nama_pembimbing_industri'  => $this->request->getPost('nama_pembimbing_industri'),
-            'no_hp_pembimbing_industri' => $this->request->getPost('no_hp_pembimbing_industri'),
-            'tanggal_mulai'             => $this->request->getPost('tanggal_mulai'),
-            'tanggal_selesai'           => $this->request->getPost('tanggal_selesai') ?: null,
-            'status'                    => $this->request->getPost('status'),
-            'catatan'                   => $this->request->getPost('catatan'),
-        ];
+        $masalah = $this->cariMasalah($data);
+        if ($masalah) {
+            return redirect()->back()->withInput()->with('errors', $masalah);
+        }
 
-        if (!$pklModel->save($data)) {
-            return redirect()->back()->withInput()->with('errors', $pklModel->errors());
+        if (!$this->pklModel->insert($data)) {
+            return redirect()->back()->withInput()->with('errors', $this->pklModel->errors());
         }
 
         return redirect()->to('/admin/pkl')->with('success', 'Penempatan PKL berhasil ditambahkan.');
@@ -64,46 +61,30 @@ class Pkl extends BaseController
 
     public function edit($id)
     {
-        $pklModel   = new PklPenempatanModel();
-        $siswaModel = new SiswaModel();
-        $guruModel  = new GuruModel();
-
-        $penempatan = $pklModel->find($id);
+        $penempatan = $this->pklModel->find($id);
         if (!$penempatan) {
-            return redirect()->to('/admin/pkl')->with('errors', ['404' => 'Data penempatan tidak ditemukan.']);
+            return $this->tidakDitemukan();
         }
 
-        return view('admin/pkl/form', [
-            'siswaList'  => $siswaModel->orderBy('nama', 'ASC')->findAll(),
-            'guruList'   => $guruModel->where('status', 'Aktif')->orderBy('nama', 'ASC')->findAll(),
-            'penempatan' => $penempatan,
-        ]);
+        return view('admin/pkl/form', $this->dataForm($penempatan));
     }
 
     public function update($id)
     {
-        $pklModel = new PklPenempatanModel();
-
-        $penempatan = $pklModel->find($id);
+        $penempatan = $this->pklModel->find($id);
         if (!$penempatan) {
-            return redirect()->to('/admin/pkl')->with('errors', ['404' => 'Data penempatan tidak ditemukan.']);
+            return $this->tidakDitemukan();
         }
 
-        $data = [
-            'id_siswa'                  => $this->request->getPost('id_siswa'),
-            'id_guru_pembimbing'        => $this->request->getPost('id_guru_pembimbing') ?: null,
-            'nama_perusahaan'           => $this->request->getPost('nama_perusahaan'),
-            'alamat_perusahaan'         => $this->request->getPost('alamat_perusahaan'),
-            'nama_pembimbing_industri'  => $this->request->getPost('nama_pembimbing_industri'),
-            'no_hp_pembimbing_industri' => $this->request->getPost('no_hp_pembimbing_industri'),
-            'tanggal_mulai'             => $this->request->getPost('tanggal_mulai'),
-            'tanggal_selesai'           => $this->request->getPost('tanggal_selesai') ?: null,
-            'status'                    => $this->request->getPost('status'),
-            'catatan'                   => $this->request->getPost('catatan'),
-        ];
+        $data = $this->dataDariForm();
 
-        if (!$pklModel->update($id, $data)) {
-            return redirect()->back()->withInput()->with('errors', $pklModel->errors());
+        $masalah = $this->cariMasalah($data, (int) $id);
+        if ($masalah) {
+            return redirect()->back()->withInput()->with('errors', $masalah);
+        }
+
+        if (!$this->pklModel->update($id, $data)) {
+            return redirect()->back()->withInput()->with('errors', $this->pklModel->errors());
         }
 
         return redirect()->to('/admin/pkl')->with('success', 'Penempatan PKL berhasil diperbarui.');
@@ -111,14 +92,59 @@ class Pkl extends BaseController
 
     public function delete($id)
     {
-        $pklModel = new PklPenempatanModel();
-
-        if (!$pklModel->find($id)) {
-            return redirect()->to('/admin/pkl')->with('errors', ['404' => 'Data penempatan tidak ditemukan.']);
+        if (!$this->pklModel->find($id)) {
+            return $this->tidakDitemukan();
         }
 
-        $pklModel->delete($id); // jurnal ikut terhapus (ON DELETE CASCADE)
+        $this->pklModel->delete($id); // jurnal ikut terhapus (ON DELETE CASCADE)
 
         return redirect()->to('/admin/pkl')->with('success', 'Penempatan PKL berhasil dihapus.');
+    }
+
+    /**
+     * Data dari form yang sudah dirapikan, dipakai bareng oleh store() dan update().
+     */
+    private function dataDariForm(): array
+    {
+        return [
+            'id_siswa'                  => $this->request->getPost('id_siswa'),
+            'id_guru_pembimbing'        => $this->request->getPost('id_guru_pembimbing') ?: null,
+            'nama_perusahaan'           => rapikan_teks((string) $this->request->getPost('nama_perusahaan')),
+            'alamat_perusahaan'         => $this->request->getPost('alamat_perusahaan'),
+            'nama_pembimbing_industri'  => rapikan_teks((string) $this->request->getPost('nama_pembimbing_industri')),
+            'no_hp_pembimbing_industri' => rapikan_teks((string) $this->request->getPost('no_hp_pembimbing_industri')),
+            'tanggal_mulai'             => $this->request->getPost('tanggal_mulai'),
+            'tanggal_selesai'           => $this->request->getPost('tanggal_selesai') ?: null,
+            'status'                    => $this->request->getPost('status'),
+            'catatan'                   => $this->request->getPost('catatan'),
+        ];
+    }
+
+    /**
+     * Validasi biasa dulu, lalu aturan bisnis. Return daftar error (kosong = lolos).
+     */
+    private function cariMasalah(array $data, ?int $kecualiId = null): array
+    {
+        if (!$this->pklModel->validate($data)) {
+            return $this->pklModel->errors();
+        }
+
+        $pesan = $this->pklModel->cekAturan($data, $kecualiId);
+
+        return $pesan !== null ? ['aturan' => $pesan] : [];
+    }
+
+    private function dataForm(?array $penempatan): array
+    {
+        return [
+            'siswaList'  => $this->siswaModel->orderBy('nama', 'ASC')->findAll(),
+            'guruList'   => $this->guruModel->where('status', 'Aktif')->orderBy('nama', 'ASC')->findAll(),
+            'penempatan' => $penempatan,
+        ];
+    }
+
+    private function tidakDitemukan()
+    {
+        return redirect()->to('/admin/pkl')->with('errors', ['404' => 'Data penempatan tidak ditemukan.']);
     }
 }
