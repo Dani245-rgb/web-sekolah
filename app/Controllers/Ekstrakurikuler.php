@@ -6,13 +6,16 @@ use App\Models\EkstrakurikulerModel;
 
 class Ekstrakurikuler extends BaseController
 {
+    protected EkstrakurikulerModel $ekskulModel;
+
+    public function __construct()
+    {
+        $this->ekskulModel = new EkstrakurikulerModel();
+    }
+
     public function index()
     {
-        $ekskulModel = new EkstrakurikulerModel();
-
-        $data['ekskul'] = $ekskulModel->where('status', 'Published')
-            ->orderBy('nama', 'ASC')
-            ->findAll();
+        $data['ekskul'] = $this->ekskulModel->getSemuaPublished();
 
         return view('ekstrakurikuler/index', $data);
     }

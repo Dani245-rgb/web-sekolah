@@ -28,7 +28,14 @@ class EkstrakurikulerModel extends BaseModel
             ->findAll($limit);
     }
 
-        public function namaSudahAda(string $nama, ?int $excludeId = null): bool
+    public function getSemuaPublished(): array
+    {
+        return $this->where('status', 'Published')
+            ->orderBy('nama', 'ASC')
+            ->findAll();
+    }
+
+    public function namaSudahAda(string $nama, ?int $excludeId = null): bool
     {
         $builder = $this->where('nama', $nama);
 
