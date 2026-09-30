@@ -96,6 +96,23 @@ class Services extends BaseService
         );
     }
 
+    public static function berandaService($getShared = true): \App\Services\BerandaService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('berandaService');
+        }
+
+        return new \App\Services\BerandaService(
+            model(\App\Models\BeritaModel::class),
+            model(\App\Models\GaleriModel::class),
+            model(\App\Models\PengumumanModel::class),
+            model(\App\Models\AgendaModel::class),
+            model(\App\Models\PrestasiModel::class),
+            model(\App\Models\PartnerModel::class),
+            model(\App\Models\EkstrakurikulerModel::class),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {
