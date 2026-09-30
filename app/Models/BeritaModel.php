@@ -105,4 +105,26 @@ class BeritaModel extends BaseModel
             ->limit($limit)
             ->findAll();
     }
+
+    /**
+     * Berita yang sudah dipublikasikan, urut terbaru, untuk halaman daftar berita (paginasi).
+     */
+    public function getPublishedPaginated(int $perPage = 9): array
+    {
+        return $this->where('status', 'Published')
+            ->orderBy('tanggal_publish', 'DESC')
+            ->paginate($perPage);
+    }
+
+    /**
+     * Berita lain dengan kategori yang sama, untuk bagian "Berita Terkait".
+     */
+    public function getTerkait(array $berita, int $limit = 3): array
+    {
+        return $this->where('status', 'Published')
+            ->where('id_berita !=', $berita['id_berita'])
+            ->where('kategori', $berita['kategori'])
+            ->orderBy('tanggal_publish', 'DESC')
+            ->findAll($limit);
+    }
 }
