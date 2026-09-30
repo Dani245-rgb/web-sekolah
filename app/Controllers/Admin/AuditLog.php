@@ -4,79 +4,76 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\AuditLogModel;
+use CodeIgniter\Exceptions\PageNotFoundException;
+use Mpdf\Mpdf;
+use Mpdf\Output\Destination;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class AuditLog extends BaseController
 {
+    protected AuditLogModel $auditLogModel;
+
     public function __construct()
     {
         if (!session()->get('is_superadmin')) {
-            throw new \CodeIgniter\Exceptions\PageNotFoundException('Halaman tidak ditemukan.');
+            throw new PageNotFoundException('Halaman tidak ditemukan.');
         }
-    }
 
-    /**
-     * Ambil parameter filter dari query string (dipakai bareng oleh index & export)
-     */
-    private function ambilFilter(): array
-    {
-        return [
-            'aksi'     => $this->request->getGet('aksi'),
-            'username' => $this->request->getGet('username'),
-            'dari'     => $this->request->getGet('dari'),
-            'sampai'   => $this->request->getGet('sampai'),
-        ];
+        $this->auditLogModel = new AuditLogModel();
     }
 
     public function index()
     {
-        $auditLogModel = new AuditLogModel();
-        $filter        = $this->ambilFilter();
+        $filter = $this->ambilFilter();
 
-        $data['logs']       = $auditLogModel->filterQuery($filter)->paginate(30);
-        $data['pager']      = $auditLogModel->pager;
+        $data['logs']       = $this->auditLogModel->filterQuery($filter)->paginate(30);
+        $data['pager']      = $this->auditLogModel->pager;
         $data['filter']     = $filter;
-        $data['daftarAksi'] = $auditLogModel->daftarAksi();
+        $data['daftarAksi'] = $this->auditLogModel->daftarAksi();
 
         return view('admin/audit_log/index', $data);
     }
 
     public function exportPdf()
     {
-        $auditLogModel = new AuditLogModel();
-        $filter        = $this->ambilFilter();
-        $logs          = $auditLogModel->filterQuery($filter)->findAll();
+        $filter = $this->ambilFilter();
+        $logs   = $this->auditLogModel->filterQuery($filter)->findAll();
 
         $html = view('admin/audit_log/pdf', [
             'logs'   => $logs,
             'filter' => $filter,
         ]);
 
-        $mpdf = new \Mpdf\Mpdf([
-            'mode'         => 'utf-8',
-            'format'       => 'A4-L', // landscape, kolomnya lumayan banyak
-            'margin_top'   => 12,
+        $mpdf = new Mpdf([
+            'mode'          => 'utf-8',
+            'format'        => 'A4-L', // landscape, kolomnya lumayan banyak
+            'margin_top'    => 12,
             'margin_bottom' => 12,
         ]);
         $mpdf->SetTitle('Audit Log');
         $mpdf->WriteHTML($html);
-        $mpdf->Output('audit-log-' . date('Y-m-d_His') . '.pdf', 'D');
+
+        $isi = $mpdf->Output('', Destination::STRING_RETURN);
+
+        return $this->response->download('audit-log-' . date('Y-m-d_His') . '.pdf', $isi, true);
     }
 
     public function exportExcel()
     {
-        $auditLogModel = new AuditLogModel();
-        $filter        = $this->ambilFilter();
-        $logs          = $auditLogModel->filterQuery($filter)->findAll();
+        $filter = $this->ambilFilter();
+        $logs   = $this->auditLogModel->filterQuery($filter)->findAll();
 
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Audit Log');
 
         $headers = ['No', 'Waktu', 'User', 'Aksi', 'Keterangan', 'IP Address'];
         $sheet->fromArray($headers, null, 'A1');
         $sheet->getStyle('A1:F1')->getFont()->setBold(true);
         $sheet->getStyle('A1:F1')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setRGB('EEF1FF');
 
         helper('excel');
@@ -97,19 +94,51 @@ class AuditLog extends BaseController
         foreach (range('A', 'F') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
-        $sheet->getStyle("B2:B{$row}")->getAlignment()
-            ->setWrapText(false);
-        $sheet->getStyle("E2:E{$row}")->getAlignment()
-            ->setWrapText(true);
+        $sheet->getStyle("B2:B{$row}")->getAlignment()->setWrapText(false);
+        $sheet->getStyle("E2:E{$row}")->getAlignment()->setWrapText(true);
 
-        $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $filename = 'audit-log-' . date('Y-m-d_His') . '.xlsx';
+        ob_start();
+        (new Xlsx($spreadsheet))->save('php://output');
+        $isi = ob_get_clean();
 
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
+        return $this->response->download('audit-log-' . date('Y-m-d_His') . '.xlsx', $isi, true);
+    }
 
-        $writer->save('php://output');
-        exit;
+    /**
+     * Ambil parameter filter dari query string (dipakai bareng oleh index & export).
+     * Nilai yang tidak valid dianggap tidak ada, bukan error.
+     */
+    private function ambilFilter(): array
+    {
+        return [
+            'aksi'     => $this->teksAtauNull($this->request->getGet('aksi')),
+            'username' => $this->teksAtauNull($this->request->getGet('username')),
+            'dari'     => $this->tanggalAtauNull($this->request->getGet('dari')),
+            'sampai'   => $this->tanggalAtauNull($this->request->getGet('sampai')),
+        ];
+    }
+
+    private function teksAtauNull($nilai): ?string
+    {
+        if (!is_string($nilai)) {
+            return null;
+        }
+
+        $nilai = trim($nilai);
+
+        return $nilai === '' ? null : $nilai;
+    }
+
+    private function tanggalAtauNull($nilai): ?string
+    {
+        $nilai = $this->teksAtauNull($nilai);
+
+        if ($nilai === null) {
+            return null;
+        }
+
+        $tanggal = \DateTime::createFromFormat('Y-m-d', $nilai);
+
+        return ($tanggal && $tanggal->format('Y-m-d') === $nilai) ? $nilai : null;
     }
 }
