@@ -73,6 +73,7 @@
         <a href="<?= base_url('admin/pengumuman') ?>" style="font-size:12px;color:#3b82f6;text-decoration:none;display:inline-block;margin-top:10px;">Lihat Semua Pengumuman →</a>
     </div>
 
+    <?php if ($tampilAktivitas): ?>
     <!-- Aktivitas Terbaru -->
     <div class="card" style="flex:1;min-width:230px;">
         <strong>Aktivitas Terbaru</strong>
@@ -96,6 +97,7 @@
         </div>
         <a href="<?= base_url('admin/audit-log') ?>" style="font-size:12px;color:#3b82f6;text-decoration:none;display:inline-block;margin-top:10px;">Lihat Semua Aktivitas →</a>
     </div>
+    <?php endif; ?>
 
 </div>
 
@@ -107,7 +109,9 @@
         <a href="<?= base_url('admin/guru/create') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-person-plus"></i> Tambah Guru</a>
         <a href="<?= base_url('admin/pengumuman/create') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-megaphone"></i> Buat Pengumuman</a>
         <a href="<?= base_url('admin/laporan-siswa') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-file-earmark-text"></i> Lihat Laporan</a>
+        <?php if (session()->get('is_superadmin')): ?>
         <a href="<?= base_url('admin/backup-database') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-hdd-stack"></i> Backup Data</a>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -149,13 +153,13 @@
             <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #eef1f5;border-radius:8px;">
                 <div style="width:36px;height:36px;border-radius:8px;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;"><i class="bi bi-mortarboard"></i></div>
                 <div><strong style="font-size:13px;">Guru</strong>
-                    <div style="font-size:12px;color:#7c8a9c;">Akses Terbatas</div>
+                    <div style="font-size:12px;color:#7c8a9c;">Tanpa akun login</div>
                 </div>
             </div>
             <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #eef1f5;border-radius:8px;">
                 <div style="width:36px;height:36px;border-radius:8px;background:#ec4899;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;"><i class="bi bi-person-badge"></i></div>
                 <div><strong style="font-size:13px;">Siswa</strong>
-                    <div style="font-size:12px;color:#7c8a9c;">Akses Terbatas</div>
+                    <div style="font-size:12px;color:#7c8a9c;">Tanpa akun login</div>
                 </div>
             </div>
         </div>
