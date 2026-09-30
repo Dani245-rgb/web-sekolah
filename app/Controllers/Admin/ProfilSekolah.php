@@ -4,14 +4,23 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\ProfilKontenModel;
+use App\Services\FileUploadService;
+use InvalidArgumentException;
+use RuntimeException;
 
 class ProfilSekolah extends BaseController
 {
-    protected $profilModel;
+    private const FOLDER_FOTO = 'profil'; // public/uploads/profil
+
+    protected ProfilKontenModel $profilModel;
+    protected FileUploadService $fileUpload;
 
     public function __construct()
     {
+        helper('teks');
+
         $this->profilModel = new ProfilKontenModel();
+        $this->fileUpload  = service('fileUploadService');
     }
 
     public function sejarah()
@@ -42,15 +51,19 @@ class ProfilSekolah extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
         $item = $this->profilModel->getOrCreate($jenis);
 
-        $this->profilModel->update($item['id'], [
-            'judul'  => $this->request->getPost('judul'),
+        $berhasil = $this->profilModel->update($item['id'], [
+            'judul'  => rapikan_teks((string) $this->request->getPost('judul')),
             'konten' => $this->request->getPost('konten'),
         ]);
+
+        if (!$berhasil) {
+            return $this->kembaliDenganError($this->profilModel->errors());
+        }
 
         return redirect()->to('/admin/profil-sekolah/' . ($jenis === 'sejarah' ? 'sejarah' : 'visi-misi'))
             ->with('success', 'Berhasil disimpan.');
@@ -70,35 +83,44 @@ class ProfilSekolah extends BaseController
             'konten'  => 'required',
         ];
 
+        if (!$this->validate($rules)) {
+            return $this->kembaliDenganError($this->validator->getErrors());
+        }
+
         $item = $this->profilModel->getOrCreate('kepala_sekolah');
 
-        if ($this->request->getFile('foto')->isValid()) {
-            $rules['foto'] = 'is_image[foto]|mime_in[foto,image/jpg,image/jpeg,image/png,image/webp]|max_size[foto,2048]';
-        }
-
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-
-        $updateData = [
-            'nama'    => $this->request->getPost('nama'),
-            'jabatan' => $this->request->getPost('jabatan'),
+        $dataUpdate = [
+            'nama'    => rapikan_teks((string) $this->request->getPost('nama')),
+            'jabatan' => rapikan_teks((string) $this->request->getPost('jabatan')),
             'konten'  => $this->request->getPost('konten'),
         ];
 
-        $file = $this->request->getFile('foto');
-        if ($file->isValid() && !$file->hasMoved()) {
-            $newName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/profil', $newName);
-            $updateData['foto'] = $newName;
-
-            if ($item['foto'] && is_file(FCPATH . 'uploads/profil/' . $item['foto'])) {
-                unlink(FCPATH . 'uploads/profil/' . $item['foto']);
-            }
+        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
+        try {
+            $fotoBaru = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER_FOTO);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
         }
 
-        $this->profilModel->update($item['id'], $updateData);
+        if ($fotoBaru !== null) {
+            $dataUpdate['foto'] = $fotoBaru;
+        }
+
+        if (!$this->profilModel->update($item['id'], $dataUpdate)) {
+            $this->fileUpload->hapus($fotoBaru, self::FOLDER_FOTO);
+            return $this->kembaliDenganError($this->profilModel->errors());
+        }
+
+        // Foto lama baru dihapus SETELAH update DB sukses
+        if ($fotoBaru !== null) {
+            $this->fileUpload->hapus($item['foto'], self::FOLDER_FOTO);
+        }
 
         return redirect()->to('/admin/profil-sekolah/kepala-sekolah')->with('success', 'Berhasil disimpan.');
+    }
+
+    private function kembaliDenganError(array $errors)
+    {
+        return redirect()->back()->withInput()->with('errors', $errors);
     }
 }
