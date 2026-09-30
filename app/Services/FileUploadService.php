@@ -39,7 +39,7 @@ class FileUploadService
         }
 
         if ($file->getSize() > $maksBytes) {
-            $maksMb = round($maksBytes / 1024 / 1024);
+            $maksMb = round($maksBytes / 1024 / 1024, 1);
             throw new InvalidArgumentException("Ukuran file maksimal {$maksMb}MB.");
         }
 
