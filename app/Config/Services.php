@@ -81,6 +81,21 @@ class Services extends BaseService
         );
     }
 
+    public static function dashboardService($getShared = true): \App\Services\DashboardService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('dashboardService');
+        }
+
+        return new \App\Services\DashboardService(
+            model(\App\Models\SiswaModel::class),
+            model(\App\Models\GuruModel::class),
+            model(\App\Models\PengumumanModel::class),
+            model(\App\Models\NotifikasiModel::class),
+            model(\App\Models\AuditLogModel::class),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {
