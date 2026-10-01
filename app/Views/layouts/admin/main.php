@@ -148,6 +148,7 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                         </div>
                         <span class="topbar-username"><?= esc(session()->get('username')) ?> (<?= esc(session()->get('role')) ?>)</span>
                     </div>
+                    <a href="<?= base_url('profil/gantipassword') ?>" title="Ganti Password" style="text-decoration:none;color:#4b5563;font-size:20px;"><i class="bi bi-key"></i></a>
                     <a href="<?= base_url('logout') ?>" class="btn-logout" onclick="return confirm('Yakin ingin logout?')">Logout</a>
                 </div>
             </header>
