@@ -6,7 +6,7 @@ use App\Models\UnduhanModel;
 
 class UnduhanPublik extends BaseController
 {
-    protected $unduhanModel;
+    protected UnduhanModel $unduhanModel;
 
     public function __construct()
     {
@@ -15,7 +15,9 @@ class UnduhanPublik extends BaseController
 
     public function index()
     {
-        $kategoriFilter = $this->request->getGet('kategori');
+        // Filter dari URL harus berupa teks biasa (?kategori[]=x tidak boleh bikin error)
+        $kategori       = $this->request->getGet('kategori');
+        $kategoriFilter = is_string($kategori) && trim($kategori) !== '' ? trim($kategori) : null;
 
         $data['unduhanList']    = $this->unduhanModel->getPublished($kategoriFilter);
         $data['kategoriList']   = $this->unduhanModel->getKategoriList();
@@ -26,17 +28,18 @@ class UnduhanPublik extends BaseController
 
     public function download($id)
     {
-        if (!is_numeric($id)) {
-            return redirect()->to('/unduhan')->with('error', 'File tidak ditemukan.');
+        if (!ctype_digit((string) $id)) {
+            return $this->fileTidakDitemukan();
         }
 
-        $item = $this->unduhanModel->where('status', 'Published')->find((int) $id);
+        $item = $this->unduhanModel->getPublishedById((int) $id);
 
         if (!$item) {
-            return redirect()->to('/unduhan')->with('error', 'File tidak ditemukan.');
+            return $this->fileTidakDitemukan();
         }
 
-        $path = FCPATH . 'uploads/unduhan/' . $item['file'];
+        // basename() mencegah nama file dari database keluar dari folder unduhan
+        $path = FCPATH . 'uploads/unduhan/' . basename((string) $item['file']);
 
         if (!is_file($path)) {
             return redirect()->to('/unduhan')->with('error', 'File fisik tidak ditemukan di server.');
@@ -44,8 +47,13 @@ class UnduhanPublik extends BaseController
 
         $this->unduhanModel->tambahJumlahUnduh((int) $id);
 
-        $namaUnduh = $item['nama_file_asli'] ?: $item['file'];
+        $namaUnduh = basename((string) ($item['nama_file_asli'] ?: $item['file']));
 
         return $this->response->download($path, null)->setFileName($namaUnduh);
+    }
+
+    private function fileTidakDitemukan()
+    {
+        return redirect()->to('/unduhan')->with('error', 'File tidak ditemukan.');
     }
 }

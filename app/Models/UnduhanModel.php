@@ -12,8 +12,14 @@ class UnduhanModel extends BaseModel
     protected $useTimestamps = true;
 
     protected $allowedFields = [
-        'kategori', 'judul', 'deskripsi', 'file', 'nama_file_asli',
-        'ukuran_file', 'ekstensi', 'status',
+        'kategori',
+        'judul',
+        'deskripsi',
+        'file',
+        'nama_file_asli',
+        'ukuran_file',
+        'ekstensi',
+        'status',
     ];
 
     public function getPublished(?string $kategori = null)
@@ -27,12 +33,20 @@ class UnduhanModel extends BaseModel
         return $builder->orderBy('created_at', 'DESC')->findAll();
     }
 
+    /**
+     * Satu file unduhan yang sudah dipublikasikan, atau null.
+     */
+    public function getPublishedById(int $id): ?array
+    {
+        return $this->where('status', 'Published')->find($id);
+    }
+
     public function getKategoriList(): array
     {
         return $this->distinct()
-                    ->select('kategori')
-                    ->orderBy('kategori', 'ASC')
-                    ->findAll();
+            ->select('kategori')
+            ->orderBy('kategori', 'ASC')
+            ->findAll();
     }
 
     public function tambahJumlahUnduh(int $id): void
