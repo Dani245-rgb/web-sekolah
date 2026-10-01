@@ -8,10 +8,6 @@ $routes->get('/', 'Home::index');
 $routes->get('login', 'Auth\Login::index');
 $routes->post('login', 'Auth\Login::authenticate', ['filter' => 'throttle:login,5,60']);
 
-// Wajib ganti password - berlaku SEMUA role, makanya di luar grup admin/guru/siswa
-$routes->get('auth/gantipassword', 'Auth\Login::gantipassword');
-$routes->post('auth/gantipasswordsubmit', 'Auth\Login::gantipasswordsubmit');
-
 $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('dashboard', 'Admin\Dashboard::index');
 
