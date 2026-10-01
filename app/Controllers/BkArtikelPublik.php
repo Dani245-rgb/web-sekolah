@@ -6,13 +6,7 @@ use App\Models\BkArtikelModel;
 
 class BkArtikelPublik extends BaseController
 {
-    protected $artikelModel;
-
-    protected $kategoriLabel = [
-        'kesehatan_mental' => 'Kesehatan Mental',
-        'karier'           => 'Karier & Studi Lanjut',
-        'tes_minat'        => 'Tes Minat & Bakat',
-    ];
+    protected BkArtikelModel $artikelModel;
 
     public function __construct()
     {
@@ -43,7 +37,7 @@ class BkArtikelPublik extends BaseController
         }
 
         $data['item']  = $item;
-        $data['label'] = $this->kategoriLabel[$item['kategori']] ?? $item['kategori'];
+        $data['label'] = BkArtikelModel::KATEGORI[$item['kategori']] ?? $item['kategori'];
 
         return view('bk_artikel_publik/detail', $data);
     }
@@ -52,7 +46,7 @@ class BkArtikelPublik extends BaseController
     {
         $data['artikelList'] = $this->artikelModel->getPublishedByKategori($kategori);
         $data['kategori']    = $kategori;
-        $data['label']       = $this->kategoriLabel[$kategori] ?? $kategori;
+        $data['label']       = BkArtikelModel::KATEGORI[$kategori] ?? $kategori;
 
         return view('bk_artikel_publik/index', $data);
     }
