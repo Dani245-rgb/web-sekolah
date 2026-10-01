@@ -138,6 +138,18 @@ class Services extends BaseService
         );
     }
 
+    public static function passwordService($getShared = true): \App\Services\PasswordService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('passwordService');
+        }
+
+        return new \App\Services\PasswordService(
+            model(\App\Models\UserModel::class),
+            model(\App\Models\AuditLogModel::class),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {

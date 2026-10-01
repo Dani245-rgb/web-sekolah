@@ -2,11 +2,17 @@
 
 namespace App\Controllers;
 
-use App\Controllers\BaseController;
-use App\Models\UserModel;
+use App\Services\PasswordService;
 
 class Profil extends BaseController
 {
+    protected PasswordService $password;
+
+    public function __construct()
+    {
+        $this->password = service('passwordService');
+    }
+
     public function gantipassword()
     {
         return view('profil/ganti_password');
@@ -14,43 +20,25 @@ class Profil extends BaseController
 
     public function gantipasswordsubmit()
     {
-        $validation = $this->validate([
+        $rules = [
             'password_lama'       => 'required',
             'password_baru'       => 'required|strongPassword',
             'konfirmasi_password' => 'required|matches[password_baru]',
-        ]);
+        ];
 
-        if (!$validation) {
+        if (!$this->validate($rules)) {
             return redirect()->back()->with('errors', $this->validator->getErrors());
         }
 
-        $userModel = new UserModel();
-        $idUser    = session()->get('id_user');
-        $user      = $userModel->find($idUser);
+        $errors = $this->password->gantiMandiri(
+            (int) session()->get('id_user'),
+            (string) $this->request->getPost('password_lama'),
+            (string) $this->request->getPost('password_baru')
+        );
 
-        $passwordLama = $this->request->getPost('password_lama');
-        $passwordBaru = $this->request->getPost('password_baru');
-
-        // Password lama harus cocok dulu
-        if (!password_verify($passwordLama, $user['password'])) {
-            return redirect()->back()->with('errors', ['password_lama' => 'Password lama salah.']);
+        if ($errors) {
+            return redirect()->back()->with('errors', $errors);
         }
-
-        // Tidak boleh sama dengan username
-        if (strcasecmp($passwordBaru, $user['username']) === 0) {
-            return redirect()->back()->with('errors', ['password_baru' => 'Password tidak boleh sama dengan username.']);
-        }
-
-        // Tidak boleh sama persis dengan password lama
-        if (password_verify($passwordBaru, $user['password'])) {
-            return redirect()->back()->with('errors', ['password_baru' => 'Password baru tidak boleh sama dengan password lama.']);
-        }
-
-        $userModel->update($idUser, [
-            'password' => password_hash($passwordBaru, PASSWORD_DEFAULT),
-        ]);
-
-        (new \App\Models\AuditLogModel())->catat($idUser, $user['username'], 'ganti_password', 'Ganti password mandiri lewat menu Profil.');
 
         return redirect()->back()->with('success', 'Password berhasil diubah.');
     }
