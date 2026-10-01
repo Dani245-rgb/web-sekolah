@@ -2,36 +2,48 @@
 
 namespace App\Controllers;
 
-use App\Models\ProfilKontenModel;
 use App\Models\OrganisasiModel;
+use App\Models\ProfilKontenModel;
 
 class ProfilPublik extends BaseController
 {
+    protected ProfilKontenModel $profilModel;
+    protected OrganisasiModel $organisasiModel;
+
+    public function __construct()
+    {
+        $this->profilModel     = new ProfilKontenModel();
+        $this->organisasiModel = new OrganisasiModel();
+    }
+
     public function sejarah()
     {
-        $profilModel = new ProfilKontenModel();
-        $data['item'] = $profilModel->getByJenis('sejarah');
-        return view('profil_publik/teks', $data);
+        return $this->tampilkanTeks('sejarah');
     }
 
     public function visiMisi()
     {
-        $profilModel = new ProfilKontenModel();
-        $data['item'] = $profilModel->getByJenis('visi_misi');
-        return view('profil_publik/teks', $data);
+        return $this->tampilkanTeks('visi_misi');
     }
 
     public function kepalaSekolah()
     {
-        $profilModel = new ProfilKontenModel();
-        $data['item'] = $profilModel->getByJenis('kepala_sekolah');
+        $data['item'] = $this->profilModel->getByJenis('kepala_sekolah');
+
         return view('profil_publik/kepala_sekolah', $data);
     }
 
     public function struktur()
     {
-        $organisasiModel = new OrganisasiModel();
-        $data['organisasi'] = $organisasiModel->getPublishedWithAnggota();
+        $data['organisasi'] = $this->organisasiModel->getPublishedWithAnggota();
+
         return view('profil_publik/struktur', $data);
+    }
+
+    private function tampilkanTeks(string $jenis)
+    {
+        $data['item'] = $this->profilModel->getByJenis($jenis);
+
+        return view('profil_publik/teks', $data);
     }
 }
