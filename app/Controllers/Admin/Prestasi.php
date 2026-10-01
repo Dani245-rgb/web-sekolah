@@ -4,14 +4,23 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\PrestasiModel;
+use App\Services\FileUploadService;
+use InvalidArgumentException;
+use RuntimeException;
 
 class Prestasi extends BaseController
 {
-    protected $prestasiModel;
+    private const FOLDER = 'prestasi'; // public/uploads/prestasi
+
+    protected PrestasiModel $prestasiModel;
+    protected FileUploadService $fileUpload;
 
     public function __construct()
     {
+        helper('teks');
+
         $this->prestasiModel = new PrestasiModel();
+        $this->fileUpload    = service('fileUploadService');
     }
 
     public function index()
@@ -28,30 +37,36 @@ class Prestasi extends BaseController
 
     public function store()
     {
-        $rules = [
-            'judul'   => 'required|min_length[3]|max_length[255]',
-            'tingkat' => 'required|in_list[Kabupaten,Provinsi,Nasional,Internasional]',
-            'tanggal' => 'required|valid_date',
-            'status'  => 'required|in_list[Published,Draft]',
-            'foto'    => 'uploaded[foto]|is_image[foto]|mime_in[foto,image/jpg,image/jpeg,image/png,image/webp]|max_size[foto,2048]',
-        ];
+        $rules = $this->rules() + ['foto' => 'uploaded[foto]'];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $file    = $this->request->getFile('foto');
-        $newName = $file->getRandomName();
-        $file->move(FCPATH . 'uploads/prestasi', $newName);
+        try {
+            $foto = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
+        }
 
-        $this->prestasiModel->insert([
-            'judul'   => $this->request->getPost('judul'),
-            'tim'     => $this->request->getPost('tim'),
+        if ($foto === null) {
+            return $this->kembaliDenganError(['foto' => 'Foto gagal diupload.']);
+        }
+
+        $berhasil = $this->prestasiModel->insert([
+            'judul'   => rapikan_teks((string) $this->request->getPost('judul')),
+            'tim'     => rapikan_teks((string) $this->request->getPost('tim')),
             'tingkat' => $this->request->getPost('tingkat'),
-            'foto'    => $newName,
+            'foto'    => $foto,
             'tanggal' => $this->request->getPost('tanggal'),
             'status'  => $this->request->getPost('status'),
         ]);
+
+        if (!$berhasil) {
+            // Data gagal masuk DB, file yang sudah terlanjur diupload dibuang lagi
+            $this->fileUpload->hapus($foto, self::FOLDER);
+            return $this->kembaliDenganError($this->prestasiModel->errors());
+        }
 
         return redirect()->to('/admin/prestasi')->with('success', 'Prestasi berhasil ditambahkan.');
     }
@@ -74,42 +89,40 @@ class Prestasi extends BaseController
             return redirect()->to('/admin/prestasi')->with('error', 'Data tidak ditemukan.');
         }
 
-        $rules = [
-            'judul'   => 'required|min_length[3]|max_length[255]',
-            'tingkat' => 'required|in_list[Kabupaten,Provinsi,Nasional,Internasional]',
-            'tanggal' => 'required|valid_date',
-            'status'  => 'required|in_list[Published,Draft]',
-        ];
-
-        if ($this->request->getFile('foto')->isValid()) {
-            $rules['foto'] = 'is_image[foto]|mime_in[foto,image/jpg,image/jpeg,image/png,image/webp]|max_size[foto,2048]';
+        if (!$this->validate($this->rules())) {
+            return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-
-        $updateData = [
-            'judul'   => $this->request->getPost('judul'),
-            'tim'     => $this->request->getPost('tim'),
+        $dataUpdate = [
+            'judul'   => rapikan_teks((string) $this->request->getPost('judul')),
+            'tim'     => rapikan_teks((string) $this->request->getPost('tim')),
             'tingkat' => $this->request->getPost('tingkat'),
             'tanggal' => $this->request->getPost('tanggal'),
             'status'  => $this->request->getPost('status'),
         ];
 
-        $file = $this->request->getFile('foto');
-        if ($file->isValid() && !$file->hasMoved()) {
-            $newName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/prestasi', $newName);
-            $updateData['foto'] = $newName;
-
-            $oldPath = FCPATH . 'uploads/prestasi/' . $prestasi['foto'];
-            if (is_file($oldPath)) {
-                unlink($oldPath);
-            }
+        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
+        try {
+            $fotoBaru = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
         }
 
-        $this->prestasiModel->update($id, $updateData);
+        if ($fotoBaru !== null) {
+            $dataUpdate['foto'] = $fotoBaru;
+        }
+
+        if (!$this->prestasiModel->update($id, $dataUpdate)) {
+            if ($fotoBaru !== null) {
+                $this->fileUpload->hapus($fotoBaru, self::FOLDER);
+            }
+            return $this->kembaliDenganError($this->prestasiModel->errors());
+        }
+
+        // Foto lama baru dihapus SETELAH update DB sukses
+        if ($fotoBaru !== null) {
+            $this->fileUpload->hapus($prestasi['foto'], self::FOLDER);
+        }
 
         return redirect()->to('/admin/prestasi')->with('success', 'Prestasi berhasil diperbarui.');
     }
@@ -121,13 +134,26 @@ class Prestasi extends BaseController
             return redirect()->to('/admin/prestasi')->with('error', 'Data tidak ditemukan.');
         }
 
-        $path = FCPATH . 'uploads/prestasi/' . $prestasi['foto'];
-        if (is_file($path)) {
-            unlink($path);
-        }
-
         $this->prestasiModel->delete($id);
+
+        // File dihapus SETELAH record DB terhapus
+        $this->fileUpload->hapus($prestasi['foto'], self::FOLDER);
 
         return redirect()->to('/admin/prestasi')->with('success', 'Prestasi berhasil dihapus.');
     }
-}
+
+    private function rules(): array
+    {
+        return [
+            'judul'   => 'required|min_length[3]|max_length[255]',
+            'tingkat' => 'required|in_list[Kabupaten,Provinsi,Nasional,Internasional]',
+            'tanggal' => 'required|valid_date',
+            'status'  => 'required|in_list[Published,Draft]',
+        ];
+    }
+
+    private function kembaliDenganError(array $errors)
+    {
+        return redirect()->back()->withInput()->with('errors', $errors);
+    }
+}   
