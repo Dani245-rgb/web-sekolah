@@ -3,82 +3,41 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\PartnerModel;
-use App\Services\FileUploadService;
-use App\Services\SlugService;
+use App\Services\PartnerService;
 use InvalidArgumentException;
-use RuntimeException;
+use Throwable;
 
 class Partner extends BaseController
 {
-    private const FOLDER = 'partner'; // public/uploads/partner
-
-    protected PartnerModel $partnerModel;
-    protected FileUploadService $fileUpload;
-    protected SlugService $slugService;
+    protected PartnerService $partner;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->partnerModel = new PartnerModel();
-        $this->fileUpload   = service('fileUploadService');
-        $this->slugService  = service('slugService');
+        $this->partner = service('partnerService');
     }
 
     public function index()
     {
-        $data['partner'] = $this->partnerModel->orderBy('nama', 'ASC')->findAll();
-        return view('admin/partner/index', $data);
+        return view('admin/partner/index', ['partner' => $this->partner->daftar()]);
     }
 
     public function create()
     {
-        $data['partner'] = null;
-        return view('admin/partner/form', $data);
+        return view('admin/partner/form', ['partner' => null]);
     }
 
     public function store()
     {
-        $rules = [
-            'nama'      => 'required|min_length[3]|max_length[255]',
-            'deskripsi' => 'required',
-            'status'    => 'required|in_list[Published,Draft]',
-            'foto'      => 'uploaded[foto]',
-        ];
+        $rules = $this->rules() + ['foto' => 'uploaded[foto]'];
 
         if (!$this->validate($rules)) {
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $nama = rapikan_teks((string) $this->request->getPost('nama'));
-
-        if ($this->partnerModel->namaSudahAda($nama)) {
-            return $this->kembaliDenganError(['nama' => 'Nama partner sudah dipakai.']);
-        }
-
         try {
-            $foto = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        if ($foto === null) {
-            return $this->kembaliDenganError(['foto' => 'Foto gagal diupload.']);
-        }
-
-        $berhasil = $this->partnerModel->insert([
-            'nama'      => $nama,
-            'slug'      => $this->slugService->buatUnik($nama, 'partner', 'id', null, 'partner'),
-            'foto'      => $foto,
-            'deskripsi' => $this->request->getPost('deskripsi'),
-            'status'    => $this->request->getPost('status'),
-        ]);
-
-        if (!$berhasil) {
-            // Data gagal masuk DB, file yang sudah terlanjur diupload dibuang lagi
-            $this->fileUpload->hapus($foto, self::FOLDER);
-            return $this->kembaliDenganError($this->partnerModel->errors());
+            $this->partner->tambah($this->inputForm(), $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal menyimpan partner. Silakan coba lagi.', 'simpan');
         }
 
         return redirect()->to('/admin/partner')->with('success', 'Partner berhasil ditambahkan.');
@@ -86,66 +45,29 @@ class Partner extends BaseController
 
     public function edit($id)
     {
-        $data['partner'] = $this->partnerModel->find($id);
+        $partner = $this->partner->cari($id);
 
-        if (!$data['partner']) {
-            return redirect()->to('/admin/partner')->with('error', 'Data tidak ditemukan.');
+        if (!$partner) {
+            return $this->tidakDitemukan();
         }
 
-        return view('admin/partner/form', $data);
+        return view('admin/partner/form', ['partner' => $partner]);
     }
 
     public function update($id)
     {
-        $partner = $this->partnerModel->find($id);
-        if (!$partner) {
-            return redirect()->to('/admin/partner')->with('error', 'Data tidak ditemukan.');
+        if (!$this->partner->cari($id)) {
+            return $this->tidakDitemukan();
         }
 
-        $rules = [
-            'nama'      => 'required|min_length[3]|max_length[255]',
-            'deskripsi' => 'required',
-            'status'    => 'required|in_list[Published,Draft]',
-        ];
-
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->rules())) {
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $nama = rapikan_teks((string) $this->request->getPost('nama'));
-
-        if ($this->partnerModel->namaSudahAda($nama, (int) $id)) {
-            return $this->kembaliDenganError(['nama' => 'Nama partner sudah dipakai.']);
-        }
-
-        $dataUpdate = [
-            'nama'      => $nama,
-            'slug'      => $this->slugService->buatUnik($nama, 'partner', 'id', (int) $id, 'partner'),
-            'deskripsi' => $this->request->getPost('deskripsi'),
-            'status'    => $this->request->getPost('status'),
-        ];
-
-        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
         try {
-            $fotoBaru = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        if ($fotoBaru !== null) {
-            $dataUpdate['foto'] = $fotoBaru;
-        }
-
-        if (!$this->partnerModel->update($id, $dataUpdate)) {
-            if ($fotoBaru !== null) {
-                $this->fileUpload->hapus($fotoBaru, self::FOLDER);
-            }
-            return $this->kembaliDenganError($this->partnerModel->errors());
-        }
-
-        // Foto lama baru dihapus SETELAH update DB sukses
-        if ($fotoBaru !== null) {
-            $this->fileUpload->hapus($partner['foto'], self::FOLDER);
+            $this->partner->ubah((int) $id, $this->inputForm(), $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal memperbarui partner. Silakan coba lagi.', 'update');
         }
 
         return redirect()->to('/admin/partner')->with('success', 'Partner berhasil diperbarui.');
@@ -153,21 +75,60 @@ class Partner extends BaseController
 
     public function delete($id)
     {
-        $partner = $this->partnerModel->find($id);
-        if (!$partner) {
-            return redirect()->to('/admin/partner')->with('error', 'Data tidak ditemukan.');
+        try {
+            $this->partner->hapus((int) $id);
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal hapus Partner: ' . $e->getMessage());
+
+            if ($e instanceof InvalidArgumentException) {
+                return $this->tidakDitemukan();
+            }
+
+            return redirect()->to('/admin/partner')->with('error', 'Gagal menghapus partner. Silakan coba lagi.');
         }
 
-        $this->partnerModel->delete($id);
-
-        // File dihapus SETELAH record DB terhapus
-        $this->fileUpload->hapus($partner['foto'], self::FOLDER);
-
         return redirect()->to('/admin/partner')->with('success', 'Partner berhasil dihapus.');
+    }
+
+    // ================= Helper privat =================
+
+    private function inputForm(): array
+    {
+        return $this->request->getPost(['nama', 'deskripsi', 'status']);
+    }
+
+    private function tidakDitemukan()
+    {
+        return redirect()->to('/admin/partner')->with('error', 'Data tidak ditemukan.');
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman ditampilkan ke user. Selain itu: log + pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum, string $aksi)
+    {
+        log_message('error', "Gagal {$aksi} Partner: " . $e->getMessage());
+
+        $pesan = $e instanceof InvalidArgumentException ? $e->getMessage() : $pesanUmum;
+
+        return $this->kembaliDenganError(['partner' => $pesan]);
     }
 
     private function kembaliDenganError(array $errors)
     {
         return redirect()->back()->withInput()->with('errors', $errors);
+    }
+
+    /**
+     * Validasi format input. Foto tidak divalidasi di sini:
+     * tipe dan ukuran dicek di FileUploadService.
+     */
+    private function rules(): array
+    {
+        return [
+            'nama'      => 'required|min_length[3]|max_length[255]',
+            'deskripsi' => 'required',
+            'status'    => 'required|in_list[Published,Draft]',
+        ];
     }
 }

@@ -53,4 +53,12 @@ class PartnerModel extends BaseModel
 
         return $builder->first() !== null;
     }
+
+    /**
+     * Semua partner untuk halaman admin (semua status), urut nama.
+     */
+    public function getSemuaUrut(): array
+    {
+        return $this->orderBy('nama', 'ASC')->findAll();
+    }
 }

@@ -245,6 +245,19 @@ class Services extends BaseService
         );
     }
 
+    public static function partnerService($getShared = true): \App\Services\PartnerService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('partnerService');
+        }
+
+        return new \App\Services\PartnerService(
+            model(\App\Models\PartnerModel::class),
+            static::fileUploadService(),
+            static::slugService(),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {
