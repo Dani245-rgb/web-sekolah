@@ -50,7 +50,6 @@ class Login extends BaseController
             'role'                 => $user['nama_role'],
             'role_id'              => $user['role_id'],
             'logged_in'            => true,
-            'must_change_password' => false,
             'is_superadmin'        => (bool) ($user['is_superadmin'] ?? false),
         ]);
 

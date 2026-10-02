@@ -24,21 +24,21 @@ class Filters extends BaseFilters
      * [filter_name => classname]
      * or [filter_name => [classname1, classname2, ...]]
      */
-public array $aliases = [
-    'csrf'               => CSRF::class,
-    'toolbar'            => DebugToolbar::class,
-    'honeypot'           => Honeypot::class,
-    'invalidchars'       => InvalidChars::class,
-    'secureheaders'      => SecureHeaders::class,
-    'cors'               => Cors::class,
-    'forcehttps'         => ForceHTTPS::class,
-    'pagecache'          => PageCache::class,
-    'performance'        => PerformanceMetrics::class,
-    'roleAuth'           => \App\Filters\RoleFilter::class,
-    'throttle'           => \App\Filters\ThrottleFilter::class,
-    'mustchangepassword' => \App\Filters\MustChangePassword::class,
-    'sessiontimeout'     => \App\Filters\SessionTimeout::class,
-    'auth'               => \App\Filters\AuthFilter::class,
+    public array $aliases = [
+        'csrf'               => CSRF::class,
+        'toolbar'            => DebugToolbar::class,
+        'honeypot'           => Honeypot::class,
+        'invalidchars'       => InvalidChars::class,
+        'secureheaders'      => SecureHeaders::class,
+        'cors'               => Cors::class,
+        'forcehttps'         => ForceHTTPS::class,
+        'pagecache'          => PageCache::class,
+        'performance'        => PerformanceMetrics::class,
+        'roleAuth'           => \App\Filters\RoleFilter::class,
+        'throttle'           => \App\Filters\ThrottleFilter::class,
+        'cegahcache'         => \App\Filters\CegahCache::class,
+        'sessiontimeout'     => \App\Filters\SessionTimeout::class,
+        'auth'               => \App\Filters\AuthFilter::class,
     ];
 
     /**
@@ -77,16 +77,15 @@ public array $aliases = [
      */
     public array $globals = [
         'before' => [
-             'honeypot',
-             'csrf',
-             'invalidchars',
+            'honeypot',
+            'csrf',
+            'invalidchars',
             'sessiontimeout',
-            'mustchangepassword',
         ],
         'after' => [
             'honeypot',
             'secureheaders',
-            'mustchangepassword',
+            'cegahcache',
         ],
     ];
 
@@ -114,7 +113,7 @@ public array $aliases = [
      *
      * @var array<string, array<string, list<string>>>
      */
-public array $filters = [
-    //
-];
+    public array $filters = [
+        //
+    ];
 }
