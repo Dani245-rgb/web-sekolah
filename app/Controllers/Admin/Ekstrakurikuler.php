@@ -3,36 +3,27 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\EkstrakurikulerModel;
-use App\Services\FileUploadService;
+use App\Services\EkstrakurikulerService;
 use InvalidArgumentException;
-use RuntimeException;
+use Throwable;
 
 class Ekstrakurikuler extends BaseController
 {
-    private const FOLDER = 'ekstrakurikuler'; // public/uploads/ekstrakurikuler
-
-    protected EkstrakurikulerModel $ekskulModel;
-    protected FileUploadService $fileUpload;
+    protected EkstrakurikulerService $ekskul;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->ekskulModel = new EkstrakurikulerModel();
-        $this->fileUpload  = service('fileUploadService');
+        $this->ekskul = service('ekstrakurikulerService');
     }
 
     public function index()
     {
-        $data['ekskul'] = $this->ekskulModel->orderBy('nama', 'ASC')->findAll();
-        return view('admin/ekstrakurikuler/index', $data);
+        return view('admin/ekstrakurikuler/index', ['ekskul' => $this->ekskul->daftar()]);
     }
 
     public function create()
     {
-        $data['ekskul'] = null;
-        return view('admin/ekstrakurikuler/form', $data);
+        return view('admin/ekstrakurikuler/form', ['ekskul' => null]);
     }
 
     public function store()
@@ -43,33 +34,10 @@ class Ekstrakurikuler extends BaseController
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $nama = rapikan_teks((string) $this->request->getPost('nama'));
-
-        if ($this->ekskulModel->namaSudahAda($nama)) {
-            return $this->kembaliDenganError(['nama' => 'Nama ekstrakurikuler sudah dipakai.']);
-        }
-
         try {
-            $foto = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        if ($foto === null) {
-            return $this->kembaliDenganError(['foto' => 'Foto gagal diupload.']);
-        }
-
-        $berhasil = $this->ekskulModel->insert([
-            'nama'      => $nama,
-            'foto'      => $foto,
-            'deskripsi' => $this->request->getPost('deskripsi'),
-            'status'    => $this->request->getPost('status'),
-        ]);
-
-        if (!$berhasil) {
-            // Data gagal masuk DB, file yang sudah terlanjur diupload dibuang lagi
-            $this->fileUpload->hapus($foto, self::FOLDER);
-            return $this->kembaliDenganError($this->ekskulModel->errors());
+            $this->ekskul->tambah($this->inputForm(), $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal menyimpan ekstrakurikuler. Silakan coba lagi.', 'simpan');
         }
 
         return redirect()->to('/admin/ekstrakurikuler')->with('success', 'Ekstrakurikuler berhasil ditambahkan.');
@@ -77,59 +45,29 @@ class Ekstrakurikuler extends BaseController
 
     public function edit($id)
     {
-        $data['ekskul'] = $this->ekskulModel->find($id);
+        $ekskul = $this->ekskul->cari($id);
 
-        if (!$data['ekskul']) {
-            return redirect()->to('/admin/ekstrakurikuler')->with('error', 'Data tidak ditemukan.');
+        if (!$ekskul) {
+            return $this->tidakDitemukan();
         }
 
-        return view('admin/ekstrakurikuler/form', $data);
+        return view('admin/ekstrakurikuler/form', ['ekskul' => $ekskul]);
     }
 
     public function update($id)
     {
-        $ekskul = $this->ekskulModel->find($id);
-        if (!$ekskul) {
-            return redirect()->to('/admin/ekstrakurikuler')->with('error', 'Data tidak ditemukan.');
+        if (!$this->ekskul->cari($id)) {
+            return $this->tidakDitemukan();
         }
 
         if (!$this->validate($this->rules())) {
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $nama = rapikan_teks((string) $this->request->getPost('nama'));
-
-        if ($this->ekskulModel->namaSudahAda($nama, (int) $id)) {
-            return $this->kembaliDenganError(['nama' => 'Nama ekstrakurikuler sudah dipakai.']);
-        }
-
-        $dataUpdate = [
-            'nama'      => $nama,
-            'deskripsi' => $this->request->getPost('deskripsi'),
-            'status'    => $this->request->getPost('status'),
-        ];
-
-        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
         try {
-            $fotoBaru = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        if ($fotoBaru !== null) {
-            $dataUpdate['foto'] = $fotoBaru;
-        }
-
-        if (!$this->ekskulModel->update($id, $dataUpdate)) {
-            if ($fotoBaru !== null) {
-                $this->fileUpload->hapus($fotoBaru, self::FOLDER);
-            }
-            return $this->kembaliDenganError($this->ekskulModel->errors());
-        }
-
-        // Foto lama baru dihapus SETELAH update DB sukses
-        if ($fotoBaru !== null) {
-            $this->fileUpload->hapus($ekskul['foto'], self::FOLDER);
+            $this->ekskul->ubah((int) $id, $this->inputForm(), $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal memperbarui ekstrakurikuler. Silakan coba lagi.', 'update');
         }
 
         return redirect()->to('/admin/ekstrakurikuler')->with('success', 'Ekstrakurikuler berhasil diperbarui.');
@@ -137,29 +75,59 @@ class Ekstrakurikuler extends BaseController
 
     public function delete($id)
     {
-        $ekskul = $this->ekskulModel->find($id);
-        if (!$ekskul) {
-            return redirect()->to('/admin/ekstrakurikuler')->with('error', 'Data tidak ditemukan.');
+        try {
+            $this->ekskul->hapus((int) $id);
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal hapus Ekstrakurikuler: ' . $e->getMessage());
+
+            if ($e instanceof InvalidArgumentException) {
+                return $this->tidakDitemukan();
+            }
+
+            return redirect()->to('/admin/ekstrakurikuler')->with('error', 'Gagal menghapus ekstrakurikuler. Silakan coba lagi.');
         }
-
-        $this->ekskulModel->delete($id);
-
-        // File dihapus SETELAH record DB terhapus
-        $this->fileUpload->hapus($ekskul['foto'], self::FOLDER);
 
         return redirect()->to('/admin/ekstrakurikuler')->with('success', 'Ekstrakurikuler berhasil dihapus.');
     }
 
+    // ================= Helper privat =================
+
+    private function inputForm(): array
+    {
+        return $this->request->getPost(['nama', 'deskripsi', 'status']);
+    }
+
+    private function tidakDitemukan()
+    {
+        return redirect()->to('/admin/ekstrakurikuler')->with('error', 'Data tidak ditemukan.');
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman ditampilkan ke user. Selain itu: log + pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum, string $aksi)
+    {
+        log_message('error', "Gagal {$aksi} Ekstrakurikuler: " . $e->getMessage());
+
+        $pesan = $e instanceof InvalidArgumentException ? $e->getMessage() : $pesanUmum;
+
+        return $this->kembaliDenganError(['ekstrakurikuler' => $pesan]);
+    }
+
+    private function kembaliDenganError(array $errors)
+    {
+        return redirect()->back()->withInput()->with('errors', $errors);
+    }
+
+    /**
+     * Validasi format input. Foto tidak divalidasi di sini:
+     * tipe dan ukuran dicek di FileUploadService.
+     */
     private function rules(): array
     {
         return [
             'nama'   => 'required|min_length[3]|max_length[100]',
             'status' => 'required|in_list[Published,Draft]',
         ];
-    }
-
-    private function kembaliDenganError(array $errors)
-    {
-        return redirect()->back()->withInput()->with('errors', $errors);
     }
 }

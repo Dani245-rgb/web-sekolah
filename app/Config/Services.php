@@ -258,6 +258,30 @@ class Services extends BaseService
         );
     }
 
+    public static function ekstrakurikulerService($getShared = true): \App\Services\EkstrakurikulerService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('ekstrakurikulerService');
+        }
+
+        return new \App\Services\EkstrakurikulerService(
+            model(\App\Models\EkstrakurikulerModel::class),
+            static::fileUploadService(),
+        );
+    }
+
+    public static function prestasiService($getShared = true): \App\Services\PrestasiService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('prestasiService');
+        }
+
+        return new \App\Services\PrestasiService(
+            model(\App\Models\PrestasiModel::class),
+            static::fileUploadService(),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {

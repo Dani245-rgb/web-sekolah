@@ -3,36 +3,27 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\PrestasiModel;
-use App\Services\FileUploadService;
+use App\Services\PrestasiService;
 use InvalidArgumentException;
-use RuntimeException;
+use Throwable;
 
 class Prestasi extends BaseController
 {
-    private const FOLDER = 'prestasi'; // public/uploads/prestasi
-
-    protected PrestasiModel $prestasiModel;
-    protected FileUploadService $fileUpload;
+    protected PrestasiService $prestasi;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->prestasiModel = new PrestasiModel();
-        $this->fileUpload    = service('fileUploadService');
+        $this->prestasi = service('prestasiService');
     }
 
     public function index()
     {
-        $data['prestasi'] = $this->prestasiModel->orderBy('tanggal', 'DESC')->findAll();
-        return view('admin/prestasi/index', $data);
+        return view('admin/prestasi/index', ['prestasi' => $this->prestasi->daftar()]);
     }
 
     public function create()
     {
-        $data['prestasi'] = null;
-        return view('admin/prestasi/form', $data);
+        return view('admin/prestasi/form', ['prestasi' => null]);
     }
 
     public function store()
@@ -44,28 +35,9 @@ class Prestasi extends BaseController
         }
 
         try {
-            $foto = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        if ($foto === null) {
-            return $this->kembaliDenganError(['foto' => 'Foto gagal diupload.']);
-        }
-
-        $berhasil = $this->prestasiModel->insert([
-            'judul'   => rapikan_teks((string) $this->request->getPost('judul')),
-            'tim'     => rapikan_teks((string) $this->request->getPost('tim')),
-            'tingkat' => $this->request->getPost('tingkat'),
-            'foto'    => $foto,
-            'tanggal' => $this->request->getPost('tanggal'),
-            'status'  => $this->request->getPost('status'),
-        ]);
-
-        if (!$berhasil) {
-            // Data gagal masuk DB, file yang sudah terlanjur diupload dibuang lagi
-            $this->fileUpload->hapus($foto, self::FOLDER);
-            return $this->kembaliDenganError($this->prestasiModel->errors());
+            $this->prestasi->tambah($this->inputForm(), $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal menyimpan prestasi. Silakan coba lagi.', 'simpan');
         }
 
         return redirect()->to('/admin/prestasi')->with('success', 'Prestasi berhasil ditambahkan.');
@@ -73,55 +45,29 @@ class Prestasi extends BaseController
 
     public function edit($id)
     {
-        $data['prestasi'] = $this->prestasiModel->find($id);
+        $prestasi = $this->prestasi->cari($id);
 
-        if (!$data['prestasi']) {
-            return redirect()->to('/admin/prestasi')->with('error', 'Data tidak ditemukan.');
+        if (!$prestasi) {
+            return $this->tidakDitemukan();
         }
 
-        return view('admin/prestasi/form', $data);
+        return view('admin/prestasi/form', ['prestasi' => $prestasi]);
     }
 
     public function update($id)
     {
-        $prestasi = $this->prestasiModel->find($id);
-        if (!$prestasi) {
-            return redirect()->to('/admin/prestasi')->with('error', 'Data tidak ditemukan.');
+        if (!$this->prestasi->cari($id)) {
+            return $this->tidakDitemukan();
         }
 
         if (!$this->validate($this->rules())) {
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $dataUpdate = [
-            'judul'   => rapikan_teks((string) $this->request->getPost('judul')),
-            'tim'     => rapikan_teks((string) $this->request->getPost('tim')),
-            'tingkat' => $this->request->getPost('tingkat'),
-            'tanggal' => $this->request->getPost('tanggal'),
-            'status'  => $this->request->getPost('status'),
-        ];
-
-        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
         try {
-            $fotoBaru = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        if ($fotoBaru !== null) {
-            $dataUpdate['foto'] = $fotoBaru;
-        }
-
-        if (!$this->prestasiModel->update($id, $dataUpdate)) {
-            if ($fotoBaru !== null) {
-                $this->fileUpload->hapus($fotoBaru, self::FOLDER);
-            }
-            return $this->kembaliDenganError($this->prestasiModel->errors());
-        }
-
-        // Foto lama baru dihapus SETELAH update DB sukses
-        if ($fotoBaru !== null) {
-            $this->fileUpload->hapus($prestasi['foto'], self::FOLDER);
+            $this->prestasi->ubah((int) $id, $this->inputForm(), $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal memperbarui prestasi. Silakan coba lagi.', 'update');
         }
 
         return redirect()->to('/admin/prestasi')->with('success', 'Prestasi berhasil diperbarui.');
@@ -129,19 +75,54 @@ class Prestasi extends BaseController
 
     public function delete($id)
     {
-        $prestasi = $this->prestasiModel->find($id);
-        if (!$prestasi) {
-            return redirect()->to('/admin/prestasi')->with('error', 'Data tidak ditemukan.');
+        try {
+            $this->prestasi->hapus((int) $id);
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal hapus Prestasi: ' . $e->getMessage());
+
+            if ($e instanceof InvalidArgumentException) {
+                return $this->tidakDitemukan();
+            }
+
+            return redirect()->to('/admin/prestasi')->with('error', 'Gagal menghapus prestasi. Silakan coba lagi.');
         }
-
-        $this->prestasiModel->delete($id);
-
-        // File dihapus SETELAH record DB terhapus
-        $this->fileUpload->hapus($prestasi['foto'], self::FOLDER);
 
         return redirect()->to('/admin/prestasi')->with('success', 'Prestasi berhasil dihapus.');
     }
 
+    // ================= Helper privat =================
+
+    private function inputForm(): array
+    {
+        return $this->request->getPost(['judul', 'tim', 'tingkat', 'tanggal', 'status']);
+    }
+
+    private function tidakDitemukan()
+    {
+        return redirect()->to('/admin/prestasi')->with('error', 'Data tidak ditemukan.');
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman ditampilkan ke user. Selain itu: log + pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum, string $aksi)
+    {
+        log_message('error', "Gagal {$aksi} Prestasi: " . $e->getMessage());
+
+        $pesan = $e instanceof InvalidArgumentException ? $e->getMessage() : $pesanUmum;
+
+        return $this->kembaliDenganError(['prestasi' => $pesan]);
+    }
+
+    private function kembaliDenganError(array $errors)
+    {
+        return redirect()->back()->withInput()->with('errors', $errors);
+    }
+
+    /**
+     * Validasi format input. Foto tidak divalidasi di sini:
+     * tipe dan ukuran dicek di FileUploadService.
+     */
     private function rules(): array
     {
         return [
@@ -151,9 +132,4 @@ class Prestasi extends BaseController
             'status'  => 'required|in_list[Published,Draft]',
         ];
     }
-
-    private function kembaliDenganError(array $errors)
-    {
-        return redirect()->back()->withInput()->with('errors', $errors);
-    }
-}   
+}

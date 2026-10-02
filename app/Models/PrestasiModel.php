@@ -36,4 +36,12 @@ class PrestasiModel extends BaseModel
             ->orderBy('tanggal', 'DESC')
             ->findAll();
     }
+
+    /**
+     * Semua prestasi untuk halaman admin (semua status), terbaru dulu.
+     */
+    public function getSemuaTerbaru(): array
+    {
+        return $this->orderBy('tanggal', 'DESC')->findAll();
+    }
 }
