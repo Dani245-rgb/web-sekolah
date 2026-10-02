@@ -41,6 +41,20 @@ class UnduhanModel extends BaseModel
         return $this->where('status', 'Published')->find($id);
     }
 
+    /**
+     * Daftar untuk halaman admin (semua status), terbaru dulu. Kategori opsional.
+     */
+    public function getDaftarAdmin(?string $kategori = null): array
+    {
+        $builder = $this->orderBy('created_at', 'DESC');
+
+        if ($kategori !== null) {
+            $builder->where('kategori', $kategori);
+        }
+
+        return $builder->findAll();
+    }
+
     public function getKategoriList(): array
     {
         return $this->distinct()

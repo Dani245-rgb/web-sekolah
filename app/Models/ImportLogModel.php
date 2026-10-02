@@ -24,4 +24,18 @@ class ImportLogModel extends Model
                     ->orderBy('id_import_log', 'DESC')
                     ->first();
     }
+
+    /**
+     * Klaim batch secara atomik: ubah 'Proses' jadi 'Diproses_Batch' hanya kalau
+     * statusnya masih 'Proses'. True = berhasil klaim, false = sudah diklaim request lain.
+     */
+    public function klaimBatch(int $id): bool
+    {
+        $this->builder()
+            ->where('id_import_log', $id)
+            ->where('status', 'Proses')
+            ->update(['status' => 'Diproses_Batch']);
+
+        return $this->db->affectedRows() > 0;
+    }
 }

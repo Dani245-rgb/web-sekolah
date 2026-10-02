@@ -27,6 +27,8 @@ class Services extends BaseService
 
         return new \App\Services\SiswaService(
             model(\App\Models\SiswaModel::class),
+            model(\App\Models\JurusanModel::class),
+            new \App\Libraries\ImageCompressor(),
         );
     }
 
@@ -147,6 +149,61 @@ class Services extends BaseService
         return new \App\Services\PasswordService(
             model(\App\Models\UserModel::class),
             model(\App\Models\AuditLogModel::class),
+        );
+    }
+
+    public static function jurusanService($getShared = true): \App\Services\JurusanService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('jurusanService');
+        }
+
+        return new \App\Services\JurusanService(
+            model(\App\Models\JurusanModel::class),
+            static::fileUploadService(),
+            static::slugService(),
+            \Config\Database::connect(),
+        );
+    }
+
+    public static function bkArtikelService($getShared = true): \App\Services\BkArtikelService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('bkArtikelService');
+        }
+
+        return new \App\Services\BkArtikelService(
+            model(\App\Models\BkArtikelModel::class),
+            static::fileUploadService(),
+            static::slugService(),
+            \Config\Database::connect(),
+        );
+    }
+
+    public static function unduhanService($getShared = true): \App\Services\UnduhanService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('unduhanService');
+        }
+
+        return new \App\Services\UnduhanService(
+            model(\App\Models\UnduhanModel::class),
+            static::fileUploadService(),
+            \Config\Database::connect(),
+        );
+    }
+
+    public static function importSiswaService($getShared = true): \App\Services\ImportSiswaService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('importSiswaService');
+        }
+
+        return new \App\Services\ImportSiswaService(
+            model(\App\Models\ImportLogModel::class),
+            model(\App\Models\SiswaModel::class),
+            model(\App\Models\JurusanModel::class),
+            static::siswaService(),
         );
     }
 

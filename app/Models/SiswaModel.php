@@ -55,4 +55,57 @@ class SiswaModel extends BaseModel
     {
         return $this->orderBy('nama', 'ASC');
     }
+
+    /**
+     * Daftar siswa untuk halaman admin: join jurusan + filter jurusan + pencarian.
+     * Mengembalikan model (chainable) supaya bisa langsung ->paginate().
+     */
+    public function cariAdmin(?string $keyword = null, ?int $jurusanId = null): static
+    {
+        $builder = $this->getAll()
+            ->select('siswa.*, jurusan.kode_jurusan, jurusan.nama_jurusan')
+            ->join('jurusan', 'jurusan.id_jurusan = siswa.jurusan_id', 'left');
+
+        if ($jurusanId !== null) {
+            $builder->where('siswa.jurusan_id', $jurusanId);
+        }
+
+        if ($keyword) {
+            $builder->groupStart()
+                ->like('siswa.nama', $keyword)
+                ->orLike('siswa.nis', $keyword)
+                ->orLike('siswa.nisn', $keyword)
+                ->orLike('jurusan.nama_jurusan', $keyword)
+                ->orLike('jurusan.kode_jurusan', $keyword)
+                ->groupEnd();
+        }
+
+        return $builder;
+    }
+
+    /**
+     * Siswa yang ada di tong sampah, terbaru dihapus dulu.
+     */
+    public function getTerhapus(): array
+    {
+        return $this->onlyDeleted()->orderBy('deleted_at', 'DESC')->findAll();
+    }
+
+    /**
+     * Satu siswa dari tong sampah, atau null.
+     */
+    public function cariTerhapus(int $id): ?array
+    {
+        return $this->onlyDeleted()->find($id);
+    }
+
+    public function nisSudahAda(string $nis): bool
+    {
+        return $this->where('nis', $nis)->first() !== null;
+    }
+
+    public function nisnSudahAda(string $nisn): bool
+    {
+        return $this->where('nisn', $nisn)->first() !== null;
+    }
 }

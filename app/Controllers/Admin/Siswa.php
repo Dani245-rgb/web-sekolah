@@ -3,115 +3,47 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\SiswaModel;
-use App\Libraries\ImageCompressor;
-use Config\Database;
+use App\Services\SiswaService;
+use Throwable;
 
 class Siswa extends BaseController
 {
-    protected SiswaModel $siswaModel;
-    protected \App\Services\SiswaService $siswaService;
+    protected SiswaService $siswa;
 
     public function __construct()
     {
-        $this->siswaModel   = new SiswaModel();
-        $this->siswaService = service('siswaService');
+        $this->siswa = service('siswaService');
     }
 
     public function index()
     {
         $keyword = $this->request->getGet('cari');
+        $hasil   = $this->siswa->daftar($keyword, $this->request->getGet('jurusan'));
 
-        $builder = $this->siswaModel->getAll()
-            ->select('siswa.*, jurusan.kode_jurusan, jurusan.nama_jurusan')
-            ->join('jurusan', 'jurusan.id_jurusan = siswa.jurusan_id', 'left');
-
-        $jurusanId = $this->request->getGet('jurusan');
-        if (!empty($jurusanId) && ctype_digit((string) $jurusanId)) {
-            $builder->where('siswa.jurusan_id', (int) $jurusanId);
-        } else {
-            $jurusanId = null;
-        }
-
-        if ($keyword) {
-            $builder->groupStart()
-                ->like('siswa.nama', $keyword)
-                ->orLike('siswa.nis', $keyword)
-                ->orLike('siswa.nisn', $keyword)
-                ->orLike('jurusan.nama_jurusan', $keyword)
-                ->orLike('jurusan.kode_jurusan', $keyword)
-                ->groupEnd();
-        }
-
-        $data['siswa']   = $builder->paginate(50);
-        $data['pager']   = $this->siswaModel->pager;
-        $data['keyword']      = $keyword;
-        $data['jurusanList']  = $this->getJurusanList();
-        $data['jurusanAktif'] = $jurusanId;
-
-        return view('admin/siswa/index', $data);
-    }
-
-    // Daftar jurusan aktif untuk dropdown di form tambah/edit
-    protected function getJurusanList(): array
-    {
-        return Database::connect()->table('jurusan')
-            ->select('id_jurusan, kode_jurusan, nama_jurusan')
-            ->where('deleted_at', null)
-            ->where('status', 'Aktif')
-            ->orderBy('nama_jurusan', 'ASC')
-            ->get()
-            ->getResultArray();
+        return view('admin/siswa/index', [
+            'siswa'        => $hasil['siswa'],
+            'pager'        => $hasil['pager'],
+            'keyword'      => $keyword,
+            'jurusanList'  => $this->siswa->daftarJurusanAktif(),
+            'jurusanAktif' => $hasil['jurusanAktif'],
+        ]);
     }
 
     public function create()
     {
-        $data['jurusanList'] = $this->getJurusanList();
-        return view('admin/siswa/create', $data);
+        return view('admin/siswa/create', ['jurusanList' => $this->siswa->daftarJurusanAktif()]);
     }
 
     public function store()
     {
-        $rules = [
-            'nis'            => 'required|max_length[20]|is_unique[siswa.nis]',
-            'nisn'           => 'required|max_length[20]|is_unique[siswa.nisn]',
-            'nama'           => 'required|min_length[3]|max_length[100]',
-            'tanggal_lahir'  => 'required|valid_date',
-            'jurusan_id'     => 'permit_empty|is_not_unique[jurusan.id_jurusan]',
-            'jenis_kelamin'  => 'required|in_list[L,P]',
-            'email'          => 'permit_empty|valid_email',
-            'foto'           => 'permit_empty|is_image[foto]|max_size[foto,2048]|mime_in[foto,image/jpg,image/jpeg,image/png]',
-        ];
-
-        if (!$this->validate($rules)) {
+        if (!$this->validate($this->aturanStore())) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $fotoName = null;
-        $fotoFile = $this->request->getFile('foto');
-        if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
-            $fotoName = $fotoFile->getRandomName();
-            $compressor = new ImageCompressor();
-            $compressor->compressAndSave($fotoFile->getTempName(), FCPATH . 'uploads/siswa/' . $fotoName);
-        }
-
-        $hasil = $this->siswaService->buatSiswaBaru([
-            'nis'            => $this->request->getPost('nis'),
-            'nisn'           => $this->request->getPost('nisn'),
-            'jurusan_id'     => $this->request->getPost('jurusan_id') ?: null,
-            'nama'           => $this->request->getPost('nama'),
-            'tempat_lahir'   => $this->request->getPost('tempat_lahir'),
-            'tanggal_lahir'  => $this->request->getPost('tanggal_lahir'),
-            'jenis_kelamin'  => $this->request->getPost('jenis_kelamin'),
-            'agama'          => $this->request->getPost('agama'),
-            'alamat'         => $this->request->getPost('alamat'),
-            'nama_ayah'      => $this->request->getPost('nama_ayah'),
-            'nama_ibu'       => $this->request->getPost('nama_ibu'),
-            'pekerjaan_ortu' => $this->request->getPost('pekerjaan_ortu'),
-            'no_hp_ortu'     => $this->request->getPost('no_hp_ortu'),
-            'email'          => $this->request->getPost('email'),
-            'foto'           => $fotoName,
-        ]);
+        $hasil = $this->aman(
+            fn () => $this->siswa->tambah($this->inputForm(), $this->request->getFile('foto')),
+            'simpan siswa'
+        );
 
         if (!$hasil['sukses']) {
             return redirect()->back()->withInput()->with('errors', ['db' => $hasil['pesan']]);
@@ -123,145 +55,118 @@ class Siswa extends BaseController
 
     public function edit($id_siswa)
     {
-        $data['siswaData'] = $this->siswaModel->find($id_siswa);
+        $siswaData = $this->siswa->cari($id_siswa);
 
-        if (!$data['siswaData']) {
-            return redirect()->to('/admin/siswa')->with('errors', ['404' => 'Data siswa tidak ditemukan.']);
-        }
-
-        $data['jurusanList'] = $this->getJurusanList();
-
-        return view('admin/siswa/edit', $data);
-    }
-
-    public function update($id_siswa)
-    {
-        $siswaData = $this->siswaModel->find($id_siswa);
         if (!$siswaData) {
             return redirect()->to('/admin/siswa')->with('errors', ['404' => 'Data siswa tidak ditemukan.']);
         }
 
-        $rules = [
-            'nis'           => "required|max_length[20]|is_unique[siswa.nis,id_siswa,{$id_siswa}]",
-            'nisn'          => "required|max_length[20]|is_unique[siswa.nisn,id_siswa,{$id_siswa}]",
+        return view('admin/siswa/edit', [
+            'siswaData'   => $siswaData,
+            'jurusanList' => $this->siswa->daftarJurusanAktif(),
+        ]);
+    }
+
+    public function update($id_siswa)
+    {
+        if (!$this->siswa->cari($id_siswa)) {
+            return redirect()->to('/admin/siswa')->with('errors', ['404' => 'Data siswa tidak ditemukan.']);
+        }
+
+        if (!$this->validate($this->aturanUpdate((int) $id_siswa))) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $hasil = $this->aman(
+            fn () => $this->siswa->ubah((int) $id_siswa, $this->inputForm(), $this->request->getFile('foto')),
+            'update siswa'
+        );
+
+        if (!$hasil['sukses']) {
+            return redirect()->back()->withInput()->with('errors', ['update' => $hasil['pesan']]);
+        }
+
+        return redirect()->to('/admin/siswa')->with('success', $hasil['pesan']);
+    }
+
+    public function delete($id_siswa)
+    {
+        return $this->balas($this->siswa->hapus((int) $id_siswa), '/admin/siswa');
+    }
+
+    public function trash()
+    {
+        return view('admin/siswa/trash', ['siswaTerhapus' => $this->siswa->daftarTerhapus()]);
+    }
+
+    public function restore($id_siswa)
+    {
+        return $this->balas($this->siswa->pulihkan((int) $id_siswa), '/admin/siswa/trash');
+    }
+
+    public function forceDelete($id_siswa)
+    {
+        return $this->balas($this->siswa->hapusPermanen((int) $id_siswa), '/admin/siswa/trash');
+    }
+
+    // ================= Helper privat =================
+
+    private function inputForm(): array
+    {
+        return $this->request->getPost([
+            'nis', 'nisn', 'jurusan_id', 'nama', 'tempat_lahir', 'tanggal_lahir',
+            'jenis_kelamin', 'agama', 'alamat', 'nama_ayah', 'nama_ibu',
+            'pekerjaan_ortu', 'no_hp_ortu', 'email',
+        ]);
+    }
+
+    /**
+     * Jalankan aksi service; exception tak terduga dicatat dan diubah jadi pesan umum.
+     */
+    private function aman(callable $aksi, string $konteks): array
+    {
+        try {
+            return $aksi();
+        } catch (Throwable $e) {
+            log_message('error', "Gagal {$konteks}: " . $e->getMessage());
+
+            return ['sukses' => false, 'pesan' => 'Terjadi kesalahan. Silakan coba lagi.'];
+        }
+    }
+
+    private function balas(array $hasil, string $url)
+    {
+        $redirect = redirect()->to($url);
+
+        return $hasil['sukses']
+            ? $redirect->with('success', $hasil['pesan'])
+            : $redirect->with('errors', ['db' => $hasil['pesan']]);
+    }
+
+    private function aturanStore(): array
+    {
+        return [
+            'nis'           => 'required|max_length[20]|is_unique[siswa.nis]',
+            'nisn'          => 'required|max_length[20]|is_unique[siswa.nisn]',
+            'nama'          => 'required|min_length[3]|max_length[100]',
+            'tanggal_lahir' => 'required|valid_date',
+            'jurusan_id'    => 'permit_empty|is_not_unique[jurusan.id_jurusan]',
+            'jenis_kelamin' => 'required|in_list[L,P]',
+            'email'         => 'permit_empty|valid_email',
+            'foto'          => 'permit_empty|is_image[foto]|max_size[foto,2048]|mime_in[foto,image/jpg,image/jpeg,image/png]',
+        ];
+    }
+
+    private function aturanUpdate(int $id): array
+    {
+        return [
+            'nis'           => "required|max_length[20]|is_unique[siswa.nis,id_siswa,{$id}]",
+            'nisn'          => "required|max_length[20]|is_unique[siswa.nisn,id_siswa,{$id}]",
             'jurusan_id'    => 'permit_empty|is_not_unique[jurusan.id_jurusan]',
             'nama'          => 'required|min_length[3]|max_length[100]',
             'jenis_kelamin' => 'required|in_list[L,P]',
             'email'         => 'permit_empty|valid_email',
             'foto'          => 'permit_empty|is_image[foto]|max_size[foto,2048]|mime_in[foto,image/jpg,image/jpeg,image/png]',
         ];
-
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-
-        $dataUpdate = [
-            'nis'            => $this->request->getPost('nis'),
-            'nisn'           => $this->request->getPost('nisn'),
-            'jurusan_id'     => $this->request->getPost('jurusan_id') ?: null,
-            'nama'           => $this->request->getPost('nama'),
-            'tempat_lahir'   => $this->request->getPost('tempat_lahir'),
-            'tanggal_lahir'  => $this->request->getPost('tanggal_lahir'),
-            'jenis_kelamin'  => $this->request->getPost('jenis_kelamin'),
-            'agama'          => $this->request->getPost('agama'),
-            'alamat'         => $this->request->getPost('alamat'),
-            'nama_ayah'      => $this->request->getPost('nama_ayah'),
-            'nama_ibu'       => $this->request->getPost('nama_ibu'),
-            'pekerjaan_ortu' => $this->request->getPost('pekerjaan_ortu'),
-            'no_hp_ortu'     => $this->request->getPost('no_hp_ortu'),
-            'email'          => $this->request->getPost('email'),
-        ];
-
-        $fotoFile = $this->request->getFile('foto');
-        if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
-            if (!empty($siswaData['foto']) && file_exists(FCPATH . 'uploads/siswa/' . $siswaData['foto'])) {
-                unlink(FCPATH . 'uploads/siswa/' . $siswaData['foto']);
-            }
-            $fotoName = $fotoFile->getRandomName();
-            $compressor = new ImageCompressor();
-            $compressor->compressAndSave($fotoFile->getTempName(), FCPATH . 'uploads/siswa/' . $fotoName);
-            $dataUpdate['foto'] = $fotoName;
-        }
-
-        $berhasil = $this->siswaModel->skipValidation(true)->update($id_siswa, $dataUpdate);
-
-        if (!$berhasil) {
-            return redirect()->back()->withInput()
-                ->with('errors', ['update' => 'Gagal memperbarui data siswa.']);
-        }
-
-        return redirect()->to('/admin/siswa')->with('success', "Data siswa {$dataUpdate['nama']} berhasil diperbarui.");
-    }
-
-    public function delete($id_siswa)
-    {
-        $siswaData = $this->siswaModel->find($id_siswa);
-        if (!$siswaData) {
-            return redirect()->to('/admin/siswa')->with('errors', ['404' => 'Data siswa tidak ditemukan.']);
-        }
-
-        // Soft delete: data siswa dipindah ke "tong sampah", bukan dihapus permanen.
-        // Foto TIDAK dihapus dari server, disimpan sampai nanti dihapus permanen dari Recycle Bin.
-        $berhasil = $this->siswaModel->delete($id_siswa);
-
-        if (!$berhasil) {
-            return redirect()->to('/admin/siswa')->with('errors', ['db' => 'Gagal menghapus data siswa.']);
-        }
-
-        return redirect()->to('/admin/siswa')->with('success', 'Data siswa dipindahkan ke tong sampah. Bisa dipulihkan kapan saja dari menu Recycle Bin.');
-    }
-
-    /**
-     * Tampilkan daftar siswa yang sudah di-soft-delete (tong sampah).
-     */
-    public function trash()
-    {
-        $data['siswaTerhapus'] = $this->siswaModel->onlyDeleted()
-            ->orderBy('deleted_at', 'DESC')
-            ->findAll();
-
-        return view('admin/siswa/trash', $data);
-    }
-
-    /**
-     * Pulihkan siswa dari tong sampah.
-     */
-    public function restore($id_siswa)
-    {
-        $siswaData = $this->siswaModel->onlyDeleted()->find($id_siswa);
-        if (!$siswaData) {
-            return redirect()->to('/admin/siswa/trash')->with('errors', ['404' => 'Data tidak ditemukan di tong sampah.']);
-        }
-
-        $berhasil = $this->siswaModel->update($id_siswa, ['deleted_at' => null]);   
-
-        if (!$berhasil) {
-            return redirect()->to('/admin/siswa/trash')->with('errors', ['db' => 'Gagal memulihkan data siswa.']);
-        }
-
-        return redirect()->to('/admin/siswa/trash')->with('success', "Siswa {$siswaData['nama']} berhasil dipulihkan.");
-    }
-
-    /**
-     * Hapus permanen siswa dari tong sampah (tidak bisa dibatalkan).
-     */
-    public function forceDelete($id_siswa)
-    {
-        $siswaData = $this->siswaModel->onlyDeleted()->find($id_siswa);
-        if (!$siswaData) {
-            return redirect()->to('/admin/siswa/trash')->with('errors', ['404' => 'Data tidak ditemukan di tong sampah.']);
-        }
-
-        $berhasil = $this->siswaModel->delete($id_siswa, true); // true = hard delete permanen
-
-        if (!$berhasil) {
-            return redirect()->to('/admin/siswa/trash')->with('errors', ['db' => 'Gagal menghapus data siswa secara permanen.']);
-        }
-
-        if (!empty($siswaData['foto']) && file_exists(FCPATH . 'uploads/siswa/' . $siswaData['foto'])) {
-            unlink(FCPATH . 'uploads/siswa/' . $siswaData['foto']);
-        }
-
-        return redirect()->to('/admin/siswa/trash')->with('success', 'Data siswa dihapus permanen.');
     }
 }

@@ -36,4 +36,33 @@ class BkArtikelModel extends BaseModel
                     ->orderBy('created_at', 'DESC')
                     ->findAll();
     }
+
+    /**
+     * Daftar untuk halaman admin (semua status), terbaru dulu. Kategori opsional.
+     */
+    public function getDaftarAdmin(?string $kategori = null): array
+    {
+        $builder = $this->orderBy('created_at', 'DESC');
+
+        if ($kategori !== null) {
+            $builder->where('kategori', $kategori);
+        }
+
+        return $builder->findAll();
+    }
+
+    /**
+     * Apakah judul sudah dipakai artikel lain.
+     * $excludeId diisi saat update supaya tidak bentrok dengan dirinya sendiri.
+     */
+    public function judulSudahDipakai(string $judul, ?int $excludeId = null): bool
+    {
+        $builder = $this->where('judul', $judul);
+
+        if ($excludeId !== null) {
+            $builder->where('id_artikel !=', $excludeId);
+        }
+
+        return $builder->first() !== null;
+    }
 }
