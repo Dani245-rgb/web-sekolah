@@ -96,7 +96,7 @@
 <script>
 function konfirmasiResetPassword(form, username) {
     const ketik = prompt(
-        `Password akun "${username}" akan direset ke password acak baru, dan akun wajib ganti password saat login berikutnya.\n\nKetik ulang username "${username}" untuk melanjutkan:`
+        `Password akun "${username}" akan direset ke password acak baru yang ditampilkan sekali setelah proses selesai.\n\nKetik ulang username "${username}" untuk melanjutkan:`
     );
 
     if (ketik === null) {

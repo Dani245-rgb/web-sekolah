@@ -13,7 +13,6 @@ class UserModel extends BaseModel
         'username',
         'password',
         'status',
-        'must_change_password',
         'login_attempts',
         'locked_until',
     ];

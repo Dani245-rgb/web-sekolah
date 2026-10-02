@@ -29,7 +29,7 @@
     <div class="mb-3">
         <label>Password Awal</label>
         <input type="text" name="password" class="form-control" required>
-        <small class="text-muted">Admin baru akan diminta ganti password saat login pertama.</small>
+        <small class="text-muted">Setelah login, admin bisa mengganti password sendiri lewat ikon kunci di pojok kanan atas.</small>
     </div>
 
     <button type="submit" class="btn btn-primary">Simpan</button>

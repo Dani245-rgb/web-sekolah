@@ -78,7 +78,6 @@ class User extends BaseController
             'password'             => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
             'role_id'              => self::ROLE_MAP['admin'],
             'status'               => 'Aktif',
-            'must_change_password' => 1,
             'login_attempts'       => 0,
         ]);
 
@@ -110,7 +109,7 @@ class User extends BaseController
 
     /**
      * Reset password akun apa pun (Admin/Guru/Siswa) lewat user_id.
-     * Password baru selalu acak 8 karakter, ditandai wajib ganti password saat login berikutnya.
+     * Password baru selalu acak 8 karakter, lalu disampaikan ke admin yang bersangkutan.
      */
     public function resetPassword($idUser)
     {
@@ -128,7 +127,6 @@ class User extends BaseController
 
         $this->userModel->update($idUser, [
             'password'              => password_hash($passwordBaru, PASSWORD_DEFAULT),
-            'must_change_password'  => 1,
             'login_attempts'        => 0,
             'locked_until'          => null,
         ]);
@@ -141,6 +139,6 @@ class User extends BaseController
         );
 
         return redirect()->to('/admin/user')
-            ->with('success', "Password {$namaTampil} berhasil direset. Password baru: {$passwordBaru}. Wajib ganti password saat login berikutnya.");
+            ->with('success', "Password {$namaTampil} berhasil direset. Password baru: {$passwordBaru}. Sampaikan ke yang bersangkutan, lalu sarankan menggantinya lewat ikon kunci di pojok kanan atas.");
     }
 }
