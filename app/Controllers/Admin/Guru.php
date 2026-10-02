@@ -4,36 +4,22 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\GuruModel;
-use App\Services\FileUploadService;
+use App\Services\GuruService;
 use InvalidArgumentException;
-use RuntimeException;
+use Throwable;
 
 class Guru extends BaseController
 {
-    private const FOLDER    = 'guru'; // public/uploads/guru
-    private const MIME_FOTO = ['image/jpeg', 'image/png'];
-
-    protected GuruModel $guruModel;
-    protected FileUploadService $fileUpload;
+    protected GuruService $guru;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->guruModel  = new GuruModel();
-        $this->fileUpload = service('fileUploadService');
+        $this->guru = service('guruService');
     }
 
     public function index()
     {
-        $cari    = $this->request->getGet('cari');
-        $keyword = is_string($cari) && trim($cari) !== '' ? trim($cari) : null;
-
-        $data['guru']    = $this->guruModel->cari($keyword)->paginate(5, 'guru');
-        $data['pager']   = $this->guruModel->pager;
-        $data['keyword'] = $keyword;
-
-        return view('admin/guru/index', $data);
+        return view('admin/guru/index', $this->guru->daftar($this->request->getGet('cari')));
     }
 
     public function create()
@@ -43,31 +29,16 @@ class Guru extends BaseController
 
     public function store()
     {
-        $data = $this->dataDariForm();
+        $data = $this->guru->rapikanInput($this->inputForm());
 
         if (!$this->validateData($data, $this->rules())) {
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
         try {
-            $foto = $this->fileUpload->simpanKompres($this->request->getFile('foto'), self::FOLDER, self::MIME_FOTO);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        $data['foto']   = $foto;
-        $data['status'] = 'Aktif';
-
-        $idGuru = $this->guruModel->skipValidation(true)->insert($data);
-
-        if (!$idGuru) {
-            // Data gagal masuk DB, file yang sudah terlanjur diupload dibuang lagi
-            $this->fileUpload->hapus($foto, self::FOLDER);
-
-            $errors     = $this->guruModel->errors();
-            $pesanError = $errors ? implode('; ', $errors) : 'Gagal menyimpan data guru.';
-
-            return $this->kembaliDenganError(['db' => $pesanError]);
+            $this->guru->tambah($data, $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal menyimpan data guru. Silakan coba lagi.', 'simpan');
         }
 
         return redirect()->to('/admin/guru')->with('success', 'Data guru berhasil ditambahkan.');
@@ -75,88 +46,73 @@ class Guru extends BaseController
 
     public function edit($id_guru)
     {
-        $data['guru'] = $this->guruModel->findWithUser($id_guru);
+        $guru = $this->guru->cari($id_guru);
 
-        if (!$data['guru']) {
-            return $this->tidakDitemukan();
-        }
-
-        return view('admin/guru/edit', $data);
-    }
-
-    public function update($id_guru)
-    {
-        $guru = $this->guruModel->find($id_guru);
         if (!$guru) {
             return $this->tidakDitemukan();
         }
 
-        $data           = $this->dataDariForm();
-        $data['status'] = (string) $this->request->getPost('status');
+        return view('admin/guru/edit', ['guru' => $guru]);
+    }
+
+    public function update($id_guru)
+    {
+        if (!$this->guru->cari($id_guru)) {
+            return $this->tidakDitemukan();
+        }
+
+        $data = $this->guru->rapikanInput($this->inputForm(true));
 
         if (!$this->validateData($data, $this->rules((int) $id_guru))) {
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
         try {
-            $fotoBaru = $this->fileUpload->simpanKompres($this->request->getFile('foto'), self::FOLDER, self::MIME_FOTO);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        if ($fotoBaru !== null) {
-            $data['foto'] = $fotoBaru;
-        }
-
-        if (!$this->guruModel->skipValidation(true)->update($id_guru, $data)) {
-            $this->fileUpload->hapus($fotoBaru, self::FOLDER);
-            return $this->kembaliDenganError(['update' => 'Gagal memperbarui data guru.']);
-        }
-
-        // Foto lama baru dihapus SETELAH update DB sukses
-        if ($fotoBaru !== null) {
-            $this->fileUpload->hapus($guru['foto'], self::FOLDER);
+            $this->guru->ubah((int) $id_guru, $data, $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal memperbarui data guru. Silakan coba lagi.', 'update');
         }
 
         return redirect()->to('/admin/guru')->with('success', 'Data guru berhasil diperbarui.');
     }
 
+    /**
+     * Guru tidak benar-benar dihapus, hanya dinonaktifkan.
+     */
     public function delete($id_guru)
     {
-        $guru = $this->guruModel->find($id_guru);
-        if (!$guru) {
-            return $this->tidakDitemukan();
-        }
+        try {
+            $this->guru->nonaktifkan((int) $id_guru);
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal nonaktifkan Guru: ' . $e->getMessage());
 
-        $berhasil = $this->guruModel->skipValidation(true)->update($id_guru, ['status' => 'Nonaktif']);
+            $pesan = $e instanceof InvalidArgumentException
+                ? $e->getMessage()
+                : 'Gagal menonaktifkan guru. Silakan coba lagi.';
 
-        if (!$berhasil) {
-            return redirect()->to('/admin/guru')->with('errors', ['delete' => 'Gagal menonaktifkan guru.']);
+            return redirect()->to('/admin/guru')->with('errors', ['guru' => $pesan]);
         }
 
         return redirect()->to('/admin/guru')->with('success', 'Guru dinonaktifkan.');
     }
 
-    /**
-     * Data dari form yang sudah dirapikan, dipakai bareng oleh store() dan update().
-     * email, nuptk, dan tanggal_lahir yang kosong disimpan sebagai NULL.
-     */
-    private function dataDariForm(): array
+    // ================= Helper privat =================
+
+    private function inputForm(bool $denganStatus = false): array
     {
-        return [
-            'nip'           => rapikan_teks((string) $this->request->getPost('nip')),
-            'nuptk'         => $this->atauNull(rapikan_teks((string) $this->request->getPost('nuptk'))),
-            'nama'          => rapikan_teks((string) $this->request->getPost('nama')),
-            'tempat_lahir'  => rapikan_teks((string) $this->request->getPost('tempat_lahir')),
-            'tanggal_lahir' => $this->atauNull((string) $this->request->getPost('tanggal_lahir')),
-            'jenis_kelamin' => $this->request->getPost('jenis_kelamin'),
-            'jabatan'       => rapikan_teks((string) $this->request->getPost('jabatan')),
-            'no_hp'         => rapikan_teks((string) $this->request->getPost('no_hp')),
-            'email'         => $this->atauNull(rapikan_teks((string) $this->request->getPost('email'))),
-        ];
+        $kolom = ['nip', 'nuptk', 'nama', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'jabatan', 'no_hp', 'email'];
+
+        if ($denganStatus) {
+            $kolom[] = 'status';
+        }
+
+        return $this->request->getPost($kolom);
     }
 
+    /**
+     * Validasi format input. Foto tidak divalidasi di sini:
+     * tipe dan ukuran dicek di FileUploadService.
+     */
     private function rules(?int $id = null): array
     {
         $kecuali = $id !== null ? ",id_guru,{$id}" : '';
@@ -176,14 +132,21 @@ class Guru extends BaseController
         return $rules;
     }
 
-    private function atauNull(string $nilai): ?string
-    {
-        return $nilai !== '' ? $nilai : null;
-    }
-
     private function tidakDitemukan()
     {
         return redirect()->to('/admin/guru')->with('errors', ['404' => 'Data guru tidak ditemukan.']);
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman ditampilkan ke user. Selain itu: log + pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum, string $aksi)
+    {
+        log_message('error', "Gagal {$aksi} Guru: " . $e->getMessage());
+
+        $pesan = $e instanceof InvalidArgumentException ? $e->getMessage() : $pesanUmum;
+
+        return $this->kembaliDenganError(['guru' => $pesan]);
     }
 
     private function kembaliDenganError(array $errors)

@@ -36,4 +36,12 @@ class GaleriModel extends BaseModel
 
         return $builder->findAll($limit, $offset);
     }
+
+    /**
+     * Semua foto untuk halaman admin (semua status), terbaru dulu.
+     */
+    public function getSemuaTerbaru(): array
+    {
+        return $this->orderBy('created_at', 'DESC')->findAll();
+    }
 }

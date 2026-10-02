@@ -4,35 +4,27 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\GaleriModel;
-use App\Services\FileUploadService;
+use App\Services\GaleriService;
 use InvalidArgumentException;
-use RuntimeException;
+use Throwable;
 
 class Galeri extends BaseController
 {
-    private const FOLDER = 'galeri'; // public/uploads/galeri
-
-    protected GaleriModel $galeriModel;
-    protected FileUploadService $fileUpload;
+    protected GaleriService $galeri;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->galeriModel = new GaleriModel();
-        $this->fileUpload  = service('fileUploadService');
+        $this->galeri = service('galeriService');
     }
 
     public function index()
     {
-        $data['galeri'] = $this->galeriModel->orderBy('created_at', 'DESC')->findAll();
-        return view('admin/galeri/index', $data);
+        return view('admin/galeri/index', ['galeri' => $this->galeri->daftar()]);
     }
 
     public function create()
     {
-        $data['galeri'] = null;
-        return view('admin/galeri/form', $data);
+        return view('admin/galeri/form', ['galeri' => null]);
     }
 
     public function store()
@@ -44,27 +36,9 @@ class Galeri extends BaseController
         }
 
         try {
-            $foto = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        if ($foto === null) {
-            return $this->kembaliDenganError(['foto' => 'Foto gagal diupload.']);
-        }
-
-        $berhasil = $this->galeriModel->insert([
-            'judul'     => rapikan_teks((string) $this->request->getPost('judul')),
-            'foto'      => $foto,
-            'kategori'  => $this->request->getPost('kategori'),
-            'deskripsi' => $this->request->getPost('deskripsi'),
-            'status'    => $this->request->getPost('status'),
-        ]);
-
-        if (!$berhasil) {
-            // Data gagal masuk DB, file yang sudah terlanjur diupload dibuang lagi
-            $this->fileUpload->hapus($foto, self::FOLDER);
-            return $this->kembaliDenganError($this->galeriModel->errors());
+            $this->galeri->tambah($this->inputForm(), $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal menyimpan foto. Silakan coba lagi.', 'simpan');
         }
 
         return redirect()->to('/admin/galeri')->with('success', 'Foto berhasil ditambahkan.');
@@ -72,54 +46,29 @@ class Galeri extends BaseController
 
     public function edit($id)
     {
-        $data['galeri'] = $this->galeriModel->find($id);
+        $galeri = $this->galeri->cari($id);
 
-        if (!$data['galeri']) {
-            return redirect()->to('/admin/galeri')->with('error', 'Data tidak ditemukan.');
+        if (!$galeri) {
+            return $this->tidakDitemukan();
         }
 
-        return view('admin/galeri/form', $data);
+        return view('admin/galeri/form', ['galeri' => $galeri]);
     }
 
     public function update($id)
     {
-        $galeri = $this->galeriModel->find($id);
-        if (!$galeri) {
-            return redirect()->to('/admin/galeri')->with('error', 'Data tidak ditemukan.');
+        if (!$this->galeri->cari($id)) {
+            return $this->tidakDitemukan();
         }
 
         if (!$this->validate($this->rules())) {
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $dataUpdate = [
-            'judul'     => rapikan_teks((string) $this->request->getPost('judul')),
-            'kategori'  => $this->request->getPost('kategori'),
-            'deskripsi' => $this->request->getPost('deskripsi'),
-            'status'    => $this->request->getPost('status'),
-        ];
-
-        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
         try {
-            $fotoBaru = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        if ($fotoBaru !== null) {
-            $dataUpdate['foto'] = $fotoBaru;
-        }
-
-        if (!$this->galeriModel->update($id, $dataUpdate)) {
-            if ($fotoBaru !== null) {
-                $this->fileUpload->hapus($fotoBaru, self::FOLDER);
-            }
-            return $this->kembaliDenganError($this->galeriModel->errors());
-        }
-
-        // Foto lama baru dihapus SETELAH update DB sukses
-        if ($fotoBaru !== null) {
-            $this->fileUpload->hapus($galeri['foto'], self::FOLDER);
+            $this->galeri->ubah((int) $id, $this->inputForm(), $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal memperbarui foto. Silakan coba lagi.', 'update');
         }
 
         return redirect()->to('/admin/galeri')->with('success', 'Foto berhasil diperbarui.');
@@ -127,30 +76,62 @@ class Galeri extends BaseController
 
     public function delete($id)
     {
-        $galeri = $this->galeriModel->find($id);
-        if (!$galeri) {
-            return redirect()->to('/admin/galeri')->with('error', 'Data tidak ditemukan.');
+        try {
+            $this->galeri->hapus((int) $id);
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal hapus Galeri: ' . $e->getMessage());
+
+            if ($e instanceof InvalidArgumentException) {
+                return $this->tidakDitemukan();
+            }
+
+            return redirect()->to('/admin/galeri')->with('error', 'Gagal menghapus foto. Silakan coba lagi.');
         }
-
-        $this->galeriModel->delete($id);
-
-        // File dihapus SETELAH record DB terhapus
-        $this->fileUpload->hapus($galeri['foto'], self::FOLDER);
 
         return redirect()->to('/admin/galeri')->with('success', 'Foto berhasil dihapus.');
     }
 
-    private function rules(): array
+    // ================= Helper privat =================
+
+    private function inputForm(): array
     {
-        return [
-            'judul'    => 'required|min_length[3]|max_length[255]',
-            'kategori' => 'required|in_list[Kegiatan,Fasilitas,Prestasi,Lainnya]',
-            'status'   => 'required|in_list[Published,Draft]',
-        ];
+        return $this->request->getPost(['judul', 'kategori', 'deskripsi', 'status']);
+    }
+
+    private function tidakDitemukan()
+    {
+        return redirect()->to('/admin/galeri')->with('error', 'Data tidak ditemukan.');
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman ditampilkan ke user. Selain itu: log + pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum, string $aksi)
+    {
+        log_message('error', "Gagal {$aksi} Galeri: " . $e->getMessage());
+
+        $pesan = $e instanceof InvalidArgumentException ? $e->getMessage() : $pesanUmum;
+
+        return $this->kembaliDenganError(['galeri' => $pesan]);
     }
 
     private function kembaliDenganError(array $errors)
     {
         return redirect()->back()->withInput()->with('errors', $errors);
+    }
+
+    /**
+     * Validasi format input. Foto tidak divalidasi di sini:
+     * tipe dan ukuran dicek di FileUploadService.
+     */
+    private function rules(): array
+    {
+        $kategori = implode(',', GaleriModel::KATEGORI);
+
+        return [
+            'judul'    => 'required|min_length[3]|max_length[255]',
+            'kategori' => "required|in_list[{$kategori}]",
+            'status'   => 'required|in_list[Published,Draft]',
+        ];
     }
 }

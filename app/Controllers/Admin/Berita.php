@@ -3,48 +3,27 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\AuditLogModel;
-use App\Models\BeritaModel;
-use App\Services\FileUploadService;
-use App\Services\SlugService;
+use App\Services\BeritaService;
 use InvalidArgumentException;
-use RuntimeException;
+use Throwable;
 
 class Berita extends BaseController
 {
-    // Gambar berita disimpan di public/assets/images/berita (bukan public/uploads)
-    private const FOLDER_GAMBAR = 'assets/images/berita';
-    private const MIME_GAMBAR   = ['image/jpeg', 'image/png'];
-
-    protected BeritaModel $beritaModel;
-    protected AuditLogModel $auditLogModel;
-    protected FileUploadService $uploader;
-    protected SlugService $slugService;
+    protected BeritaService $berita;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->beritaModel   = new BeritaModel();
-        $this->auditLogModel = new AuditLogModel();
-        $this->uploader      = service('fileUploadService');
-        $this->slugService   = service('slugService');
+        $this->berita = service('beritaService');
     }
 
     public function index()
     {
         $keyword = $this->request->getGet('q');
-
-        $builder = $this->beritaModel->orderBy('created_at', 'DESC');
-        if ($keyword) {
-            $builder->like('judul', $keyword);
-        }
-
-        $beritaList = $builder->paginate(10);
+        $hasil   = $this->berita->daftar($keyword);
 
         return view('admin/berita/index', [
-            'beritaList' => $beritaList,
-            'pager'      => $this->beritaModel->pager,
+            'beritaList' => $hasil['berita'],
+            'pager'      => $hasil['pager'],
             'keyword'    => $keyword,
         ]);
     }
@@ -60,54 +39,25 @@ class Berita extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $judul = rapikan_teks($this->request->getPost('judul'));
-
-        if (mb_strlen($judul) < 5) {
-            return redirect()->back()->withInput()->with('errors', ['judul' => 'Judul minimal 5 karakter.']);
-        }
-
-        $slug = $this->slugService->buatUnik($judul, 'berita', 'id_berita', null, 'berita');
-
         try {
-            $namaFile = $this->uploader->simpan($this->request->getFile('gambar'), self::FOLDER_GAMBAR, self::MIME_GAMBAR);
-        } catch (InvalidArgumentException $e) {
-            return redirect()->back()->withInput()->with('errors', ['gambar' => $e->getMessage()]);
-        } catch (RuntimeException $e) {
-            log_message('error', 'Gagal upload gambar Berita: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('errors', ['gambar' => 'Gagal menyimpan gambar. Periksa permission folder.']);
+            $this->berita->tambah(
+                $this->inputForm(),
+                $this->request->getFile('gambar'),
+                session()->get('id_user'),
+                $this->namaUser()
+            );
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal menyimpan berita. Silakan coba lagi.', 'simpan');
         }
-
-        $idBerita = $this->beritaModel->insert([
-            'judul'           => $judul,
-            'slug'            => $slug,
-            'kategori'        => $this->request->getPost('kategori'),
-            'gambar'          => $namaFile,
-            'ringkasan'       => $this->request->getPost('ringkasan'),
-            'konten'          => $this->request->getPost('konten'),
-            'status'          => $this->request->getPost('status'),
-            'posisi'          => $this->request->getPost('posisi'),
-            'tanggal_publish' => $this->request->getPost('tanggal_publish') ?: date('Y-m-d'),
-            'id_user'         => session()->get('id_user'),
-        ]);
-
-        if (!$idBerita) {
-            // Insert gagal: buang gambar yang sudah terlanjur diupload
-            $this->uploader->hapus($namaFile, self::FOLDER_GAMBAR);
-
-            $errors = $this->beritaModel->errors() ?: ['db' => 'Gagal menyimpan berita.'];
-            return redirect()->back()->withInput()->with('errors', $errors);
-        }
-
-        $this->catatAudit('Tambah Berita', $judul);
 
         return redirect()->to('/admin/berita')->with('success', 'Berita berhasil ditambahkan.');
     }
 
     public function edit($id)
     {
-        $berita = $this->beritaModel->find($id);
+        $berita = $this->berita->cari($id);
         if (!$berita) {
-            return redirect()->to('/admin/berita')->with('errors', ['404' => 'Berita tidak ditemukan.']);
+            return $this->tidakDitemukan();
         }
 
         return view('admin/berita/form', ['berita' => $berita]);
@@ -115,81 +65,81 @@ class Berita extends BaseController
 
     public function update($id)
     {
-        $berita = $this->beritaModel->find($id);
-        if (!$berita) {
-            return redirect()->to('/admin/berita')->with('errors', ['404' => 'Berita tidak ditemukan.']);
+        if (!$this->berita->cari($id)) {
+            return $this->tidakDitemukan();
         }
 
         if (!$this->validate($this->aturanValidasi())) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $judul = rapikan_teks($this->request->getPost('judul'));
-
-        if (mb_strlen($judul) < 5) {
-            return redirect()->back()->withInput()->with('errors', ['judul' => 'Judul minimal 5 karakter.']);
-        }
-
-        $slug = $judul !== $berita['judul']
-            ? $this->slugService->buatUnik($judul, 'berita', 'id_berita', (int) $id, 'berita')
-            : $berita['slug'];
-
         try {
-            $gambarBaru = $this->uploader->simpan($this->request->getFile('gambar'), self::FOLDER_GAMBAR, self::MIME_GAMBAR);
-        } catch (InvalidArgumentException $e) {
-            return redirect()->back()->withInput()->with('errors', ['gambar' => $e->getMessage()]);
-        } catch (RuntimeException $e) {
-            log_message('error', 'Gagal upload gambar Berita: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('errors', ['gambar' => 'Gagal menyimpan gambar. Periksa permission folder.']);
+            $this->berita->ubah(
+                (int) $id,
+                $this->inputForm(),
+                $this->request->getFile('gambar'),
+                session()->get('id_user'),
+                $this->namaUser()
+            );
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal memperbarui berita. Silakan coba lagi.', 'update');
         }
-
-        $berhasil = $this->beritaModel->update($id, [
-            'judul'           => $judul,
-            'slug'            => $slug,
-            'kategori'        => $this->request->getPost('kategori'),
-            'gambar'          => $gambarBaru ?? $berita['gambar'],
-            'ringkasan'       => $this->request->getPost('ringkasan'),
-            'konten'          => $this->request->getPost('konten'),
-            'status'          => $this->request->getPost('status'),
-            'posisi'          => $this->request->getPost('posisi'),
-            'tanggal_publish' => $this->request->getPost('tanggal_publish') ?: $berita['tanggal_publish'],
-        ]);
-
-        if (!$berhasil) {
-            // Update gagal: buang gambar baru, gambar lama tetap aman
-            $this->uploader->hapus($gambarBaru, self::FOLDER_GAMBAR);
-
-            $errors = $this->beritaModel->errors() ?: ['db' => 'Gagal memperbarui berita.'];
-            return redirect()->back()->withInput()->with('errors', $errors);
-        }
-
-        // Gambar lama baru dihapus SETELAH update berhasil
-        if ($gambarBaru) {
-            $this->uploader->hapus($berita['gambar'] ?? null, self::FOLDER_GAMBAR);
-        }
-
-        $this->catatAudit('Edit Berita', $judul);
 
         return redirect()->to('/admin/berita')->with('success', 'Berita berhasil diperbarui.');
     }
 
     public function delete($id)
     {
-        $berita = $this->beritaModel->find($id);
-        if (!$berita) {
-            return redirect()->to('/admin/berita')->with('errors', ['404' => 'Berita tidak ditemukan.']);
+        try {
+            $this->berita->hapus((int) $id, session()->get('id_user'), $this->namaUser());
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal hapus Berita: ' . $e->getMessage());
+
+            $pesan = $e instanceof InvalidArgumentException
+                ? $e->getMessage()
+                : 'Gagal menghapus berita. Silakan coba lagi.';
+
+            return redirect()->to('/admin/berita')->with('errors', ['berita' => $pesan]);
         }
-
-        $this->beritaModel->delete($id);
-        $this->uploader->hapus($berita['gambar'] ?? null, self::FOLDER_GAMBAR);
-
-        $this->catatAudit('Hapus Berita', $berita['judul']);
 
         return redirect()->to('/admin/berita')->with('success', 'Berita berhasil dihapus.');
     }
 
     // ================= Helper privat =================
 
+    private function inputForm(): array
+    {
+        return $this->request->getPost([
+            'judul', 'kategori', 'ringkasan', 'konten', 'status', 'posisi', 'tanggal_publish',
+        ]);
+    }
+
+    private function namaUser(): string
+    {
+        return session()->get('nama') ?? 'Admin';
+    }
+
+    private function tidakDitemukan()
+    {
+        return redirect()->to('/admin/berita')->with('errors', ['404' => 'Berita tidak ditemukan.']);
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman ditampilkan ke user. Selain itu: log + pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum, string $aksi)
+    {
+        log_message('error', "Gagal {$aksi} Berita: " . $e->getMessage());
+
+        $pesan = $e instanceof InvalidArgumentException ? $e->getMessage() : $pesanUmum;
+
+        return redirect()->back()->withInput()->with('errors', ['berita' => $pesan]);
+    }
+
+    /**
+     * Validasi format input. Gambar tidak divalidasi di sini:
+     * tipe dan ukuran dicek di FileUploadService.
+     */
     private function aturanValidasi(): array
     {
         return [
@@ -198,17 +148,6 @@ class Berita extends BaseController
             'konten'   => 'required',
             'status'   => 'required|in_list[Draft,Published]',
             'posisi'   => 'required|in_list[hero,utama,biasa,populer,hits]',
-            // Gambar sengaja tidak divalidasi di sini: tipe dan ukuran dicek di FileUploadService.
         ];
-    }
-
-    private function catatAudit(string $aksi, string $judul): void
-    {
-        $this->auditLogModel->catat(
-            session()->get('id_user'),
-            session()->get('nama') ?? 'Admin',
-            $aksi,
-            "Judul:{$judul}"
-        );
     }
 }

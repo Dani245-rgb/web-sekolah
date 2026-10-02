@@ -207,6 +207,44 @@ class Services extends BaseService
         );
     }
 
+    public static function beritaService($getShared = true): \App\Services\BeritaService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('beritaService');
+        }
+
+        return new \App\Services\BeritaService(
+            model(\App\Models\BeritaModel::class),
+            model(\App\Models\AuditLogModel::class),
+            static::fileUploadService(),
+            static::slugService(),
+        );
+    }
+
+    public static function guruService($getShared = true): \App\Services\GuruService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('guruService');
+        }
+
+        return new \App\Services\GuruService(
+            model(\App\Models\GuruModel::class),
+            static::fileUploadService(),
+        );
+    }
+
+    public static function galeriService($getShared = true): \App\Services\GaleriService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('galeriService');
+        }
+
+        return new \App\Services\GaleriService(
+            model(\App\Models\GaleriModel::class),
+            static::fileUploadService(),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {

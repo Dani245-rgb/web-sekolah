@@ -127,4 +127,19 @@ class BeritaModel extends BaseModel
             ->orderBy('tanggal_publish', 'DESC')
             ->findAll($limit);
     }
+
+    /**
+     * Daftar berita untuk halaman admin (semua status), terbaru dulu.
+     * Keyword opsional mencari di judul. Chainable, siap ->paginate().
+     */
+    public function cariAdmin(?string $keyword = null): static
+    {
+        $builder = $this->orderBy('created_at', 'DESC');
+
+        if ($keyword) {
+            $builder->like('judul', $keyword);
+        }
+
+        return $builder;
+    }
 }
