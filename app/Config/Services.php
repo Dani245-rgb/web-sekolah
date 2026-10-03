@@ -282,6 +282,32 @@ class Services extends BaseService
         );
     }
 
+    public static function organisasiService($getShared = true): \App\Services\OrganisasiService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('organisasiService');
+        }
+
+        return new \App\Services\OrganisasiService(
+            model(\App\Models\OrganisasiModel::class),
+            model(\App\Models\AnggotaOrganisasiModel::class),
+            static::fileUploadService(),
+        );
+    }
+
+    public static function anggotaOrganisasiService($getShared = true): \App\Services\AnggotaOrganisasiService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('anggotaOrganisasiService');
+        }
+
+        return new \App\Services\AnggotaOrganisasiService(
+            model(\App\Models\AnggotaOrganisasiModel::class),
+            model(\App\Models\OrganisasiModel::class),
+            static::fileUploadService(),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {

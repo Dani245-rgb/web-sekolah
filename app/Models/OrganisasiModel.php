@@ -35,7 +35,7 @@ class OrganisasiModel extends BaseModel
         return $organisasiList;
     }
 
-        public function namaSudahAda(string $nama, ?int $excludeId = null): bool
+    public function namaSudahAda(string $nama, ?int $excludeId = null): bool
     {
         $builder = $this->where('nama', $nama);
 
@@ -44,5 +44,13 @@ class OrganisasiModel extends BaseModel
         }
 
         return $builder->first() !== null;
+    }
+
+    /**
+     * Semua organisasi untuk halaman admin (semua status), urut nama.
+     */
+    public function getSemuaUrut(): array
+    {
+        return $this->orderBy('nama', 'ASC')->findAll();
     }
 }

@@ -3,37 +3,27 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\AnggotaOrganisasiModel;
-use App\Models\OrganisasiModel;
-use App\Services\FileUploadService;
+use App\Services\OrganisasiService;
+use InvalidArgumentException;
+use Throwable;
 
 class Organisasi extends BaseController
 {
-    private const FOLDER_ANGGOTA = 'organisasi'; // public/uploads/organisasi
-
-    protected OrganisasiModel $organisasiModel;
-    protected AnggotaOrganisasiModel $anggotaModel;
-    protected FileUploadService $fileUpload;
+    protected OrganisasiService $organisasi;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->organisasiModel = new OrganisasiModel();
-        $this->anggotaModel    = new AnggotaOrganisasiModel();
-        $this->fileUpload      = service('fileUploadService');
+        $this->organisasi = service('organisasiService');
     }
 
     public function index()
     {
-        $data['organisasi'] = $this->organisasiModel->orderBy('nama', 'ASC')->findAll();
-        return view('admin/organisasi/index', $data);
+        return view('admin/organisasi/index', ['organisasi' => $this->organisasi->daftar()]);
     }
 
     public function create()
     {
-        $data['item'] = null;
-        return view('admin/organisasi/form', $data);
+        return view('admin/organisasi/form', ['item' => null]);
     }
 
     public function store()
@@ -42,20 +32,10 @@ class Organisasi extends BaseController
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $nama = rapikan_teks((string) $this->request->getPost('nama'));
-
-        if ($this->organisasiModel->namaSudahAda($nama)) {
-            return $this->kembaliDenganError(['nama' => 'Nama organisasi sudah dipakai.']);
-        }
-
-        $berhasil = $this->organisasiModel->insert([
-            'nama'      => $nama,
-            'deskripsi' => $this->request->getPost('deskripsi'),
-            'status'    => $this->request->getPost('status'),
-        ]);
-
-        if (!$berhasil) {
-            return $this->kembaliDenganError($this->organisasiModel->errors());
+        try {
+            $this->organisasi->tambah($this->inputForm());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal menyimpan organisasi. Silakan coba lagi.', 'simpan');
         }
 
         return redirect()->to('/admin/organisasi')->with('success', 'Organisasi berhasil ditambahkan.');
@@ -63,40 +43,29 @@ class Organisasi extends BaseController
 
     public function edit($id)
     {
-        $data['item'] = $this->organisasiModel->find($id);
+        $item = $this->organisasi->cari($id);
 
-        if (!$data['item']) {
-            return redirect()->to('/admin/organisasi')->with('error', 'Data tidak ditemukan.');
+        if (!$item) {
+            return $this->tidakDitemukan();
         }
 
-        return view('admin/organisasi/form', $data);
+        return view('admin/organisasi/form', ['item' => $item]);
     }
 
     public function update($id)
     {
-        $item = $this->organisasiModel->find($id);
-        if (!$item) {
-            return redirect()->to('/admin/organisasi')->with('error', 'Data tidak ditemukan.');
+        if (!$this->organisasi->cari($id)) {
+            return $this->tidakDitemukan();
         }
 
         if (!$this->validate($this->rules())) {
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $nama = rapikan_teks((string) $this->request->getPost('nama'));
-
-        if ($this->organisasiModel->namaSudahAda($nama, (int) $id)) {
-            return $this->kembaliDenganError(['nama' => 'Nama organisasi sudah dipakai.']);
-        }
-
-        $berhasil = $this->organisasiModel->update($id, [
-            'nama'      => $nama,
-            'deskripsi' => $this->request->getPost('deskripsi'),
-            'status'    => $this->request->getPost('status'),
-        ]);
-
-        if (!$berhasil) {
-            return $this->kembaliDenganError($this->organisasiModel->errors());
+        try {
+            $this->organisasi->ubah((int) $id, $this->inputForm());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal memperbarui organisasi. Silakan coba lagi.', 'update');
         }
 
         return redirect()->to('/admin/organisasi')->with('success', 'Organisasi berhasil diperbarui.');
@@ -104,23 +73,48 @@ class Organisasi extends BaseController
 
     public function delete($id)
     {
-        $item = $this->organisasiModel->find($id);
-        if (!$item) {
-            return redirect()->to('/admin/organisasi')->with('error', 'Data tidak ditemukan.');
-        }
+        try {
+            $this->organisasi->hapus((int) $id);
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal hapus Organisasi: ' . $e->getMessage());
 
-        // Catat dulu foto anggotanya: record anggota ikut terhapus otomatis
-        // (foreign key CASCADE), tapi file fotonya tidak.
-        $anggota = $this->anggotaModel->where('id_organisasi', $id)->findAll();
+            if ($e instanceof InvalidArgumentException) {
+                return $this->tidakDitemukan();
+            }
 
-        $this->organisasiModel->delete($id);
-
-        // File dihapus SETELAH record DB terhapus
-        foreach ($anggota as $a) {
-            $this->fileUpload->hapus($a['foto'], self::FOLDER_ANGGOTA);
+            return redirect()->to('/admin/organisasi')->with('error', 'Gagal menghapus organisasi. Silakan coba lagi.');
         }
 
         return redirect()->to('/admin/organisasi')->with('success', 'Organisasi berhasil dihapus beserta anggotanya.');
+    }
+
+    // ================= Helper privat =================
+
+    private function inputForm(): array
+    {
+        return $this->request->getPost(['nama', 'deskripsi', 'status']);
+    }
+
+    private function tidakDitemukan()
+    {
+        return redirect()->to('/admin/organisasi')->with('error', 'Data tidak ditemukan.');
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman ditampilkan ke user. Selain itu: log + pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum, string $aksi)
+    {
+        log_message('error', "Gagal {$aksi} Organisasi: " . $e->getMessage());
+
+        $pesan = $e instanceof InvalidArgumentException ? $e->getMessage() : $pesanUmum;
+
+        return $this->kembaliDenganError(['organisasi' => $pesan]);
+    }
+
+    private function kembaliDenganError(array $errors)
+    {
+        return redirect()->back()->withInput()->with('errors', $errors);
     }
 
     private function rules(): array
@@ -129,10 +123,5 @@ class Organisasi extends BaseController
             'nama'   => 'required|min_length[2]|max_length[100]',
             'status' => 'required|in_list[Published,Draft]',
         ];
-    }
-
-    private function kembaliDenganError(array $errors)
-    {
-        return redirect()->back()->withInput()->with('errors', $errors);
     }
 }

@@ -3,60 +3,45 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\AnggotaOrganisasiModel;
-use App\Models\OrganisasiModel;
-use App\Services\FileUploadService;
+use App\Services\AnggotaOrganisasiService;
 use InvalidArgumentException;
-use RuntimeException;
+use Throwable;
 
 class AnggotaOrganisasi extends BaseController
 {
-    private const FOLDER = 'organisasi'; // public/uploads/organisasi
-
-    protected AnggotaOrganisasiModel $anggotaModel;
-    protected OrganisasiModel $organisasiModel;
-    protected FileUploadService $fileUpload;
+    protected AnggotaOrganisasiService $anggota;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->anggotaModel    = new AnggotaOrganisasiModel();
-        $this->organisasiModel = new OrganisasiModel();
-        $this->fileUpload      = service('fileUploadService');
+        $this->anggota = service('anggotaOrganisasiService');
     }
 
     public function index($idOrganisasi)
     {
-        $organisasi = $this->organisasiModel->find($idOrganisasi);
+        $organisasi = $this->anggota->cariOrganisasi($idOrganisasi);
         if (!$organisasi) {
             return $this->organisasiTidakDitemukan();
         }
 
-        $data['organisasi'] = $organisasi;
-        $data['anggota']    = $this->anggotaModel->where('id_organisasi', $idOrganisasi)
-            ->orderBy('urutan', 'ASC')
-            ->findAll();
-
-        return view('admin/anggota_organisasi/index', $data);
+        return view('admin/anggota_organisasi/index', [
+            'organisasi' => $organisasi,
+            'anggota'    => $this->anggota->daftar((int) $idOrganisasi),
+        ]);
     }
 
     public function create($idOrganisasi)
     {
-        $organisasi = $this->organisasiModel->find($idOrganisasi);
+        $organisasi = $this->anggota->cariOrganisasi($idOrganisasi);
         if (!$organisasi) {
             return $this->organisasiTidakDitemukan();
         }
 
-        $data['organisasi'] = $organisasi;
-        $data['item']       = null;
-
-        return view('admin/anggota_organisasi/form', $data);
+        return view('admin/anggota_organisasi/form', ['organisasi' => $organisasi, 'item' => null]);
     }
 
     public function store($idOrganisasi)
     {
-        if (!$this->organisasiModel->find($idOrganisasi)) {
+        if (!$this->anggota->cariOrganisasi($idOrganisasi)) {
             return $this->organisasiTidakDitemukan();
         }
 
@@ -64,24 +49,10 @@ class AnggotaOrganisasi extends BaseController
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        // Foto opsional. Kalau tidak diupload, hasilnya null.
         try {
-            $foto = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        $berhasil = $this->anggotaModel->insert([
-            'id_organisasi' => (int) $idOrganisasi,
-            'nama'          => rapikan_teks((string) $this->request->getPost('nama')),
-            'jabatan'       => rapikan_teks((string) $this->request->getPost('jabatan')),
-            'foto'          => $foto,
-            'urutan'        => (int) $this->request->getPost('urutan'),
-        ]);
-
-        if (!$berhasil) {
-            $this->fileUpload->hapus($foto, self::FOLDER);
-            return $this->kembaliDenganError($this->anggotaModel->errors());
+            $this->anggota->tambah((int) $idOrganisasi, $this->inputForm(), $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal menyimpan anggota. Silakan coba lagi.', 'simpan');
         }
 
         return redirect()->to($this->urlDaftar($idOrganisasi))->with('success', 'Anggota berhasil ditambahkan.');
@@ -89,58 +60,33 @@ class AnggotaOrganisasi extends BaseController
 
     public function edit($idOrganisasi, $id)
     {
-        $organisasi = $this->organisasiModel->find($idOrganisasi);
+        $organisasi = $this->anggota->cariOrganisasi($idOrganisasi);
         if (!$organisasi) {
             return $this->organisasiTidakDitemukan();
         }
 
-        $item = $this->cariAnggota($idOrganisasi, $id);
+        $item = $this->anggota->cariAnggota((int) $idOrganisasi, $id);
         if (!$item) {
-            return redirect()->to($this->urlDaftar($idOrganisasi))->with('error', 'Data tidak ditemukan.');
+            return $this->anggotaTidakDitemukan($idOrganisasi);
         }
 
-        $data['organisasi'] = $organisasi;
-        $data['item']       = $item;
-
-        return view('admin/anggota_organisasi/form', $data);
+        return view('admin/anggota_organisasi/form', ['organisasi' => $organisasi, 'item' => $item]);
     }
 
     public function update($idOrganisasi, $id)
     {
-        $item = $this->cariAnggota($idOrganisasi, $id);
-        if (!$item) {
-            return redirect()->to($this->urlDaftar($idOrganisasi))->with('error', 'Data tidak ditemukan.');
+        if (!$this->anggota->cariAnggota((int) $idOrganisasi, $id)) {
+            return $this->anggotaTidakDitemukan($idOrganisasi);
         }
 
         if (!$this->validate($this->rules())) {
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $dataUpdate = [
-            'nama'    => rapikan_teks((string) $this->request->getPost('nama')),
-            'jabatan' => rapikan_teks((string) $this->request->getPost('jabatan')),
-            'urutan'  => (int) $this->request->getPost('urutan'),
-        ];
-
-        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
         try {
-            $fotoBaru = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        if ($fotoBaru !== null) {
-            $dataUpdate['foto'] = $fotoBaru;
-        }
-
-        if (!$this->anggotaModel->update($id, $dataUpdate)) {
-            $this->fileUpload->hapus($fotoBaru, self::FOLDER);
-            return $this->kembaliDenganError($this->anggotaModel->errors());
-        }
-
-        // Foto lama baru dihapus SETELAH update DB sukses
-        if ($fotoBaru !== null) {
-            $this->fileUpload->hapus($item['foto'], self::FOLDER);
+            $this->anggota->ubah((int) $idOrganisasi, (int) $id, $this->inputForm(), $this->request->getFile('foto'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal memperbarui anggota. Silakan coba lagi.', 'update');
         }
 
         return redirect()->to($this->urlDaftar($idOrganisasi))->with('success', 'Anggota berhasil diperbarui.');
@@ -148,30 +94,22 @@ class AnggotaOrganisasi extends BaseController
 
     public function delete($idOrganisasi, $id)
     {
-        $item = $this->cariAnggota($idOrganisasi, $id);
+        try {
+            $this->anggota->hapus((int) $idOrganisasi, (int) $id);
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal hapus Anggota Organisasi: ' . $e->getMessage());
 
-        if ($item) {
-            $this->anggotaModel->delete($id);
-
-            // File dihapus SETELAH record DB terhapus
-            $this->fileUpload->hapus($item['foto'], self::FOLDER);
+            return redirect()->to($this->urlDaftar($idOrganisasi))->with('error', 'Gagal menghapus anggota. Silakan coba lagi.');
         }
 
         return redirect()->to($this->urlDaftar($idOrganisasi))->with('success', 'Anggota berhasil dihapus.');
     }
 
-    /**
-     * Cari anggota, sekaligus pastikan dia memang milik organisasi di URL.
-     */
-    private function cariAnggota($idOrganisasi, $id): ?array
+    // ================= Helper privat =================
+
+    private function inputForm(): array
     {
-        $item = $this->anggotaModel->find($id);
-
-        if (!$item || (int) $item['id_organisasi'] !== (int) $idOrganisasi) {
-            return null;
-        }
-
-        return $item;
+        return $this->request->getPost(['nama', 'jabatan', 'urutan']);
     }
 
     private function rules(): array
@@ -191,6 +129,23 @@ class AnggotaOrganisasi extends BaseController
     private function organisasiTidakDitemukan()
     {
         return redirect()->to('/admin/organisasi')->with('error', 'Organisasi tidak ditemukan.');
+    }
+
+    private function anggotaTidakDitemukan($idOrganisasi)
+    {
+        return redirect()->to($this->urlDaftar($idOrganisasi))->with('error', 'Data tidak ditemukan.');
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman ditampilkan ke user. Selain itu: log + pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum, string $aksi)
+    {
+        log_message('error', "Gagal {$aksi} Anggota Organisasi: " . $e->getMessage());
+
+        $pesan = $e instanceof InvalidArgumentException ? $e->getMessage() : $pesanUmum;
+
+        return $this->kembaliDenganError(['anggota' => $pesan]);
     }
 
     private function kembaliDenganError(array $errors)

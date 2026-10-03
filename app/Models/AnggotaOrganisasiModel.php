@@ -20,4 +20,14 @@ class AnggotaOrganisasiModel extends BaseModel
         'nama'    => 'required|min_length[2]|max_length[255]',
         'jabatan' => 'required|max_length[100]',
     ];
+
+    /**
+     * Semua anggota satu organisasi, urut berdasarkan kolom urutan.
+     */
+    public function getByOrganisasi(int $idOrganisasi): array
+    {
+        return $this->where('id_organisasi', $idOrganisasi)
+            ->orderBy('urutan', 'ASC')
+            ->findAll();
+    }
 }
