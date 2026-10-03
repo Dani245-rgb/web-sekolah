@@ -345,6 +345,21 @@ class Services extends BaseService
         );
     }
 
+    public static function pklService($getShared = true): \App\Services\PklService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('pklService');
+        }
+
+        return new \App\Services\PklService(
+            model(\App\Models\PklPenempatanModel::class),
+            model(\App\Models\SiswaModel::class),
+            model(\App\Models\GuruModel::class),
+        );
+    }
+
+    /* public static function example
+
     /*
      * public static function example($getShared = true)
      * {

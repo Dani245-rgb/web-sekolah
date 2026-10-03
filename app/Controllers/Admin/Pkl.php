@@ -3,57 +3,38 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\GuruModel;
-use App\Models\PklPenempatanModel;
-use App\Models\SiswaModel;
+use App\Services\PklService;
+use InvalidArgumentException;
+use Throwable;
 
 class Pkl extends BaseController
 {
-    protected PklPenempatanModel $pklModel;
-    protected SiswaModel $siswaModel;
-    protected GuruModel $guruModel;
+    protected PklService $pkl;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->pklModel   = new PklPenempatanModel();
-        $this->siswaModel = new SiswaModel();
-        $this->guruModel  = new GuruModel();
+        $this->pkl = service('pklService');
     }
 
     public function index()
     {
-        $keyword = $this->request->getGet('keyword');
-        $status  = $this->request->getGet('status');
-
-        $filter = [
-            'keyword' => is_string($keyword) && trim($keyword) !== '' ? trim($keyword) : null,
-            'status'  => in_array($status, PklPenempatanModel::STATUS, true) ? $status : null,
-        ];
-
-        return view('admin/pkl/index', [
-            'daftar' => $this->pklModel->getAllWithRelasi($filter),
-            'filter' => $filter,
-        ]);
+        return view('admin/pkl/index', $this->pkl->daftar(
+            $this->request->getGet('keyword'),
+            $this->request->getGet('status')
+        ));
     }
 
     public function create()
     {
-        return view('admin/pkl/form', $this->dataForm(null));
+        return view('admin/pkl/form', $this->pkl->dataForm(null));
     }
 
     public function store()
     {
-        $data = $this->dataDariForm();
-
-        $masalah = $this->cariMasalah($data);
-        if ($masalah) {
-            return redirect()->back()->withInput()->with('errors', $masalah);
-        }
-
-        if (!$this->pklModel->insert($data)) {
-            return redirect()->back()->withInput()->with('errors', $this->pklModel->errors());
+        try {
+            $this->pkl->tambah($this->inputForm());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal menyimpan penempatan PKL. Silakan coba lagi.', 'simpan');
         }
 
         return redirect()->to('/admin/pkl')->with('success', 'Penempatan PKL berhasil ditambahkan.');
@@ -61,30 +42,24 @@ class Pkl extends BaseController
 
     public function edit($id)
     {
-        $penempatan = $this->pklModel->find($id);
+        $penempatan = $this->pkl->cari($id);
         if (!$penempatan) {
             return $this->tidakDitemukan();
         }
 
-        return view('admin/pkl/form', $this->dataForm($penempatan));
+        return view('admin/pkl/form', $this->pkl->dataForm($penempatan));
     }
 
     public function update($id)
     {
-        $penempatan = $this->pklModel->find($id);
-        if (!$penempatan) {
+        if (!$this->pkl->cari($id)) {
             return $this->tidakDitemukan();
         }
 
-        $data = $this->dataDariForm();
-
-        $masalah = $this->cariMasalah($data, (int) $id);
-        if ($masalah) {
-            return redirect()->back()->withInput()->with('errors', $masalah);
-        }
-
-        if (!$this->pklModel->update($id, $data)) {
-            return redirect()->back()->withInput()->with('errors', $this->pklModel->errors());
+        try {
+            $this->pkl->ubah((int) $id, $this->inputForm());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal memperbarui penempatan PKL. Silakan coba lagi.', 'update');
         }
 
         return redirect()->to('/admin/pkl')->with('success', 'Penempatan PKL berhasil diperbarui.');
@@ -92,59 +67,46 @@ class Pkl extends BaseController
 
     public function delete($id)
     {
-        if (!$this->pklModel->find($id)) {
-            return $this->tidakDitemukan();
-        }
+        try {
+            $this->pkl->hapus((int) $id);
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal hapus penempatan PKL: ' . $e->getMessage());
 
-        $this->pklModel->delete($id); // jurnal ikut terhapus (ON DELETE CASCADE)
+            if ($e instanceof InvalidArgumentException) {
+                return $this->tidakDitemukan();
+            }
+
+            return redirect()->to('/admin/pkl')->with('errors', ['pkl' => 'Gagal menghapus penempatan PKL. Silakan coba lagi.']);
+        }
 
         return redirect()->to('/admin/pkl')->with('success', 'Penempatan PKL berhasil dihapus.');
     }
 
-    /**
-     * Data dari form yang sudah dirapikan, dipakai bareng oleh store() dan update().
-     */
-    private function dataDariForm(): array
+    // ================= Helper privat =================
+
+    private function inputForm(): array
     {
-        return [
-            'id_siswa'                  => $this->request->getPost('id_siswa'),
-            'id_guru_pembimbing'        => $this->request->getPost('id_guru_pembimbing') ?: null,
-            'nama_perusahaan'           => rapikan_teks((string) $this->request->getPost('nama_perusahaan')),
-            'alamat_perusahaan'         => $this->request->getPost('alamat_perusahaan'),
-            'nama_pembimbing_industri'  => rapikan_teks((string) $this->request->getPost('nama_pembimbing_industri')),
-            'no_hp_pembimbing_industri' => rapikan_teks((string) $this->request->getPost('no_hp_pembimbing_industri')),
-            'tanggal_mulai'             => $this->request->getPost('tanggal_mulai'),
-            'tanggal_selesai'           => $this->request->getPost('tanggal_selesai') ?: null,
-            'status'                    => $this->request->getPost('status'),
-            'catatan'                   => $this->request->getPost('catatan'),
-        ];
-    }
-
-    /**
-     * Validasi biasa dulu, lalu aturan bisnis. Return daftar error (kosong = lolos).
-     */
-    private function cariMasalah(array $data, ?int $kecualiId = null): array
-    {
-        if (!$this->pklModel->validate($data)) {
-            return $this->pklModel->errors();
-        }
-
-        $pesan = $this->pklModel->cekAturan($data, $kecualiId);
-
-        return $pesan !== null ? ['aturan' => $pesan] : [];
-    }
-
-    private function dataForm(?array $penempatan): array
-    {
-        return [
-            'siswaList'  => $this->siswaModel->orderBy('nama', 'ASC')->findAll(),
-            'guruList'   => $this->guruModel->where('status', 'Aktif')->orderBy('nama', 'ASC')->findAll(),
-            'penempatan' => $penempatan,
-        ];
+        return $this->request->getPost([
+            'id_siswa', 'id_guru_pembimbing', 'nama_perusahaan', 'alamat_perusahaan',
+            'nama_pembimbing_industri', 'no_hp_pembimbing_industri',
+            'tanggal_mulai', 'tanggal_selesai', 'status', 'catatan',
+        ]);
     }
 
     private function tidakDitemukan()
     {
         return redirect()->to('/admin/pkl')->with('errors', ['404' => 'Data penempatan tidak ditemukan.']);
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman ditampilkan ke user. Selain itu: log + pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum, string $aksi)
+    {
+        log_message('error', "Gagal {$aksi} penempatan PKL: " . $e->getMessage());
+
+        $pesan = $e instanceof InvalidArgumentException ? $e->getMessage() : $pesanUmum;
+
+        return redirect()->back()->withInput()->with('errors', ['pkl' => $pesan]);
     }
 }
