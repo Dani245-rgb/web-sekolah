@@ -3,39 +3,27 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\AuditLogModel;
-use App\Models\PengaturanModel;
-use App\Services\FileUploadService;
+use App\Services\PengaturanService;
 use InvalidArgumentException;
-use RuntimeException;
+use Throwable;
 
 class Pengaturan extends BaseController
 {
-    private const FOLDER       = 'assets/uploads/sekolah'; // public/assets/uploads/sekolah
-    private const MIME_FAVICON = ['image/jpeg', 'image/png'];
-    private const MAKS_FAVICON = 512 * 1024; // 512KB
-
-    protected PengaturanModel $model;
-    protected FileUploadService $fileUpload;
+    protected PengaturanService $pengaturan;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->model      = new PengaturanModel();
-        $this->fileUpload = service('fileUploadService');
+        $this->pengaturan = service('pengaturanService');
     }
 
     public function index()
     {
-        $data['pengaturan'] = $this->model->getPengaturan();
-        return view('admin/pengaturan/index', $data);
+        return view('admin/pengaturan/index', ['pengaturan' => $this->pengaturan->ambil()]);
     }
 
     public function update()
     {
-        $pengaturan = $this->model->getPengaturan();
-        if (!$pengaturan) {
+        if (!$this->pengaturan->ambil()) {
             return redirect()->to('/admin/pengaturan')->with('error', 'Data pengaturan belum ada di database.');
         }
 
@@ -48,61 +36,23 @@ class Pengaturan extends BaseController
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $dataUpdate = [
-            'nama_sekolah' => rapikan_teks((string) $this->request->getPost('nama_sekolah')),
-            'alamat'       => $this->request->getPost('alamat'),
-            'telepon'      => rapikan_teks((string) $this->request->getPost('telepon')),
-            'email'        => $this->request->getPost('email'),
-            'updated_at'   => date('Y-m-d H:i:s'),
-        ];
-
-        // Logo & favicon (opsional). Kalau tidak diisi, file lama dipertahankan.
         try {
-            $logoBaru = $this->fileUpload->simpan($this->request->getFile('logo'), self::FOLDER);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['logo' => $e->getMessage()]);
-        }
-
-        try {
-            $faviconBaru = $this->fileUpload->simpan(
+            $this->pengaturan->simpan(
+                $this->request->getPost(['nama_sekolah', 'alamat', 'telepon', 'email']),
+                $this->request->getFile('logo'),
                 $this->request->getFile('favicon'),
-                self::FOLDER,
-                self::MIME_FAVICON,
-                self::MAKS_FAVICON
+                session()->get('id_user'),
+                session()->get('username')
             );
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            // Logo sudah terlanjur diupload, buang lagi
-            $this->fileUpload->hapus($logoBaru, self::FOLDER);
-            return $this->kembaliDenganError(['favicon' => $e->getMessage()]);
-        }
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal simpan Pengaturan: ' . $e->getMessage());
 
-        if ($logoBaru !== null) {
-            $dataUpdate['logo'] = $logoBaru;
-        }
-        if ($faviconBaru !== null) {
-            $dataUpdate['favicon'] = $faviconBaru;
-        }
+            $pesan = $e instanceof InvalidArgumentException
+                ? $e->getMessage()
+                : 'Gagal menyimpan pengaturan. Silakan coba lagi.';
 
-        if (!$this->model->update($pengaturan['id'], $dataUpdate)) {
-            $this->fileUpload->hapus($logoBaru, self::FOLDER);
-            $this->fileUpload->hapus($faviconBaru, self::FOLDER);
-            return $this->kembaliDenganError($this->model->errors());
+            return $this->kembaliDenganError(['pengaturan' => $pesan]);
         }
-
-        // File lama baru dihapus SETELAH update DB sukses
-        if ($logoBaru !== null) {
-            $this->fileUpload->hapus($pengaturan['logo'], self::FOLDER);
-        }
-        if ($faviconBaru !== null) {
-            $this->fileUpload->hapus($pengaturan['favicon'], self::FOLDER);
-        }
-
-        (new AuditLogModel())->catat(
-            session()->get('id_user'),
-            session()->get('username'),
-            'update_pengaturan',
-            'Mengubah pengaturan identitas sekolah.'
-        );
 
         return redirect()->to('/admin/pengaturan')->with('success', 'Pengaturan berhasil disimpan.');
     }

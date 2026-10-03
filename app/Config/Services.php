@@ -308,6 +308,31 @@ class Services extends BaseService
         );
     }
 
+    public static function profilSekolahService($getShared = true): \App\Services\ProfilSekolahService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('profilSekolahService');
+        }
+
+        return new \App\Services\ProfilSekolahService(
+            model(\App\Models\ProfilKontenModel::class),
+            static::fileUploadService(),
+        );
+    }
+
+    public static function pengaturanService($getShared = true): \App\Services\PengaturanService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('pengaturanService');
+        }
+
+        return new \App\Services\PengaturanService(
+            model(\App\Models\PengaturanModel::class),
+            model(\App\Models\AuditLogModel::class),
+            static::fileUploadService(),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {

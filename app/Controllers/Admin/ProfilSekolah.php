@@ -3,45 +3,32 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\ProfilKontenModel;
-use App\Services\FileUploadService;
+use App\Services\ProfilSekolahService;
 use InvalidArgumentException;
-use RuntimeException;
+use Throwable;
 
 class ProfilSekolah extends BaseController
 {
-    private const FOLDER_FOTO = 'profil'; // public/uploads/profil
-
-    protected ProfilKontenModel $profilModel;
-    protected FileUploadService $fileUpload;
+    protected ProfilSekolahService $profil;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->profilModel = new ProfilKontenModel();
-        $this->fileUpload  = service('fileUploadService');
+        $this->profil = service('profilSekolahService');
     }
 
     public function sejarah()
     {
-        $data['item']  = $this->profilModel->getOrCreate('sejarah');
-        $data['jenis'] = 'sejarah';
-        $data['label'] = 'Sejarah Sekolah';
-        return view('admin/profil_sekolah/teks', $data);
+        return $this->tampilTeks('sejarah', 'Sejarah Sekolah');
     }
 
     public function visiMisi()
     {
-        $data['item']  = $this->profilModel->getOrCreate('visi_misi');
-        $data['jenis'] = 'visi_misi';
-        $data['label'] = 'Visi & Misi';
-        return view('admin/profil_sekolah/teks', $data);
+        return $this->tampilTeks('visi_misi', 'Visi & Misi');
     }
 
     public function updateTeks($jenis)
     {
-        if (!in_array($jenis, ['sejarah', 'visi_misi'], true)) {
+        if (!$this->profil->jenisTeksValid((string) $jenis)) {
             return redirect()->to('/admin/profil-sekolah/sejarah')->with('error', 'Jenis tidak valid.');
         }
 
@@ -54,15 +41,10 @@ class ProfilSekolah extends BaseController
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $item = $this->profilModel->getOrCreate($jenis);
-
-        $berhasil = $this->profilModel->update($item['id'], [
-            'judul'  => rapikan_teks((string) $this->request->getPost('judul')),
-            'konten' => $this->request->getPost('konten'),
-        ]);
-
-        if (!$berhasil) {
-            return $this->kembaliDenganError($this->profilModel->errors());
+        try {
+            $this->profil->simpanTeks($jenis, $this->request->getPost(['judul', 'konten']));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal menyimpan. Silakan coba lagi.', 'simpan teks');
         }
 
         return redirect()->to('/admin/profil-sekolah/' . ($jenis === 'sejarah' ? 'sejarah' : 'visi-misi'))
@@ -71,8 +53,7 @@ class ProfilSekolah extends BaseController
 
     public function kepalaSekolah()
     {
-        $data['item'] = $this->profilModel->getOrCreate('kepala_sekolah');
-        return view('admin/profil_sekolah/kepala_sekolah', $data);
+        return view('admin/profil_sekolah/kepala_sekolah', ['item' => $this->profil->ambil('kepala_sekolah')]);
     }
 
     public function updateKepalaSekolah()
@@ -87,36 +68,39 @@ class ProfilSekolah extends BaseController
             return $this->kembaliDenganError($this->validator->getErrors());
         }
 
-        $item = $this->profilModel->getOrCreate('kepala_sekolah');
-
-        $dataUpdate = [
-            'nama'    => rapikan_teks((string) $this->request->getPost('nama')),
-            'jabatan' => rapikan_teks((string) $this->request->getPost('jabatan')),
-            'konten'  => $this->request->getPost('konten'),
-        ];
-
-        // Foto baru (opsional). Kalau tidak diisi, foto lama dipertahankan.
         try {
-            $fotoBaru = $this->fileUpload->simpan($this->request->getFile('foto'), self::FOLDER_FOTO);
-        } catch (InvalidArgumentException | RuntimeException $e) {
-            return $this->kembaliDenganError(['foto' => $e->getMessage()]);
-        }
-
-        if ($fotoBaru !== null) {
-            $dataUpdate['foto'] = $fotoBaru;
-        }
-
-        if (!$this->profilModel->update($item['id'], $dataUpdate)) {
-            $this->fileUpload->hapus($fotoBaru, self::FOLDER_FOTO);
-            return $this->kembaliDenganError($this->profilModel->errors());
-        }
-
-        // Foto lama baru dihapus SETELAH update DB sukses
-        if ($fotoBaru !== null) {
-            $this->fileUpload->hapus($item['foto'], self::FOLDER_FOTO);
+            $this->profil->simpanKepalaSekolah(
+                $this->request->getPost(['nama', 'jabatan', 'konten']),
+                $this->request->getFile('foto')
+            );
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal menyimpan. Silakan coba lagi.', 'simpan kepala sekolah');
         }
 
         return redirect()->to('/admin/profil-sekolah/kepala-sekolah')->with('success', 'Berhasil disimpan.');
+    }
+
+    // ================= Helper privat =================
+
+    private function tampilTeks(string $jenis, string $label)
+    {
+        return view('admin/profil_sekolah/teks', [
+            'item'  => $this->profil->ambil($jenis),
+            'jenis' => $jenis,
+            'label' => $label,
+        ]);
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman ditampilkan ke user. Selain itu: log + pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum, string $aksi)
+    {
+        log_message('error', "Gagal {$aksi} Profil Sekolah: " . $e->getMessage());
+
+        $pesan = $e instanceof InvalidArgumentException ? $e->getMessage() : $pesanUmum;
+
+        return $this->kembaliDenganError(['profil' => $pesan]);
     }
 
     private function kembaliDenganError(array $errors)
