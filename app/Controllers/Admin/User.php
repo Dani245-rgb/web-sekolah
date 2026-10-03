@@ -3,48 +3,28 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\AuditLogModel;
-use App\Models\UserModel;
+use App\Services\UserService;
 use CodeIgniter\Exceptions\PageNotFoundException;
+use InvalidArgumentException;
+use Throwable;
 
 class User extends BaseController
 {
-    private const ROLE_MAP = [
-        'admin' => 1,
-        'guru'  => 2,
-        'siswa' => 3,
-    ];
-
-    protected UserModel $userModel;
-    protected AuditLogModel $auditLogModel;
+    protected UserService $user;
 
     public function __construct()
     {
-        helper('teks');
-
         // Halaman ini khusus superadmin. Non-superadmin dianggap seolah rute tidak ada.
         if (!session()->get('is_superadmin')) {
             throw new PageNotFoundException('Halaman tidak ditemukan.');
         }
 
-        $this->userModel     = new UserModel();
-        $this->auditLogModel = new AuditLogModel();
+        $this->user = service('userService');
     }
 
     public function index(string $role = 'admin')
     {
-        $roleId     = self::ROLE_MAP[$role] ?? 1;
-        $pagerGroup = 'user_' . $role;
-        $keyword    = $this->request->getGet('q');
-
-        $data['users']      = $this->userModel->getAllWithDetail(100, $keyword, $roleId, $pagerGroup);
-        $data['pager']      = $this->userModel->pager;
-        $data['keyword']    = $keyword;
-        $data['role']       = $role;
-        $data['roleLabel']  = ucfirst($role);
-        $data['pagerGroup'] = $pagerGroup;
-
-        return view('admin/user/index', $data);
+        return view('admin/user/index', $this->user->daftar($role, $this->request->getGet('q')));
     }
 
     public function createAdmin()
@@ -63,82 +43,57 @@ class User extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $username = rapikan_teks($this->request->getPost('username'));
+        try {
+            $this->user->buatAdmin($this->request->getPost(['username', 'password']));
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal buat akun admin: ' . $e->getMessage());
 
-        if ($username === '') {
-            return redirect()->back()->withInput()->with('error', 'Username tidak boleh kosong/hanya spasi.');
+            $pesan = $e instanceof InvalidArgumentException
+                ? $e->getMessage()
+                : 'Gagal membuat akun admin. Silakan coba lagi.';
+
+            return redirect()->back()->withInput()->with('errors', ['user' => $pesan]);
         }
-
-        if ($this->userModel->where('username', $username)->first()) {
-            return redirect()->back()->withInput()->with('errors', ['username' => 'Username ini sudah terdaftar.']);
-        }
-
-        $this->userModel->insert([
-            'username'             => $username,
-            'password'             => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
-            'role_id'              => self::ROLE_MAP['admin'],
-            'status'               => 'Aktif',
-            'login_attempts'       => 0,
-        ]);
 
         return redirect()->to('/admin/user')->with('success', 'Akun admin baru berhasil dibuat.');
     }
 
     public function unlock($id)
     {
-        if ((int) $id === (int) session()->get('id_user')) {
-            return redirect()->to('/admin/user')->with('error', 'Tidak bisa unlock akun sendiri lewat sini.');
+        try {
+            $this->user->bukaKunci((int) $id, session()->get('id_user'), session()->get('username'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal membuka kunci akun. Silakan coba lagi.', 'unlock akun');
         }
-
-        $user = $this->userModel->find($id);
-        if (!$user) {
-            return redirect()->to('/admin/user')->with('error', 'Akun tidak ditemukan.');
-        }
-
-        $this->userModel->unlockAccount((int) $id);
-
-        $this->auditLogModel->catat(
-            session()->get('id_user'),
-            session()->get('username'),
-            'unlock_akun',
-            "Membuka kunci akun {$user['username']}."
-        );
 
         return redirect()->to('/admin/user')->with('success', 'Akun berhasil dibuka kembali.');
     }
 
     /**
-     * Reset password akun apa pun (Admin/Guru/Siswa) lewat user_id.
-     * Password baru selalu acak 8 karakter, lalu disampaikan ke admin yang bersangkutan.
+     * Reset password akun apa pun lewat id user. Password baru acak 8 karakter,
+     * ditampilkan sekali ke superadmin untuk disampaikan ke yang bersangkutan.
      */
     public function resetPassword($idUser)
     {
-        if ((int) $idUser === (int) session()->get('id_user')) {
-            return redirect()->to('/admin/user')->with('error', 'Tidak bisa reset password akun sendiri lewat sini.');
+        try {
+            $hasil = $this->user->resetPassword((int) $idUser, session()->get('id_user'), session()->get('username'));
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Gagal mereset password. Silakan coba lagi.', 'reset password');
         }
-
-        $user = $this->userModel->find($idUser);
-        if (!$user) {
-            return redirect()->to('/admin/user')->with('error', 'Akun tidak ditemukan.');
-        }
-
-        $namaTampil   = $user['username'];
-        $passwordBaru = bin2hex(random_bytes(4)); // 8 karakter acak
-
-        $this->userModel->update($idUser, [
-            'password'              => password_hash($passwordBaru, PASSWORD_DEFAULT),
-            'login_attempts'        => 0,
-            'locked_until'          => null,
-        ]);
-
-        $this->auditLogModel->catat(
-            session()->get('id_user'),
-            session()->get('username'),
-            'reset_password_admin',
-            "Reset password akun {$namaTampil} ({$user['username']})."
-        );
 
         return redirect()->to('/admin/user')
-            ->with('success', "Password {$namaTampil} berhasil direset. Password baru: {$passwordBaru}. Sampaikan ke yang bersangkutan, lalu sarankan menggantinya lewat ikon kunci di pojok kanan atas.");
+            ->with('success', "Password {$hasil['username']} berhasil direset. Password baru: {$hasil['password']}. Sampaikan ke yang bersangkutan, lalu sarankan menggantinya lewat ikon kunci di pojok kanan atas.");
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman ditampilkan ke user. Selain itu: log + pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum, string $aksi)
+    {
+        log_message('error', "Gagal {$aksi}: " . $e->getMessage());
+
+        $pesan = $e instanceof InvalidArgumentException ? $e->getMessage() : $pesanUmum;
+
+        return redirect()->to('/admin/user')->with('error', $pesan);
     }
 }

@@ -102,4 +102,12 @@ class UserModel extends BaseModel
             ->orderBy('nama_tampil', 'ASC')
             ->paginate($perPage, $pagerGroup);
     }
+
+    /**
+     * Apakah username sudah dipakai akun lain (yang belum dihapus).
+     */
+    public function usernameSudahAda(string $username): bool
+    {
+        return $this->where('username', $username)->first() !== null;
+    }
 }

@@ -333,6 +333,18 @@ class Services extends BaseService
         );
     }
 
+    public static function userService($getShared = true): \App\Services\UserService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('userService');
+        }
+
+        return new \App\Services\UserService(
+            model(\App\Models\UserModel::class),
+            model(\App\Models\AuditLogModel::class),
+        );
+    }
+
     /*
      * public static function example($getShared = true)
      * {
