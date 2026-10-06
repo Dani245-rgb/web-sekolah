@@ -13,8 +13,16 @@ class PendaftarPpdbModel extends BaseModel
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $allowedFields    = [
-        'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin',
-        'asal_sekolah', 'jurusan_pilihan', 'no_hp', 'email', 'alamat', 'status',
+        'nama_lengkap',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'jenis_kelamin',
+        'asal_sekolah',
+        'jurusan_pilihan',
+        'no_hp',
+        'email',
+        'alamat',
+        'status',
         'tahun_ajaran',
     ];
 
@@ -36,7 +44,12 @@ class PendaftarPpdbModel extends BaseModel
         ],
     ];
 
-        public function ubahStatus(int $id, string $status): bool
+    public function daftarTerbaru(): array
+    {
+        return $this->orderBy('created_at', 'DESC')->findAll();
+    }
+
+    public function ubahStatus(int $id, string $status): bool
     {
         if (!in_array($status, self::STATUS, true)) {
             return false;

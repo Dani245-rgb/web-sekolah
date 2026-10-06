@@ -358,6 +358,18 @@ class Services extends BaseService
         );
     }
 
+    public static function ppdbAdminService($getShared = true): \App\Services\PpdbAdminService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('ppdbAdminService');
+        }
+
+        return new \App\Services\PpdbAdminService(
+            model(\App\Models\PendaftarPpdbModel::class),
+            model(\App\Models\PengaturanPpdbModel::class),
+        );
+    }
+
     /* public static function example
 
     /*
