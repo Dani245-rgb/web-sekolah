@@ -24,6 +24,11 @@ class PengumumanModel extends BaseModel
         'status'          => 'required|in_list[Published,Draft]',
     ];
 
+        public function daftarTerbaru(): array
+    {
+        return $this->orderBy('tanggal_publish', 'DESC')->findAll();
+    }
+
     public function getPublished(int $limit = 10)
     {
         return $this->where('status', 'Published')

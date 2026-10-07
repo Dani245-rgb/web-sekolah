@@ -3,45 +3,39 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\KalenderAkademikModel;
+use App\Services\KalenderAkademikService;
+use InvalidArgumentException;
+use Throwable;
 
 class KalenderAkademik extends BaseController
 {
-    protected KalenderAkademikModel $kalenderModel;
+    protected KalenderAkademikService $kalenderService;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->kalenderModel = new KalenderAkademikModel();
+        $this->kalenderService = service('kalenderAkademikService');
     }
 
     public function index()
     {
-        $data['kalender'] = $this->kalenderModel->orderBy('tanggal_mulai', 'ASC')->findAll();
+        $data['kalender'] = $this->kalenderService->daftar();
+
         return view('admin/kalender_akademik/index', $data);
     }
 
     public function create()
     {
         $data['item'] = null;
+
         return view('admin/kalender_akademik/form', $data);
     }
 
     public function store()
     {
-        if (!$this->validate($this->rules())) {
-            return $this->kembaliDenganError($this->validator->getErrors());
-        }
-
-        $data = $this->dataDariForm();
-
-        if ($this->urutanTanggalSalah($data)) {
-            return $this->kembaliDenganError(['tanggal' => 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.']);
-        }
-
-        if (!$this->kalenderModel->insert($data)) {
-            return $this->kembaliDenganError($this->kalenderModel->errors());
+        try {
+            $this->kalenderService->tambah($this->inputForm());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Kegiatan gagal ditambahkan.', true);
         }
 
         return redirect()->to('/admin/kalender-akademik')->with('success', 'Kegiatan berhasil ditambahkan.');
@@ -49,10 +43,10 @@ class KalenderAkademik extends BaseController
 
     public function edit($id)
     {
-        $data['item'] = $this->kalenderModel->find($id);
-
-        if (!$data['item']) {
-            return redirect()->to('/admin/kalender-akademik')->with('error', 'Data tidak ditemukan.');
+        try {
+            $data['item'] = $this->kalenderService->ambil((int) $id);
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Data kegiatan gagal dimuat.');
         }
 
         return view('admin/kalender_akademik/form', $data);
@@ -60,23 +54,10 @@ class KalenderAkademik extends BaseController
 
     public function update($id)
     {
-        $item = $this->kalenderModel->find($id);
-        if (!$item) {
-            return redirect()->to('/admin/kalender-akademik')->with('error', 'Data tidak ditemukan.');
-        }
-
-        if (!$this->validate($this->rules())) {
-            return $this->kembaliDenganError($this->validator->getErrors());
-        }
-
-        $data = $this->dataDariForm();
-
-        if ($this->urutanTanggalSalah($data)) {
-            return $this->kembaliDenganError(['tanggal' => 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.']);
-        }
-
-        if (!$this->kalenderModel->update($id, $data)) {
-            return $this->kembaliDenganError($this->kalenderModel->errors());
+        try {
+            $this->kalenderService->ubah((int) $id, $this->inputForm());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Kegiatan gagal diperbarui.', true);
         }
 
         return redirect()->to('/admin/kalender-akademik')->with('success', 'Kegiatan berhasil diperbarui.');
@@ -84,55 +65,47 @@ class KalenderAkademik extends BaseController
 
     public function delete($id)
     {
-        $item = $this->kalenderModel->find($id);
-        if (!$item) {
-            return redirect()->to('/admin/kalender-akademik')->with('error', 'Data tidak ditemukan.');
+        try {
+            $this->kalenderService->hapus((int) $id);
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Kegiatan gagal dihapus.');
         }
-
-        $this->kalenderModel->delete($id);
 
         return redirect()->to('/admin/kalender-akademik')->with('success', 'Kegiatan berhasil dihapus.');
     }
 
-    private function rules(): array
+    private function inputForm(): array
     {
         return [
-            'kegiatan'        => 'required|min_length[3]|max_length[255]',
-            'tanggal_mulai'   => 'required|valid_date',
-            'tanggal_selesai' => 'permit_empty|valid_date',
-            'semester'        => 'required|in_list[Ganjil,Genap]',
-            'tahun_ajaran'    => 'required',
-            'status'          => 'required|in_list[Published,Draft]',
-        ];
-    }
-
-    /**
-     * Data dari form yang sudah dirapikan, dipakai bareng oleh store() dan update().
-     * tanggal_selesai kosong disimpan sebagai NULL, bukan string kosong.
-     */
-    private function dataDariForm(): array
-    {
-        $tanggalSelesai = $this->request->getPost('tanggal_selesai');
-
-        return [
-            'kegiatan'        => rapikan_teks((string) $this->request->getPost('kegiatan')),
+            'kegiatan'        => $this->request->getPost('kegiatan'),
             'tanggal_mulai'   => $this->request->getPost('tanggal_mulai'),
-            'tanggal_selesai' => ($tanggalSelesai !== null && $tanggalSelesai !== '') ? $tanggalSelesai : null,
+            'tanggal_selesai' => $this->request->getPost('tanggal_selesai'),
             'keterangan'      => $this->request->getPost('keterangan'),
             'semester'        => $this->request->getPost('semester'),
-            'tahun_ajaran'    => rapikan_teks((string) $this->request->getPost('tahun_ajaran')),
+            'tahun_ajaran'    => $this->request->getPost('tahun_ajaran'),
             'status'          => $this->request->getPost('status'),
         ];
     }
 
-    private function urutanTanggalSalah(array $data): bool
+    /**
+     * InvalidArgumentException = pesan aman, tampilkan apa adanya.
+     * Exception lain = error sistem, log lalu tampilkan pesan umum.
+     * Data tidak ditemukan dan kegagalan non-form kembali ke daftar (flash "error").
+     * Kegagalan form kembali ke form dengan input terisi (flash "errors").
+     */
+    private function gagal(Throwable $e, string $pesanUmum, bool $form = false)
     {
-        return $data['tanggal_selesai'] !== null
-            && strtotime($data['tanggal_selesai']) < strtotime($data['tanggal_mulai']);
-    }
+        if ($e instanceof InvalidArgumentException) {
+            $pesan = $e->getMessage();
+        } else {
+            log_message('error', '[KalenderAkademik] ' . $e->getMessage());
+            $pesan = $pesanUmum;
+        }
 
-    private function kembaliDenganError(array $errors)
-    {
-        return redirect()->back()->withInput()->with('errors', $errors);
+        if (!$form || $pesan === KalenderAkademikService::TIDAK_DITEMUKAN) {
+            return redirect()->to('/admin/kalender-akademik')->with('error', $pesan);
+        }
+
+        return redirect()->back()->withInput()->with('errors', ['kalender' => $pesan]);
     }
 }

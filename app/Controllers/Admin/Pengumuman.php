@@ -3,56 +3,39 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\PengumumanModel;
-use App\Services\SlugService;
+use App\Services\PengumumanService;
+use InvalidArgumentException;
+use Throwable;
 
 class Pengumuman extends BaseController
 {
-    protected PengumumanModel $pengumumanModel;
-    protected SlugService $slugService;
+    protected PengumumanService $pengumumanService;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->pengumumanModel = new PengumumanModel();
-        $this->slugService     = service('slugService');
+        $this->pengumumanService = service('pengumumanService');
     }
 
     public function index()
     {
-        $data['pengumuman'] = $this->pengumumanModel->orderBy('tanggal_publish', 'DESC')->findAll();
+        $data['pengumuman'] = $this->pengumumanService->daftar();
+
         return view('admin/pengumuman/index', $data);
     }
 
     public function create()
     {
         $data['pengumuman'] = null;
+
         return view('admin/pengumuman/form', $data);
     }
 
     public function store()
     {
-        if (!$this->validate($this->rules())) {
-            return $this->kembaliDenganError($this->validator->getErrors());
-        }
-
-        $judul = rapikan_teks((string) $this->request->getPost('judul'));
-
-        if ($this->pengumumanModel->judulSudahAda($judul)) {
-            return $this->kembaliDenganError(['judul' => 'Judul pengumuman sudah dipakai.']);
-        }
-
-        $berhasil = $this->pengumumanModel->insert([
-            'judul'           => $judul,
-            'slug'            => $this->slugService->buatUnik($judul, 'pengumuman', 'id', null, 'pengumuman'),
-            'isi'             => $this->request->getPost('isi'),
-            'tanggal_publish' => $this->request->getPost('tanggal_publish'),
-            'status'          => $this->request->getPost('status'),
-        ]);
-
-        if (!$berhasil) {
-            return $this->kembaliDenganError($this->pengumumanModel->errors());
+        try {
+            $this->pengumumanService->tambah($this->inputForm());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Pengumuman gagal ditambahkan.', true);
         }
 
         return redirect()->to('/admin/pengumuman')->with('success', 'Pengumuman berhasil ditambahkan.');
@@ -60,10 +43,10 @@ class Pengumuman extends BaseController
 
     public function edit($id)
     {
-        $data['pengumuman'] = $this->pengumumanModel->find($id);
-
-        if (!$data['pengumuman']) {
-            return redirect()->to('/admin/pengumuman')->with('error', 'Data tidak ditemukan.');
+        try {
+            $data['pengumuman'] = $this->pengumumanService->ambil((int) $id);
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Data pengumuman gagal dimuat.');
         }
 
         return view('admin/pengumuman/form', $data);
@@ -71,31 +54,10 @@ class Pengumuman extends BaseController
 
     public function update($id)
     {
-        $pengumuman = $this->pengumumanModel->find($id);
-        if (!$pengumuman) {
-            return redirect()->to('/admin/pengumuman')->with('error', 'Data tidak ditemukan.');
-        }
-
-        if (!$this->validate($this->rules())) {
-            return $this->kembaliDenganError($this->validator->getErrors());
-        }
-
-        $judul = rapikan_teks((string) $this->request->getPost('judul'));
-
-        if ($this->pengumumanModel->judulSudahAda($judul, (int) $id)) {
-            return $this->kembaliDenganError(['judul' => 'Judul pengumuman sudah dipakai.']);
-        }
-
-        $berhasil = $this->pengumumanModel->update($id, [
-            'judul'           => $judul,
-            'slug'            => $this->slugService->buatUnik($judul, 'pengumuman', 'id', (int) $id, 'pengumuman'),
-            'isi'             => $this->request->getPost('isi'),
-            'tanggal_publish' => $this->request->getPost('tanggal_publish'),
-            'status'          => $this->request->getPost('status'),
-        ]);
-
-        if (!$berhasil) {
-            return $this->kembaliDenganError($this->pengumumanModel->errors());
+        try {
+            $this->pengumumanService->ubah((int) $id, $this->inputForm());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Pengumuman gagal diperbarui.', true);
         }
 
         return redirect()->to('/admin/pengumuman')->with('success', 'Pengumuman berhasil diperbarui.');
@@ -103,28 +65,44 @@ class Pengumuman extends BaseController
 
     public function delete($id)
     {
-        $pengumuman = $this->pengumumanModel->find($id);
-        if (!$pengumuman) {
-            return redirect()->to('/admin/pengumuman')->with('error', 'Data tidak ditemukan.');
+        try {
+            $this->pengumumanService->hapus((int) $id);
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Pengumuman gagal dihapus.');
         }
-
-        $this->pengumumanModel->delete($id);
 
         return redirect()->to('/admin/pengumuman')->with('success', 'Pengumuman berhasil dihapus.');
     }
 
-    private function rules(): array
+    private function inputForm(): array
     {
         return [
-            'judul'           => 'required|min_length[3]|max_length[255]',
-            'isi'             => 'required',
-            'tanggal_publish' => 'required|valid_date',
-            'status'          => 'required|in_list[Published,Draft]',
+            'judul'           => $this->request->getPost('judul'),
+            'isi'             => $this->request->getPost('isi'),
+            'tanggal_publish' => $this->request->getPost('tanggal_publish'),
+            'status'          => $this->request->getPost('status'),
         ];
     }
 
-    private function kembaliDenganError(array $errors)
+    /**
+     * InvalidArgumentException = pesan aman, tampilkan apa adanya.
+     * Exception lain = error sistem, log lalu tampilkan pesan umum.
+     * Data tidak ditemukan dan kegagalan non-form kembali ke daftar (flash "error").
+     * Kegagalan form kembali ke form dengan input terisi (flash "errors").
+     */
+    private function gagal(Throwable $e, string $pesanUmum, bool $form = false)
     {
-        return redirect()->back()->withInput()->with('errors', $errors);
+        if ($e instanceof InvalidArgumentException) {
+            $pesan = $e->getMessage();
+        } else {
+            log_message('error', '[Pengumuman] ' . $e->getMessage());
+            $pesan = $pesanUmum;
+        }
+
+        if (!$form || $pesan === PengumumanService::TIDAK_DITEMUKAN) {
+            return redirect()->to('/admin/pengumuman')->with('error', $pesan);
+        }
+
+        return redirect()->back()->withInput()->with('errors', ['pengumuman' => $pesan]);
     }
 }

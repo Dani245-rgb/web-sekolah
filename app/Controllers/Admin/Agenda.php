@@ -3,39 +3,39 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\AgendaModel;
+use App\Services\AgendaService;
+use InvalidArgumentException;
+use Throwable;
 
 class Agenda extends BaseController
 {
-    protected AgendaModel $agendaModel;
+    protected AgendaService $agendaService;
 
     public function __construct()
     {
-        helper('teks');
-
-        $this->agendaModel = new AgendaModel();
+        $this->agendaService = service('agendaService');
     }
 
     public function index()
     {
-        $data['agenda'] = $this->agendaModel->orderBy('tanggal', 'DESC')->findAll();
+        $data['agenda'] = $this->agendaService->daftar();
+
         return view('admin/agenda/index', $data);
     }
 
     public function create()
     {
         $data['agenda'] = null;
+
         return view('admin/agenda/form', $data);
     }
 
     public function store()
     {
-        if (!$this->validate($this->rules())) {
-            return $this->kembaliDenganError($this->validator->getErrors());
-        }
-
-        if (!$this->agendaModel->insert($this->dataDariForm())) {
-            return $this->kembaliDenganError($this->agendaModel->errors());
+        try {
+            $this->agendaService->tambah($this->inputForm());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Agenda gagal ditambahkan.', true);
         }
 
         return redirect()->to('/admin/agenda')->with('success', 'Agenda berhasil ditambahkan.');
@@ -43,10 +43,10 @@ class Agenda extends BaseController
 
     public function edit($id)
     {
-        $data['agenda'] = $this->agendaModel->find($id);
-
-        if (!$data['agenda']) {
-            return redirect()->to('/admin/agenda')->with('error', 'Data tidak ditemukan.');
+        try {
+            $data['agenda'] = $this->agendaService->ambil((int) $id);
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Data agenda gagal dimuat.');
         }
 
         return view('admin/agenda/form', $data);
@@ -54,17 +54,10 @@ class Agenda extends BaseController
 
     public function update($id)
     {
-        $agenda = $this->agendaModel->find($id);
-        if (!$agenda) {
-            return redirect()->to('/admin/agenda')->with('error', 'Data tidak ditemukan.');
-        }
-
-        if (!$this->validate($this->rules())) {
-            return $this->kembaliDenganError($this->validator->getErrors());
-        }
-
-        if (!$this->agendaModel->update($id, $this->dataDariForm())) {
-            return $this->kembaliDenganError($this->agendaModel->errors());
+        try {
+            $this->agendaService->ubah((int) $id, $this->inputForm());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Agenda gagal diperbarui.', true);
         }
 
         return redirect()->to('/admin/agenda')->with('success', 'Agenda berhasil diperbarui.');
@@ -72,41 +65,45 @@ class Agenda extends BaseController
 
     public function delete($id)
     {
-        $agenda = $this->agendaModel->find($id);
-        if (!$agenda) {
-            return redirect()->to('/admin/agenda')->with('error', 'Data tidak ditemukan.');
+        try {
+            $this->agendaService->hapus((int) $id);
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Agenda gagal dihapus.');
         }
-
-        $this->agendaModel->delete($id);
 
         return redirect()->to('/admin/agenda')->with('success', 'Agenda berhasil dihapus.');
     }
 
-    private function rules(): array
+    private function inputForm(): array
     {
         return [
-            'judul'   => 'required|min_length[3]|max_length[255]',
-            'tanggal' => 'required|valid_date',
-            'status'  => 'required|in_list[Published,Draft]',
-        ];
-    }
-
-    /**
-     * Data dari form yang sudah dirapikan, dipakai bareng oleh store() dan update().
-     */
-    private function dataDariForm(): array
-    {
-        return [
-            'judul'   => rapikan_teks((string) $this->request->getPost('judul')),
+            'judul'   => $this->request->getPost('judul'),
             'tanggal' => $this->request->getPost('tanggal'),
-            'waktu'   => rapikan_teks((string) $this->request->getPost('waktu')),
-            'lokasi'  => rapikan_teks((string) $this->request->getPost('lokasi')),
+            'waktu'   => $this->request->getPost('waktu'),
+            'lokasi'  => $this->request->getPost('lokasi'),
             'status'  => $this->request->getPost('status'),
         ];
     }
 
-    private function kembaliDenganError(array $errors)
+    /**
+     * InvalidArgumentException = pesan aman, tampilkan apa adanya.
+     * Exception lain = error sistem, log lalu tampilkan pesan umum.
+     * Data tidak ditemukan dan kegagalan non-form kembali ke daftar (flash "error").
+     * Kegagalan form kembali ke form dengan input terisi (flash "errors").
+     */
+    private function gagal(Throwable $e, string $pesanUmum, bool $form = false)
     {
-        return redirect()->back()->withInput()->with('errors', $errors);
+        if ($e instanceof InvalidArgumentException) {
+            $pesan = $e->getMessage();
+        } else {
+            log_message('error', '[Agenda] ' . $e->getMessage());
+            $pesan = $pesanUmum;
+        }
+
+        if (!$form || $pesan === AgendaService::TIDAK_DITEMUKAN) {
+            return redirect()->to('/admin/agenda')->with('error', $pesan);
+        }
+
+        return redirect()->back()->withInput()->with('errors', ['agenda' => $pesan]);
     }
 }

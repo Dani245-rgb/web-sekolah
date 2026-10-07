@@ -21,13 +21,29 @@ final class ServicesWiringTest extends CIUnitTestCase
 
     public static function daftarService(): array
     {
-        $daftar = [
-            'siswaService', 'fileUploadService', 'slugService', 'authService',
-            'backupService', 'laporanSiswaService', 'dashboardService', 'berandaService',
-            'kontakService', 'ppdbService', 'passwordService', 'jurusanService',
-            'bkArtikelService', 'unduhanService', 'importSiswaService',
-        ];
+        $daftar = [];
 
-        return array_map(static fn (string $n): array => [$n], $daftar);
+        foreach ((new \ReflectionClass(\Config\Services::class))->getMethods(\ReflectionMethod::IS_STATIC | \ReflectionMethod::IS_PUBLIC) as $metode) {
+            if ($metode->getDeclaringClass()->getName() === \Config\Services::class) {
+                $daftar[$metode->getName()] = [$metode->getName()];
+            }
+        }
+
+        return $daftar;
+    }
+
+    public function testSemuaFileServiceTerdaftar(): void
+    {
+        $belumTerdaftar = [];
+
+        foreach (glob(APPPATH . 'Services/*Service.php') ?: [] as $file) {
+            $nama = lcfirst(basename($file, '.php'));
+
+            if (!method_exists(\Config\Services::class, $nama)) {
+                $belumTerdaftar[] = $nama;
+            }
+        }
+
+        $this->assertSame([], $belumTerdaftar, 'File service belum didaftarkan di Config/Services.php: ' . implode(', ', $belumTerdaftar));
     }
 }

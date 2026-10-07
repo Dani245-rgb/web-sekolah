@@ -27,7 +27,12 @@ class KalenderAkademikModel extends BaseModel
         'status'        => 'required|in_list[Published,Draft]',
     ];
 
-    public function getPublished()
+        public function daftarUrut(): array
+    {
+        return $this->orderBy('tanggal_mulai', 'ASC')->findAll();
+    }
+
+public function getPublished()
     {
         return $this->where('status', 'Published')
             ->orderBy('tanggal_mulai', 'ASC')

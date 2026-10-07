@@ -3,48 +3,61 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\PesanKontakModel;
+use App\Services\KontakAdminService;
+use InvalidArgumentException;
+use Throwable;
 
 class KontakAdmin extends BaseController
 {
-    protected PesanKontakModel $kontakModel;
+    protected KontakAdminService $kontakAdminService;
 
     public function __construct()
     {
-        $this->kontakModel = new PesanKontakModel();
+        $this->kontakAdminService = service('kontakAdminService');
     }
 
     public function index()
     {
-        $data['pesan'] = $this->kontakModel->orderBy('created_at', 'DESC')->findAll();
+        $data['pesan'] = $this->kontakAdminService->daftar();
+
         return view('admin/kontak/index', $data);
     }
 
     public function detail($id)
     {
-        $pesan = $this->kontakModel->find($id);
-
-        if (!$pesan) {
-            return redirect()->to('/admin/kontak')->with('error', 'Pesan tidak ditemukan.');
+        try {
+            $data['pesan'] = $this->kontakAdminService->lihat((int) $id);
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Pesan gagal dimuat.');
         }
 
-        if ($pesan['status'] === 'Belum Dibaca' && $this->kontakModel->tandaiSudahDibaca((int) $id)) {
-            $pesan['status'] = 'Sudah Dibaca';
-        }
-
-        $data['pesan'] = $pesan;
         return view('admin/kontak/detail', $data);
     }
 
     public function delete($id)
     {
-        $pesan = $this->kontakModel->find($id);
-        if (!$pesan) {
-            return redirect()->to('/admin/kontak')->with('error', 'Pesan tidak ditemukan.');
+        try {
+            $this->kontakAdminService->hapus((int) $id);
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Pesan gagal dihapus.');
         }
 
-        $this->kontakModel->delete($id);
-
         return redirect()->to('/admin/kontak')->with('success', 'Pesan berhasil dihapus.');
+    }
+
+    /**
+     * InvalidArgumentException = pesan aman, tampilkan apa adanya.
+     * Exception lain = error sistem, log lalu tampilkan pesan umum.
+     */
+    private function gagal(Throwable $e, string $pesanUmum)
+    {
+        if ($e instanceof InvalidArgumentException) {
+            $pesan = $e->getMessage();
+        } else {
+            log_message('error', '[KontakAdmin] ' . $e->getMessage());
+            $pesan = $pesanUmum;
+        }
+
+        return redirect()->to('/admin/kontak')->with('error', $pesan);
     }
 }

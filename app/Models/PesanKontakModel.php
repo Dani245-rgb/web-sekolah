@@ -22,7 +22,12 @@ class PesanKontakModel extends BaseModel
         'pesan' => 'required',
     ];
 
-        public function tandaiSudahDibaca(int $id): bool
+    public function daftarTerbaru(): array
+    {
+        return $this->orderBy('created_at', 'DESC')->findAll();
+    }
+
+    public function tandaiSudahDibaca(int $id): bool
     {
         return (bool) $this->update($id, ['status' => 'Sudah Dibaca']);
     }

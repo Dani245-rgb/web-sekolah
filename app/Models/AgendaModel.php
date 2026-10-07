@@ -22,6 +22,11 @@ class AgendaModel extends BaseModel
         'status'  => 'required|in_list[Published,Draft]',
     ];
 
+        public function daftarTerbaru(): array
+    {
+        return $this->orderBy('tanggal', 'DESC')->findAll();
+    }
+
     // Ambil agenda yang akan datang (tanggal >= hari ini), urut terdekat dulu
     public function getUpcoming(int $limit = 5)
     {

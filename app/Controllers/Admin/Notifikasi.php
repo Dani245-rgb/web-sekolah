@@ -3,20 +3,22 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\NotifikasiModel;
+use App\Services\NotifikasiService;
+use InvalidArgumentException;
+use Throwable;
 
 class Notifikasi extends BaseController
 {
-    protected NotifikasiModel $model;
+    protected NotifikasiService $notifikasiService;
 
     public function __construct()
     {
-        $this->model = new NotifikasiModel();
+        $this->notifikasiService = service('notifikasiService');
     }
 
     public function index()
     {
-        $data['notifikasi'] = $this->model->getForUser($this->idUser(), 50);
+        $data['notifikasi'] = $this->notifikasiService->daftar($this->idUser(), 50);
 
         return view('admin/notifikasi/index', $data);
     }
@@ -26,34 +28,34 @@ class Notifikasi extends BaseController
      */
     public function poll()
     {
-        $userId = $this->idUser();
+        try {
+            return $this->response->setJSON($this->notifikasiService->ringkasan($this->idUser()));
+        } catch (Throwable $e) {
+            log_message('error', '[Notifikasi] ' . $e->getMessage());
 
-        return $this->response->setJSON([
-            'unread_count' => $this->model->countUnread($userId),
-            'terbaru'      => $this->model->getForUser($userId, 5),
-        ]);
+            return $this->response->setStatusCode(500)->setJSON(['error' => 'Notifikasi gagal dimuat.']);
+        }
     }
 
     public function baca($idNotif)
     {
-        $notif = $this->model->cariUntukUser((int) $idNotif, $this->idUser());
-
-        if (!$notif) {
-            return redirect()->to('/admin/notifikasi')->with('error', 'Notifikasi tidak ditemukan.');
+        try {
+            $link = $this->notifikasiService->baca((int) $idNotif, $this->idUser());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Notifikasi gagal dibuka.');
         }
 
-        $this->model->tandaiDibaca((int) $idNotif);
-
-        if (!empty($notif['link']) && $this->linkInternal($notif['link'])) {
-            return redirect()->to($notif['link']);
-        }
-
-        return redirect()->to('/admin/notifikasi');
+        return redirect()->to($link ?? '/admin/notifikasi');
     }
 
     public function bacaSemua()
     {
-        $this->model->tandaiSemuaDibaca($this->idUser());
+        try {
+            $this->notifikasiService->bacaSemua($this->idUser());
+        } catch (Throwable $e) {
+            return $this->gagal($e, 'Notifikasi gagal ditandai dibaca.');
+        }
+
         return redirect()->back();
     }
 
@@ -63,15 +65,18 @@ class Notifikasi extends BaseController
     }
 
     /**
-     * Link boleh relatif (admin/kontak/...) atau alamat situs ini sendiri.
-     * Alamat luar (https://situs-lain.com, //situs-lain.com, javascript:...) ditolak.
+     * InvalidArgumentException = pesan aman, tampilkan apa adanya.
+     * Exception lain = error sistem, log lalu tampilkan pesan umum.
      */
-    private function linkInternal(string $link): bool
+    private function gagal(Throwable $e, string $pesanUmum)
     {
-        if (str_starts_with($link, base_url())) {
-            return true;
+        if ($e instanceof InvalidArgumentException) {
+            $pesan = $e->getMessage();
+        } else {
+            log_message('error', '[Notifikasi] ' . $e->getMessage());
+            $pesan = $pesanUmum;
         }
 
-        return !preg_match('#^([a-z][a-z0-9+.\-]*:|//)#i', $link);
+        return redirect()->to('/admin/notifikasi')->with('error', $pesan);
     }
 }

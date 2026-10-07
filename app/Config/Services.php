@@ -370,6 +370,76 @@ class Services extends BaseService
         );
     }
 
+    public static function pengumumanService($getShared = true): \App\Services\PengumumanService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('pengumumanService');
+        }
+
+        return new \App\Services\PengumumanService(
+            model(\App\Models\PengumumanModel::class),
+            static::slugService(),
+        );
+    }
+
+    public static function kalenderAkademikService($getShared = true): \App\Services\KalenderAkademikService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('kalenderAkademikService');
+        }
+
+        return new \App\Services\KalenderAkademikService(
+            model(\App\Models\KalenderAkademikModel::class),
+        );
+    }
+
+    public static function agendaService($getShared = true): \App\Services\AgendaService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('agendaService');
+        }
+
+        return new \App\Services\AgendaService(
+            model(\App\Models\AgendaModel::class),
+        );
+    }
+
+    public static function notifikasiService($getShared = true): \App\Services\NotifikasiService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('notifikasiService');
+        }
+
+        helper('url');
+
+        return new \App\Services\NotifikasiService(
+            model(\App\Models\NotifikasiModel::class),
+            base_url(),
+        );
+    }
+
+    public static function kontakAdminService($getShared = true): \App\Services\KontakAdminService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('kontakAdminService');
+        }
+
+        return new \App\Services\KontakAdminService(
+            model(\App\Models\PesanKontakModel::class),
+        );
+    }
+
+    public static function auditLogService($getShared = true): \App\Services\AuditLogService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('auditLogService');
+        }
+
+        return new \App\Services\AuditLogService(
+            model(\App\Models\AuditLogModel::class),
+        );
+    }
+
     /* public static function example
 
     /*
