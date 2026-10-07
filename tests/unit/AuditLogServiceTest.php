@@ -116,6 +116,23 @@ final class AuditLogServiceTest extends CIUnitTestCase
         $this->assertCount(2, $this->service->semua($filter));
     }
 
+        // ---------- catat ----------
+
+    public function testCatatMeneruskanKeModel(): void
+    {
+        $this->model->expects($this->once())->method('catat')
+            ->with(3, 'budi', 'backup_database', 'Membuat backup database: x.sql');
+
+        $this->service->catat(3, 'budi', 'backup_database', 'Membuat backup database: x.sql');
+    }
+
+    public function testCatatKeteranganDefaultKosong(): void
+    {
+        $this->model->expects($this->once())->method('catat')->with(null, null, 'login', '');
+
+        $this->service->catat(null, null, 'login');
+    }
+
     // ---------- buatExcel ----------
 
     public function testBuatExcelMenghasilkanFileXlsxDenganIsiBenar(): void

@@ -3,7 +3,7 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\AuditLogModel;
+use App\Services\AuditLogService;
 use App\Services\BackupService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use RuntimeException;
@@ -11,7 +11,7 @@ use RuntimeException;
 class BackupDatabase extends BaseController
 {
     protected BackupService $backup;
-    protected AuditLogModel $auditLogModel;
+    protected AuditLogService $auditLogService;
 
     public function __construct()
     {
@@ -19,8 +19,8 @@ class BackupDatabase extends BaseController
             throw new PageNotFoundException('Halaman tidak ditemukan.');
         }
 
-        $this->backup        = service('backupService');
-        $this->auditLogModel = new AuditLogModel();
+        $this->backup          = service('backupService');
+        $this->auditLogService = service('auditLogService');
     }
 
     public function index()
@@ -69,7 +69,7 @@ class BackupDatabase extends BaseController
 
     private function catatAudit(string $aksi, string $keterangan): void
     {
-        $this->auditLogModel->catat(
+        $this->auditLogService->catat(
             session()->get('id_user'),
             session()->get('username'),
             $aksi,

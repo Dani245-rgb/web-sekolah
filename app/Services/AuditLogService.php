@@ -64,6 +64,14 @@ class AuditLogService
     }
 
     /**
+     * Catat satu aksi admin ke audit log.
+     */
+    public function catat(?int $userId, ?string $username, string $aksi, string $keterangan = ''): void
+    {
+        $this->auditLogModel->catat($userId, $username, $aksi, $keterangan);
+    }
+
+    /**
      * Render HTML jadi isi file PDF (landscape, kolomnya lumayan banyak).
      */
     public function buatPdf(string $html): string
