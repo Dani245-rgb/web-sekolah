@@ -32,7 +32,7 @@ class KalenderAkademikModel extends BaseModel
         return $this->orderBy('tanggal_mulai', 'ASC')->findAll();
     }
 
-public function getPublished()
+    public function getPublished()
     {
         return $this->where('status', 'Published')
             ->orderBy('tanggal_mulai', 'ASC')
