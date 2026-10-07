@@ -113,8 +113,9 @@ class AuditLogService
         foreach (range('A', 'F') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
-        $sheet->getStyle("B2:B{$row}")->getAlignment()->setWrapText(false);
-        $sheet->getStyle("E2:E{$row}")->getAlignment()->setWrapText(true);
+        $barisAkhir = max(2, $row - 1);
+        $sheet->getStyle("B2:B{$barisAkhir}")->getAlignment()->setWrapText(false);
+        $sheet->getStyle("E2:E{$barisAkhir}")->getAlignment()->setWrapText(true);
 
         ob_start();
         (new Xlsx($spreadsheet))->save('php://output');
