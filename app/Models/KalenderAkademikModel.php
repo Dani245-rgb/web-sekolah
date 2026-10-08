@@ -11,8 +11,13 @@ class KalenderAkademikModel extends BaseModel
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $allowedFields    = [
-        'kegiatan', 'tanggal_mulai', 'tanggal_selesai', 'keterangan',
-        'semester', 'tahun_ajaran', 'status',
+        'kegiatan',
+        'tanggal_mulai',
+        'tanggal_selesai',
+        'keterangan',
+        'semester',
+        'tahun_ajaran',
+        'status',
     ];
 
     protected $useTimestamps = true;
@@ -27,7 +32,7 @@ class KalenderAkademikModel extends BaseModel
         'status'        => 'required|in_list[Published,Draft]',
     ];
 
-        public function daftarUrut(): array
+    public function daftarUrut(): array
     {
         return $this->orderBy('tanggal_mulai', 'ASC')->findAll();
     }
