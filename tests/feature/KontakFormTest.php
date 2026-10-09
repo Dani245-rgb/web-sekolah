@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\DatabaseTestTrait;
 use CodeIgniter\Test\FeatureTestTrait;
+use CodeIgniter\Test\Mock\MockCache;
 use Config\Database;
+use Config\Services;
 
 /**
  * Feature test form Kontak publik: POST kontak/kirim sampai data benar-benar
@@ -31,8 +33,10 @@ final class KontakFormTest extends CIUnitTestCase
 
         $this->pastikanDatabaseTes();
 
-        // Counter rate-limit (throttle) disimpan di cache; reset supaya tes bisa diulang.
-        cache()->clean();
+        // Counter rate-limit (throttle) disimpan di cache. Pakai cache in-memory yang baru
+        // di setiap tes: penghitung mulai dari nol dan file cache aplikasi tidak tersentuh.
+        Services::injectMock('cache', new MockCache());
+        Services::resetSingle('throttler');
 
         $this->db->table('pesan_kontak')->emptyTable();
         $this->db->table('notifikasi')->emptyTable();
@@ -105,6 +109,12 @@ final class KontakFormTest extends CIUnitTestCase
 
         $result->assertRedirect();
         $result->assertSessionHas('errors');
+
+        $errors = session('errors');
+        $this->assertIsArray($errors);
+        $this->assertArrayNotHasKey('throttle', $errors, 'Ditolak karena rate-limit, bukan karena validasi.');
+        $this->assertArrayNotHasKey('limit', $errors, 'Ditolak karena rate-limit, bukan karena validasi.');
+        $this->assertArrayHasKey('email', $errors);
 
         $this->seeNumRecords(0, 'pesan_kontak', []);
         $this->seeNumRecords(0, 'notifikasi', []);
