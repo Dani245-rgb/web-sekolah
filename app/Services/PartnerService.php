@@ -122,7 +122,7 @@ class PartnerService
     private function unggah(?UploadedFile $foto): ?string
     {
         try {
-            return $this->uploader->simpan($foto, self::FOLDER);
+            return $this->uploader->simpanKompres($foto, self::FOLDER);
         } catch (InvalidArgumentException $e) {
             throw $e;
         } catch (RuntimeException $e) {
