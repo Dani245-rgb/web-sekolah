@@ -47,7 +47,7 @@ final class PrestasiServiceTest extends CIUnitTestCase
 
     public function testTambahFotoGagalDiuploadDitolak(): void
     {
-        $this->uploader->method('simpan')->willReturn(null);
+        $this->uploader->method('simpanKompres')->willReturn(null);
         $this->model->expects($this->never())->method('insert');
 
         $this->expectException(InvalidArgumentException::class);
@@ -57,7 +57,7 @@ final class PrestasiServiceTest extends CIUnitTestCase
 
     public function testTambahBerhasilJudulDanTimDirapikan(): void
     {
-        $this->uploader->method('simpan')->willReturn('abc.jpg');
+        $this->uploader->method('simpanKompres')->willReturn('abc.jpg');
         $this->model->expects($this->once())
             ->method('insert')
             ->with($this->callback(
@@ -72,7 +72,7 @@ final class PrestasiServiceTest extends CIUnitTestCase
 
     public function testTambahGagalDbFotoBaruDibuang(): void
     {
-        $this->uploader->method('simpan')->willReturn('abc.jpg');
+        $this->uploader->method('simpanKompres')->willReturn('abc.jpg');
         $this->model->method('insert')->willReturn(false);
         $this->model->method('errors')->willReturn([]);
 
@@ -86,7 +86,7 @@ final class PrestasiServiceTest extends CIUnitTestCase
     public function testUbahGagalFotoLamaTidakDihapus(): void
     {
         $this->model->method('find')->willReturn($this->prestasiLama());
-        $this->uploader->method('simpan')->willReturn('baru.jpg');
+        $this->uploader->method('simpanKompres')->willReturn('baru.jpg');
         $this->model->method('update')->willReturn(false);
         $this->model->method('errors')->willReturn([]);
 
@@ -100,7 +100,7 @@ final class PrestasiServiceTest extends CIUnitTestCase
     public function testUbahBerhasilFotoLamaDihapusSetelahUpdate(): void
     {
         $this->model->method('find')->willReturn($this->prestasiLama());
-        $this->uploader->method('simpan')->willReturn('baru.jpg');
+        $this->uploader->method('simpanKompres')->willReturn('baru.jpg');
         $this->model->method('update')->willReturn(true);
 
         $this->uploader->expects($this->once())->method('hapus')->with('lama.jpg', self::FOLDER);
@@ -111,7 +111,7 @@ final class PrestasiServiceTest extends CIUnitTestCase
     public function testUbahTanpaFotoBaruTidakMenghapusApaPun(): void
     {
         $this->model->method('find')->willReturn($this->prestasiLama());
-        $this->uploader->method('simpan')->willReturn(null);
+        $this->uploader->method('simpanKompres')->willReturn(null);
         $this->model->method('update')->willReturn(true);
 
         $this->uploader->expects($this->never())->method('hapus');
