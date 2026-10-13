@@ -35,6 +35,7 @@ class Filters extends BaseFilters
         'pagecache'          => PageCache::class,
         'performance'        => PerformanceMetrics::class,
         'roleAuth'           => \App\Filters\RoleFilter::class,
+        'superadmin'         => \App\Filters\SuperadminFilter::class,
         'throttle'           => \App\Filters\ThrottleFilter::class,
         'cegahcache'         => \App\Filters\CegahCache::class,
         'sessiontimeout'     => \App\Filters\SessionTimeout::class,
