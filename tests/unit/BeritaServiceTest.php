@@ -50,7 +50,7 @@ final class BeritaServiceTest extends CIUnitTestCase
 
     public function testJudulTerlaluPendekDitolak(): void
     {
-        $this->uploader->expects($this->never())->method('simpan');
+        $this->uploader->expects($this->never())->method('simpanKompres');
         $this->model->expects($this->never())->method('insert');
 
         $this->expectException(InvalidArgumentException::class);
@@ -59,7 +59,7 @@ final class BeritaServiceTest extends CIUnitTestCase
 
     public function testGambarDitolakUploaderTidakMenyimpanBerita(): void
     {
-        $this->uploader->method('simpan')->willThrowException(new InvalidArgumentException('Tipe file tidak diizinkan.'));
+        $this->uploader->method('simpanKompres')->willThrowException(new InvalidArgumentException('Tipe file tidak diizinkan.'));
         $this->model->expects($this->never())->method('insert');
 
         $this->expectException(InvalidArgumentException::class);
@@ -69,7 +69,7 @@ final class BeritaServiceTest extends CIUnitTestCase
 
     public function testInsertGagalGambarBaruDibuang(): void
     {
-        $this->uploader->method('simpan')->willReturn('baru.jpg');
+        $this->uploader->method('simpanKompres')->willReturn('baru.jpg');
         $this->model->method('insert')->willReturn(false);
         $this->model->method('errors')->willReturn([]);
 
@@ -107,7 +107,7 @@ final class BeritaServiceTest extends CIUnitTestCase
             'gambar'          => 'lama.jpg',
             'tanggal_publish' => '2026-01-01',
         ]);
-        $this->uploader->method('simpan')->willReturn('baru.jpg');
+        $this->uploader->method('simpanKompres')->willReturn('baru.jpg');
         $this->model->method('update')->willReturn(false);
         $this->model->method('errors')->willReturn([]);
 
@@ -127,7 +127,7 @@ final class BeritaServiceTest extends CIUnitTestCase
             'gambar'          => 'lama.jpg',
             'tanggal_publish' => '2026-01-01',
         ]);
-        $this->uploader->method('simpan')->willReturn('baru.jpg');
+        $this->uploader->method('simpanKompres')->willReturn('baru.jpg');
         $this->model->method('update')->willReturn(true);
 
         $this->uploader->expects($this->once())->method('hapus')->with('lama.jpg', self::FOLDER);

@@ -144,7 +144,13 @@ class BeritaService
     private function unggah(?UploadedFile $gambar): ?string
     {
         try {
-            return $this->uploader->simpan($gambar, self::FOLDER_GAMBAR, self::MIME_GAMBAR);
+            return $this->uploader->simpanKompres(
+                $gambar,
+                self::FOLDER_GAMBAR,
+                self::MIME_GAMBAR,
+                FileUploadService::MAKS_BYTES,
+                1600
+            );
         } catch (InvalidArgumentException $e) {
             throw $e;
         } catch (RuntimeException $e) {
