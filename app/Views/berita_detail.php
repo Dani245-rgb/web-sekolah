@@ -20,7 +20,7 @@
                 <span class="berita-meta"><?= date('d F Y', strtotime($berita['tanggal_publish'])) ?></span>
 
                 <?php if ($berita['gambar']): ?>
-                    <img src="<?= base_url('assets/images/berita/' . $berita['gambar']) ?>" style="width:100%; margin:16px 0;" alt="">
+                    <img src="<?= base_url('assets/images/berita/' . $berita['gambar']) ?>" style="width:100%; margin:16px 0;" alt="<?= esc($berita['judul']) ?>">
                 <?php endif; ?>
 
                 <div class="berita-konten">

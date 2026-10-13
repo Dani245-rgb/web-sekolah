@@ -63,6 +63,28 @@ class Services extends BaseService
         );
     }
 
+    public static function seoService($getShared = true): \App\Services\SeoService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('seoService');
+        }
+
+        helper('url');
+
+        return new \App\Services\SeoService(new \App\Models\PengaturanModel(), base_url());
+    }
+
+    public static function sitemapService($getShared = true): \App\Services\SitemapService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('sitemapService');
+        }
+
+        helper('url');
+
+        return new \App\Services\SitemapService(new \App\Models\BeritaModel(), new \App\Models\PengumumanModel(), base_url());
+    }
+
     public static function backupService($getShared = true): \App\Services\BackupService
     {
         if ($getShared) {

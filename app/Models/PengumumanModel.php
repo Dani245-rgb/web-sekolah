@@ -24,7 +24,7 @@ class PengumumanModel extends BaseModel
         'status'          => 'required|in_list[Published,Draft]',
     ];
 
-        public function daftarTerbaru(): array
+    public function daftarTerbaru(): array
     {
         return $this->orderBy('tanggal_publish', 'DESC')->findAll();
     }
@@ -62,5 +62,18 @@ class PengumumanModel extends BaseModel
         }
 
         return $builder->first() !== null;
+    }
+
+
+    /**
+     * Slug + tanggal pengumuman Published (sudah tayang), untuk sitemap.xml.
+     */
+    public function untukSitemap(): array
+    {
+        return $this->select('slug, tanggal_publish, updated_at')
+            ->where('status', 'Published')
+            ->where('tanggal_publish <=', date('Y-m-d'))
+            ->orderBy('tanggal_publish', 'DESC')
+            ->findAll();
     }
 }

@@ -142,4 +142,15 @@ class BeritaModel extends BaseModel
 
         return $builder;
     }
+
+    /**
+     * Slug + tanggal berita Published, untuk sitemap.xml.
+     */
+    public function untukSitemap(): array
+    {
+        return $this->select('slug, tanggal_publish, updated_at')
+            ->where('status', 'Published')
+            ->orderBy('tanggal_publish', 'DESC')
+            ->findAll();
+    }
 }
