@@ -49,16 +49,30 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->post('siswa/import/proses/(:num)', 'Admin\ImportSiswa::proses/$1');
     $routes->get('siswa/import/status/(:num)', 'Admin\ImportSiswa::status/$1');
 
-    // Audit Log
-    $routes->get('audit-log', 'Admin\AuditLog::index');
-    $routes->get('audit-log/export/pdf', 'Admin\AuditLog::exportPdf');
-    $routes->get('audit-log/export/excel', 'Admin\AuditLog::exportExcel');
+    // Khusus superadmin (dijaga filter 'superadmin', aturannya di SuperadminFilter)
+    $routes->group('', ['filter' => 'superadmin'], static function ($routes) {
+        // Audit Log
+        $routes->get('audit-log', 'Admin\AuditLog::index');
+        $routes->get('audit-log/export/pdf', 'Admin\AuditLog::exportPdf');
+        $routes->get('audit-log/export/excel', 'Admin\AuditLog::exportExcel');
 
+        // User (akun admin)
+        $routes->get('user', 'Admin\User::index');
+        $routes->get('user/admin', 'Admin\User::index/admin');
+        $routes->get('user/create-admin', 'Admin\User::createAdmin');
+        $routes->post('user/store-admin', 'Admin\User::storeAdmin');
+        $routes->post('user/unlock/(:num)', 'Admin\User::unlock/$1');
+        $routes->post('user/reset-password/(:num)', 'Admin\User::resetPassword/$1');
 
+        // Role & Permission
+        $routes->get('role-permission', 'Admin\RolePermission::index');
 
-
-
-
+        // Backup Database
+        $routes->get('backup-database', 'Admin\BackupDatabase::index');
+        $routes->post('backup-database/create', 'Admin\BackupDatabase::create');
+        $routes->get('backup-database/download/(:segment)', 'Admin\BackupDatabase::download/$1');
+        $routes->post('backup-database/delete/(:segment)', 'Admin\BackupDatabase::delete/$1');
+    });
 
     // Berita (CMS)
     $routes->get('berita', 'Admin\Berita::index');
@@ -160,16 +174,6 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->post('organisasi/(:num)/anggota/update/(:num)', 'Admin\AnggotaOrganisasi::update/$1/$2');
     $routes->post('organisasi/(:num)/anggota/delete/(:num)', 'Admin\AnggotaOrganisasi::delete/$1/$2');
 
-    $routes->get('user', 'Admin\User::index');
-    $routes->get('user/admin', 'Admin\User::index/admin');
-    $routes->get('role-permission', 'Admin\RolePermission::index');
-
-    // Backup Database
-    $routes->get('backup-database', 'Admin\BackupDatabase::index');
-    $routes->post('backup-database/create', 'Admin\BackupDatabase::create');
-    $routes->get('backup-database/download/(:segment)', 'Admin\BackupDatabase::download/$1');
-    $routes->post('backup-database/delete/(:segment)', 'Admin\BackupDatabase::delete/$1');
-
     // Pengaturan
     $routes->get('pengaturan', 'Admin\Pengaturan::index');
     $routes->post('pengaturan/update', 'Admin\Pengaturan::update');
@@ -184,11 +188,6 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('notifikasi/poll', 'Admin\Notifikasi::poll', ['filter' => 'throttle:notif-poll,30,60']);
     $routes->post('notifikasi/baca/(:num)', 'Admin\Notifikasi::baca/$1');
     $routes->post('notifikasi/baca-semua', 'Admin\Notifikasi::bacaSemua');
-
-    $routes->get('user/create-admin', 'Admin\User::createAdmin');
-    $routes->post('user/store-admin', 'Admin\User::storeAdmin');
-    $routes->post('user/unlock/(:num)', 'Admin\User::unlock/$1');
-    $routes->post('user/reset-password/(:num)', 'Admin\User::resetPassword/$1');
 
     // BK - Artikel
     $routes->get('bk-artikel', 'Admin\BkArtikel::index');
@@ -278,3 +277,8 @@ $routes->get('bk/artikel/(:segment)', 'BkArtikelPublik::detail/$1');
 // Unduhan (Pusat Download)
 $routes->get('unduhan', 'UnduhanPublik::index');
 $routes->get('unduhan/download/(:num)', 'UnduhanPublik::download/$1');
+
+// SEO: sitemap, robots, llms (dibuat dinamis)
+$routes->get('sitemap.xml', 'BerkasSeo::sitemap');
+$routes->get('robots.txt', 'BerkasSeo::robots');
+$routes->get('llms.txt', 'BerkasSeo::llms');
