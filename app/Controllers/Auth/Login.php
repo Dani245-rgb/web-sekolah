@@ -62,9 +62,6 @@ class Login extends BaseController
      */
     private function redirectByRole(string $role): string
     {
-        return match ($role) {
-            'Admin' => '/admin/dashboard',
-            default => '/login',
-        };
+        return config('HakAkses')->portalLogin[$role] ?? '/login';
     }
 }

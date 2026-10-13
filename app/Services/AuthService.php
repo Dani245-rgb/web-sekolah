@@ -26,8 +26,7 @@ class AuthService
         protected UserModel $userModel,
         protected AuditLogModel $auditLogModel,
         protected NotifikasiModel $notifikasiModel,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{status: string, user: ?array, pesan: string}
@@ -56,8 +55,8 @@ class AuthService
             return $this->hasil(self::NONAKTIF, null, 'Akun ini sudah tidak aktif. Silakan hubungi Admin.');
         }
 
-        // Hanya role Admin yang punya portal. Role lain ditolak.
-        if ($user && $user['nama_role'] !== 'Admin') {
+        // Hanya role Admin dan Content Manager yang punya portal. Role lain ditolak.
+        if ($user && !array_key_exists($user['nama_role'], config('HakAkses')->portalLogin)) {
             $this->auditLogModel->catat(
                 $user['id_user'],
                 $username,

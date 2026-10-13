@@ -13,6 +13,16 @@ use CodeIgniter\Config\BaseConfig;
  */
 class HakAkses extends BaseConfig
 {
+    /**
+     * Role yang boleh login => halaman tujuan setelah login.
+     * Role baru: tambah satu baris di sini (dan barisnya di tabel roles lewat migration).
+     */
+    public array $portalLogin = [
+        'Admin'           => '/admin/dashboard',
+        'Content Manager' => '/admin/dashboard',
+    ];
+
+
     public array $roles = [
         [
             'nama' => 'Admin',
