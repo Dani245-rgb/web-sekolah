@@ -52,7 +52,8 @@ class FileUploadService
         ?UploadedFile $file,
         string $folder,
         array $mimeDiizinkan = self::MIME_GAMBAR,
-        int $maksBytes = self::MAKS_BYTES
+        int $maksBytes = self::MAKS_BYTES,
+        int $maksSisi = 800
     ): ?string {
         $targetDir = $this->siapkan($file, $folder, $mimeDiizinkan, $maksBytes);
 
@@ -64,7 +65,7 @@ class FileUploadService
         $tujuan   = $targetDir . DIRECTORY_SEPARATOR . $namaBaru;
 
         try {
-            (new ImageCompressor())->compressAndSave($file->getTempName(), $tujuan);
+            (new ImageCompressor())->compressAndSave($file->getTempName(), $tujuan, $maksSisi, $maksSisi);
         } catch (Throwable $e) {
             throw new RuntimeException('Gagal memproses gambar.');
         }

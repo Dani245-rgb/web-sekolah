@@ -107,7 +107,13 @@ class GaleriService
     private function unggah(?UploadedFile $foto): ?string
     {
         try {
-            return $this->uploader->simpanKompres($foto, self::FOLDER);
+            return $this->uploader->simpanKompres(
+                $foto,
+                self::FOLDER,
+                FileUploadService::MIME_GAMBAR,
+                FileUploadService::MAKS_BYTES,
+                1600
+            );
         } catch (InvalidArgumentException $e) {
             throw $e;
         } catch (RuntimeException $e) {
