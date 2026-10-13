@@ -10,8 +10,7 @@ class RoleSeeder extends Seeder
     {
         $data = [
             ['nama_role' => 'Admin'],
-            ['nama_role' => 'Guru'],
-            ['nama_role' => 'Siswa'],
+            ['nama_role' => 'Content Manager'],
         ];
 
         $this->db->table('roles')->insertBatch($data);
