@@ -5,7 +5,6 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Services\AuditLogService;
 use App\Services\BackupService;
-use CodeIgniter\Exceptions\PageNotFoundException;
 use RuntimeException;
 
 class BackupDatabase extends BaseController

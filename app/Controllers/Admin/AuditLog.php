@@ -4,7 +4,6 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Services\AuditLogService;
-use CodeIgniter\Exceptions\PageNotFoundException;
 use Throwable;
 
 class AuditLog extends BaseController

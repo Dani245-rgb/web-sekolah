@@ -3,7 +3,6 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use CodeIgniter\Exceptions\PageNotFoundException;
 
 class RolePermission extends BaseController
 {

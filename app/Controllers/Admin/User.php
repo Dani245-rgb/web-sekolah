@@ -4,7 +4,6 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Services\UserService;
-use CodeIgniter\Exceptions\PageNotFoundException;
 use InvalidArgumentException;
 use Throwable;
 
