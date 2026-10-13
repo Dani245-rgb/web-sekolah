@@ -13,10 +13,6 @@ class AuditLog extends BaseController
 
     public function __construct()
     {
-        if (!session()->get('is_superadmin')) {
-            throw new PageNotFoundException('Halaman tidak ditemukan.');
-        }
-
         $this->auditLogService = service('auditLogService');
     }
 

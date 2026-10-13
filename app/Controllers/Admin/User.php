@@ -14,11 +14,7 @@ class User extends BaseController
 
     public function __construct()
     {
-        // Halaman ini khusus superadmin. Non-superadmin dianggap seolah rute tidak ada.
-        if (!session()->get('is_superadmin')) {
-            throw new PageNotFoundException('Halaman tidak ditemukan.');
-        }
-
+        // Khusus superadmin: dijaga filter 'superadmin' di Routes.php.
         $this->user = service('userService');
     }
 

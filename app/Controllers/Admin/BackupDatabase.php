@@ -15,10 +15,6 @@ class BackupDatabase extends BaseController
 
     public function __construct()
     {
-        if (!session()->get('is_superadmin')) {
-            throw new PageNotFoundException('Halaman tidak ditemukan.');
-        }
-
         $this->backup          = service('backupService');
         $this->auditLogService = service('auditLogService');
     }
