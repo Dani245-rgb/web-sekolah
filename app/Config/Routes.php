@@ -8,20 +8,8 @@ $routes->get('/', 'Home::index');
 $routes->get('login', 'Auth\Login::index');
 $routes->post('login', 'Auth\Login::authenticate', ['filter' => 'throttle:login,5,60']);
 
-$routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
+$routes->group('admin', ['filter' => 'roleAuth:Admin,Content Manager'], function ($routes) {
     $routes->get('dashboard', 'Admin\Dashboard::index');
-
-
-    // Data Sekolah - Guru
-    $routes->get('guru', 'Admin\Guru::index');
-    $routes->get('guru/create', 'Admin\Guru::create');
-    $routes->post('guru/store', 'Admin\Guru::store');
-    $routes->get('guru/edit/(:num)', 'Admin\Guru::edit/$1');
-    $routes->post('guru/update/(:num)', 'Admin\Guru::update/$1');
-    $routes->post('guru/delete/(:num)', 'Admin\Guru::delete/$1');
-
-
-
 
     // Jurusan
     $routes->get('jurusan', 'Admin\Jurusan::index');
@@ -30,24 +18,6 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('jurusan/edit/(:num)', 'Admin\Jurusan::edit/$1');
     $routes->post('jurusan/update/(:num)', 'Admin\Jurusan::update/$1');
     $routes->post('jurusan/delete/(:num)', 'Admin\Jurusan::delete/$1');
-
-    // Data Sekolah - Siswa
-    $routes->get('siswa', 'Admin\Siswa::index');
-    $routes->get('siswa/create', 'Admin\Siswa::create');
-    $routes->post('siswa/store', 'Admin\Siswa::store');
-    $routes->get('siswa/edit/(:num)', 'Admin\Siswa::edit/$1');
-    $routes->post('siswa/update/(:num)', 'Admin\Siswa::update/$1');
-    $routes->post('siswa/delete/(:num)', 'Admin\Siswa::delete/$1');
-    $routes->get('siswa/trash', 'Admin\Siswa::trash');
-    $routes->post('siswa/restore/(:num)', 'Admin\Siswa::restore/$1');
-    $routes->post('siswa/force-delete/(:num)', 'Admin\Siswa::forceDelete/$1');
-
-    // Import Siswa Massal
-    $routes->get('siswa/import', 'Admin\ImportSiswa::index');
-    $routes->get('siswa/import/template', 'Admin\ImportSiswa::template');
-    $routes->post('siswa/import/upload', 'Admin\ImportSiswa::upload');
-    $routes->post('siswa/import/proses/(:num)', 'Admin\ImportSiswa::proses/$1');
-    $routes->get('siswa/import/status/(:num)', 'Admin\ImportSiswa::status/$1');
 
     // Khusus superadmin (dijaga filter 'superadmin', aturannya di SuperadminFilter)
     $routes->group('', ['filter' => 'superadmin'], static function ($routes) {
@@ -72,6 +42,70 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
         $routes->post('backup-database/create', 'Admin\BackupDatabase::create');
         $routes->get('backup-database/download/(:segment)', 'Admin\BackupDatabase::download/$1');
         $routes->post('backup-database/delete/(:segment)', 'Admin\BackupDatabase::delete/$1');
+    });
+
+    $routes->group('', ['filter' => 'roleAuth:Admin'], static function ($routes) {
+
+        // Data Sekolah - Guru
+        $routes->get('guru', 'Admin\Guru::index');
+        $routes->get('guru/create', 'Admin\Guru::create');
+        $routes->post('guru/store', 'Admin\Guru::store');
+        $routes->get('guru/edit/(:num)', 'Admin\Guru::edit/$1');
+        $routes->post('guru/update/(:num)', 'Admin\Guru::update/$1');
+        $routes->post('guru/delete/(:num)', 'Admin\Guru::delete/$1');
+
+        // Data Sekolah - Siswa
+        $routes->get('siswa', 'Admin\Siswa::index');
+        $routes->get('siswa/create', 'Admin\Siswa::create');
+        $routes->post('siswa/store', 'Admin\Siswa::store');
+        $routes->get('siswa/edit/(:num)', 'Admin\Siswa::edit/$1');
+        $routes->post('siswa/update/(:num)', 'Admin\Siswa::update/$1');
+        $routes->post('siswa/delete/(:num)', 'Admin\Siswa::delete/$1');
+        $routes->get('siswa/trash', 'Admin\Siswa::trash');
+        $routes->post('siswa/restore/(:num)', 'Admin\Siswa::restore/$1');
+        $routes->post('siswa/force-delete/(:num)', 'Admin\Siswa::forceDelete/$1');
+
+        // Import Siswa Massal
+        $routes->get('siswa/import', 'Admin\ImportSiswa::index');
+        $routes->get('siswa/import/template', 'Admin\ImportSiswa::template');
+        $routes->post('siswa/import/upload', 'Admin\ImportSiswa::upload');
+        $routes->post('siswa/import/proses/(:num)', 'Admin\ImportSiswa::proses/$1');
+        $routes->get('siswa/import/status/(:num)', 'Admin\ImportSiswa::status/$1');
+
+        // PPDB
+        $routes->get('ppdb', 'Admin\PpdbAdmin::index');
+        $routes->get('ppdb/detail/(:num)', 'Admin\PpdbAdmin::detail/$1');
+        $routes->post('ppdb/update-status/(:num)', 'Admin\PpdbAdmin::updateStatus/$1');
+        $routes->post('ppdb/delete/(:num)', 'Admin\PpdbAdmin::delete/$1');
+        $routes->get('ppdb/pengaturan', 'Admin\PpdbAdmin::pengaturan');
+        $routes->post('ppdb/pengaturan/update', 'Admin\PpdbAdmin::updatePengaturan');
+
+        // Kontak (Pesan Masuk)
+        $routes->get('kontak', 'Admin\KontakAdmin::index');
+        $routes->get('kontak/detail/(:num)', 'Admin\KontakAdmin::detail/$1');
+        $routes->post('kontak/delete/(:num)', 'Admin\KontakAdmin::delete/$1');
+
+        // Pengaturan
+        $routes->get('pengaturan', 'Admin\Pengaturan::index');
+        $routes->post('pengaturan/update', 'Admin\Pengaturan::update');
+
+        // Laporan Siswa
+        $routes->get('laporan-siswa', 'Admin\LaporanSiswa::index');
+        $routes->get('laporan-siswa/export/excel', 'Admin\LaporanSiswa::exportExcel');
+
+        // Notifikasi
+        $routes->get('notifikasi', 'Admin\Notifikasi::index');
+        $routes->get('notifikasi/poll', 'Admin\Notifikasi::poll', ['filter' => 'throttle:notif-poll,30,60']);
+        $routes->post('notifikasi/baca/(:num)', 'Admin\Notifikasi::baca/$1');
+        $routes->post('notifikasi/baca-semua', 'Admin\Notifikasi::bacaSemua');
+
+        // PKL
+        $routes->get('pkl', 'Admin\Pkl::index');
+        $routes->get('pkl/create', 'Admin\Pkl::create');
+        $routes->post('pkl/store', 'Admin\Pkl::store');
+        $routes->get('pkl/edit/(:num)', 'Admin\Pkl::edit/$1');
+        $routes->post('pkl/update/(:num)', 'Admin\Pkl::update/$1');
+        $routes->post('pkl/delete/(:num)', 'Admin\Pkl::delete/$1');
     });
 
     // Berita (CMS)
@@ -130,19 +164,6 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->post('partner/update/(:num)', 'Admin\Partner::update/$1');
     $routes->post('partner/delete/(:num)', 'Admin\Partner::delete/$1');
 
-    // PPDB
-    $routes->get('ppdb', 'Admin\PpdbAdmin::index');
-    $routes->get('ppdb/detail/(:num)', 'Admin\PpdbAdmin::detail/$1');
-    $routes->post('ppdb/update-status/(:num)', 'Admin\PpdbAdmin::updateStatus/$1');
-    $routes->post('ppdb/delete/(:num)', 'Admin\PpdbAdmin::delete/$1');
-    $routes->get('ppdb/pengaturan', 'Admin\PpdbAdmin::pengaturan');
-    $routes->post('ppdb/pengaturan/update', 'Admin\PpdbAdmin::updatePengaturan');
-
-    // Kontak
-    $routes->get('kontak', 'Admin\KontakAdmin::index');
-    $routes->get('kontak/detail/(:num)', 'Admin\KontakAdmin::detail/$1');
-    $routes->post('kontak/delete/(:num)', 'Admin\KontakAdmin::delete/$1');
-
     // Kalender Akademik
     $routes->get('kalender-akademik', 'Admin\KalenderAkademik::index');
     $routes->get('kalender-akademik/create', 'Admin\KalenderAkademik::create');
@@ -174,21 +195,6 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->post('organisasi/(:num)/anggota/update/(:num)', 'Admin\AnggotaOrganisasi::update/$1/$2');
     $routes->post('organisasi/(:num)/anggota/delete/(:num)', 'Admin\AnggotaOrganisasi::delete/$1/$2');
 
-    // Pengaturan
-    $routes->get('pengaturan', 'Admin\Pengaturan::index');
-    $routes->post('pengaturan/update', 'Admin\Pengaturan::update');
-
-    // Laporan Siswa
-    $routes->get('laporan-siswa', 'Admin\LaporanSiswa::index');
-    $routes->get('laporan-siswa/export/excel', 'Admin\LaporanSiswa::exportExcel');
-
-
-    // Notifikasi
-    $routes->get('notifikasi', 'Admin\Notifikasi::index');
-    $routes->get('notifikasi/poll', 'Admin\Notifikasi::poll', ['filter' => 'throttle:notif-poll,30,60']);
-    $routes->post('notifikasi/baca/(:num)', 'Admin\Notifikasi::baca/$1');
-    $routes->post('notifikasi/baca-semua', 'Admin\Notifikasi::bacaSemua');
-
     // BK - Artikel
     $routes->get('bk-artikel', 'Admin\BkArtikel::index');
     $routes->get('bk-artikel/create', 'Admin\BkArtikel::create');
@@ -204,14 +210,6 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin'], function ($routes) {
     $routes->get('unduhan/edit/(:num)', 'Admin\Unduhan::edit/$1');
     $routes->post('unduhan/update/(:num)', 'Admin\Unduhan::update/$1');
     $routes->post('unduhan/delete/(:num)', 'Admin\Unduhan::delete/$1');
-
-    // PKL
-    $routes->get('pkl', 'Admin\Pkl::index');
-    $routes->get('pkl/create', 'Admin\Pkl::create');
-    $routes->post('pkl/store', 'Admin\Pkl::store');
-    $routes->get('pkl/edit/(:num)', 'Admin\Pkl::edit/$1');
-    $routes->post('pkl/update/(:num)', 'Admin\Pkl::update/$1');
-    $routes->post('pkl/delete/(:num)', 'Admin\Pkl::delete/$1');
 });
 
 $routes->get('profil/gantipassword', 'Profil::gantipassword', ['filter' => 'auth']);

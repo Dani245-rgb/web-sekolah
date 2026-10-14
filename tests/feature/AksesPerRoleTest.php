@@ -67,6 +67,7 @@ final class AksesPerRoleTest extends CIUnitTestCase
             ['id_role' => 1, 'nama_role' => 'Admin'],
             ['id_role' => 2, 'nama_role' => 'Guru'],
             ['id_role' => 3, 'nama_role' => 'Siswa'],
+            ['id_role' => 4, 'nama_role' => 'Content Manager'],
         ]);
 
         $this->db->table('users')->insert([
@@ -155,6 +156,59 @@ final class AksesPerRoleTest extends CIUnitTestCase
         $result = $this->buka($url, $this->sesi(true));
 
         $this->assertNotNull($result, 'Superadmin tidak boleh mendapat 404.');
+        $result->assertStatus(200);
+    }
+
+    public static function halamanKhususAdmin(): array
+    {
+        return [
+            'guru'          => ['admin/guru'],
+            'siswa'         => ['admin/siswa'],
+            'import siswa'  => ['admin/siswa/import'],
+            'ppdb'          => ['admin/ppdb'],
+            'pesan masuk'   => ['admin/kontak'],
+            'pengaturan'    => ['admin/pengaturan'],
+            'laporan siswa' => ['admin/laporan-siswa'],
+            'notifikasi'    => ['admin/notifikasi'],
+            'pkl'           => ['admin/pkl'],
+        ];
+    }
+
+    #[DataProvider('halamanKhususAdmin')]
+    public function testContentManagerDitolakDiHalamanKhususAdmin(string $url): void
+    {
+        $result = $this->buka($url, $this->sesi(false, 'Content Manager'));
+
+        $this->assertNotNull($result, 'Harus ditolak filter, bukan sampai ke controller.');
+        $result->assertRedirectTo('/login');
+    }
+
+    #[DataProvider('halamanKhususSuperadmin')]
+    public function testContentManagerDitolakDiHalamanSuperadmin(string $url): void
+    {
+        $result = $this->buka($url, $this->sesi(false, 'Content Manager'));
+
+        $this->assertNotNull($result);
+        $result->assertRedirectTo('/login');
+    }
+
+    public static function halamanCms(): array
+    {
+        return [
+            'berita'     => ['admin/berita'],
+            'galeri'     => ['admin/galeri'],
+            'pengumuman' => ['admin/pengumuman'],
+            'prestasi'   => ['admin/prestasi'],
+            'jurusan'    => ['admin/jurusan'],
+        ];
+    }
+
+    #[DataProvider('halamanCms')]
+    public function testContentManagerBisaMembukaHalamanCms(string $url): void
+    {
+        $result = $this->buka($url, $this->sesi(false, 'Content Manager'));
+
+        $this->assertNotNull($result, 'Content Manager tidak boleh mendapat 404.');
         $result->assertStatus(200);
     }
 }
