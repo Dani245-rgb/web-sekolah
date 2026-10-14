@@ -18,10 +18,10 @@ use InvalidArgumentException;
  */
 class UserService
 {
+    /** Slug halaman daftar => nama role di tabel roles (id dicari lewat nama). */
     private const ROLE_MAP = [
-        'admin' => 1,
-        'guru'  => 2,
-        'siswa' => 3,
+        'admin'           => 'Admin',
+        'content-manager' => 'Content Manager',
     ];
 
     private const PER_HALAMAN = 100;
@@ -38,8 +38,9 @@ class UserService
      */
     public function daftar(string $role = 'admin', ?string $keyword = null): array
     {
-        $roleId     = self::ROLE_MAP[$role] ?? self::ROLE_MAP['admin'];
-        $pagerGroup = 'user_' . $role;
+        $role       = isset(self::ROLE_MAP[$role]) ? $role : 'admin';
+        $roleId     = $this->model->idRolePerNama(self::ROLE_MAP[$role]) ?? 0;
+        $pagerGroup = 'user_' . str_replace('-', '_', $role);
 
         $users = $this->model->getAllWithDetail(self::PER_HALAMAN, $keyword, $roleId, $pagerGroup);
 
@@ -48,7 +49,7 @@ class UserService
             'pager'      => $this->model->pager,
             'keyword'    => $keyword,
             'role'       => $role,
-            'roleLabel'  => ucfirst($role),
+            'roleLabel'  => self::ROLE_MAP[$role],
             'pagerGroup' => $pagerGroup,
         ];
     }
@@ -68,7 +69,8 @@ class UserService
         $berhasil = $this->model->insert([
             'username'       => $username,
             'password'       => password_hash((string) ($input['password'] ?? ''), PASSWORD_DEFAULT),
-            'role_id'        => self::ROLE_MAP['admin'],
+            'role_id'        => $this->model->idRolePerNama('Admin')
+                ?? throw new InvalidArgumentException('Role Admin tidak ditemukan.'),
             'status'         => 'Aktif',
             'login_attempts' => 0,
         ]);

@@ -106,6 +106,8 @@ $adalahSuper           = $adalahAdmin && (bool) session()->get('is_superadmin');
                     <p class="menu-label">USER MANAGEMENT</p>
                     <a href="<?= base_url('admin/user/admin') ?>"
                         class="<?= uri_string() === 'admin/user' || uri_string() === 'admin/user/admin' ? 'active' : '' ?>"><i class="bi bi-person-gear"></i> <span class="label">Admin</span></a>
+                    <a href="<?= base_url('admin/user/content-manager') ?>"
+                        class="<?= uri_string() === 'admin/user/content-manager' ? 'active' : '' ?>"><i class="bi bi-pencil-square"></i> <span class="label">Content Manager</span></a>
                     <a href="<?= base_url('admin/role-permission') ?>"
                         class="<?= strpos(uri_string(), 'admin/role-permission') === 0 ? 'active' : '' ?>"><i class="bi bi-shield-lock"></i> <span class="label">Role & Permission</span></a>
                 <?php endif; ?>

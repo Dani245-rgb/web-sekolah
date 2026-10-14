@@ -22,6 +22,10 @@ final class UserServiceTest extends CIUnitTestCase
         parent::setUp();
 
         $this->model = $this->createMock(UserModel::class);
+        $this->model->method('idRolePerNama')->willReturnMap([
+            ['Admin', 1],
+            ['Content Manager', 7],
+        ]);
         $this->audit = $this->createMock(AuditLogModel::class);
 
         $this->service = new UserService($this->model, $this->audit);
@@ -31,25 +35,50 @@ final class UserServiceTest extends CIUnitTestCase
 
     public function testDaftarRoleTidakDikenalMemakaiRoleAdmin(): void
     {
+        $this->model->method('idRolePerNama')->willReturnMap([
+            ['Admin', 1],
+            ['Content Manager', 7],
+        ]);
         $this->model->expects($this->once())
             ->method('getAllWithDetail')
-            ->with(100, null, 1, 'user_ngawur')
+            ->with(100, null, 1, 'user_admin')
             ->willReturn([]);
 
         $hasil = $this->service->daftar('ngawur');
 
-        $this->assertSame('user_ngawur', $hasil['pagerGroup']);
-        $this->assertSame('Ngawur', $hasil['roleLabel']);
+        $this->assertSame('admin', $hasil['role']);
+        $this->assertSame('user_admin', $hasil['pagerGroup']);
+        $this->assertSame('Admin', $hasil['roleLabel']);
     }
 
-    public function testDaftarRoleGuruMemakaiRoleId2(): void
+    public function testDaftarContentManagerMencariIdLewatNamaRole(): void
     {
+        $this->model->method('idRolePerNama')->willReturnMap([
+            ['Admin', 1],
+            ['Content Manager', 7],
+        ]);
         $this->model->expects($this->once())
             ->method('getAllWithDetail')
-            ->with(100, 'budi', 2, 'user_guru')
+            ->with(100, 'budi', 7, 'user_content_manager')
             ->willReturn([]);
 
-        $this->service->daftar('guru', 'budi');
+        $hasil = $this->service->daftar('content-manager', 'budi');
+
+        $this->assertSame('Content Manager', $hasil['roleLabel']);
+    }
+
+    public function testDaftarRoleGuruSudahTidakAdaDanMemakaiRoleAdmin(): void
+    {
+        $this->model->method('idRolePerNama')->willReturnMap([
+            ['Admin', 1],
+            ['Content Manager', 7],
+        ]);
+        $this->model->expects($this->once())
+            ->method('getAllWithDetail')
+            ->with(100, null, 1, 'user_admin')
+            ->willReturn([]);
+
+        $this->service->daftar('guru');
     }
 
     // ================= Buat admin =================
@@ -79,7 +108,7 @@ final class UserServiceTest extends CIUnitTestCase
         $this->model->expects($this->once())
             ->method('insert')
             ->with($this->callback(
-                static fn (array $d) => $d['username'] === 'admin baru'
+                static fn(array $d) => $d['username'] === 'admin baru'
                     && $d['role_id'] === 1
                     && $d['status'] === 'Aktif'
                     && $d['login_attempts'] === 0

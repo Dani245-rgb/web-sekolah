@@ -6,6 +6,8 @@
     <h4>User & Akses - <?= esc($roleLabel) ?></h4>
     <?php if ($role === 'admin' && session()->get('is_superadmin')): ?>
         <a href="<?= base_url('admin/user/create-admin') ?>" class="btn btn-primary">+ Tambah Admin</a>
+    <?php elseif ($role === 'content-manager' && session()->get('is_superadmin')): ?>
+        <a href="<?= base_url('admin/user/create-content-manager') ?>" class="btn btn-primary">+ Tambah Content Manager</a>
     <?php endif; ?>
 </div>
 

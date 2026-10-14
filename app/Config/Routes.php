@@ -29,6 +29,7 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin,Content Manager'], function
         // User (akun admin)
         $routes->get('user', 'Admin\User::index');
         $routes->get('user/admin', 'Admin\User::index/admin');
+        $routes->get('user/content-manager', 'Admin\User::index/content-manager');
         $routes->get('user/create-admin', 'Admin\User::createAdmin');
         $routes->post('user/store-admin', 'Admin\User::storeAdmin');
         $routes->get('user/create-content-manager', 'Admin\User::createContentManager');
