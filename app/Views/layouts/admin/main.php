@@ -114,7 +114,6 @@ $adalahSuper           = $adalahAdmin && (bool) session()->get('is_superadmin');
                 <p class="menu-label">SISTEM</p>
                 <a href="<?= base_url('admin/notifikasi') ?>"
                     class="<?= strpos(uri_string(), 'admin/notifikasi') === 0 ? 'active' : '' ?>"><i class="bi bi-bell"></i> <span class="label">Notifikasi</span></a>
-                <?php endif; ?>
                 <?php if ($adalahSuper): ?>
                     <a href="<?= base_url('admin/backup-database') ?>"
                         class="<?= strpos(uri_string(), 'admin/backup-database') === 0 ? 'active' : '' ?>"><i class="bi bi-hdd-stack"></i> <span class="label">Backup Database</span></a>
@@ -124,6 +123,7 @@ $adalahSuper           = $adalahAdmin && (bool) session()->get('is_superadmin');
                 <?php if ($adalahSuper): ?>
                     <a href="<?= base_url('admin/audit-log') ?>"
                         class="<?= strpos(uri_string(), 'admin/audit-log') === 0 ? 'active' : '' ?>"><i class="bi bi-journal-text"></i> <span class="label">Audit Log</span></a>
+                <?php endif; ?>
                 <?php endif; ?>
             </nav>
         </aside>
