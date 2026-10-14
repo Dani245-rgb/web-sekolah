@@ -65,8 +65,6 @@ final class AksesPerRoleTest extends CIUnitTestCase
 
         $this->db->table('roles')->insertBatch([
             ['id_role' => 1, 'nama_role' => 'Admin'],
-            ['id_role' => 2, 'nama_role' => 'Guru'],
-            ['id_role' => 3, 'nama_role' => 'Siswa'],
             ['id_role' => 4, 'nama_role' => 'Content Manager'],
         ]);
 
@@ -130,9 +128,9 @@ final class AksesPerRoleTest extends CIUnitTestCase
     #[DataProvider('halamanKhususSuperadmin')]
     public function testRoleSelainAdminDialihkanKeLogin(string $url): void
     {
-        $result = $this->buka($url, $this->sesi(false, 'Guru'));
+        $result = $this->buka($url, $this->sesi(false, 'Tamu'));
 
-        $this->assertNotNull($result, 'Role Guru harus ditolak oleh RoleFilter, bukan sampai ke controller.');
+        $this->assertNotNull($result, 'Role Tamu harus ditolak oleh RoleFilter, bukan sampai ke controller.');
         $result->assertRedirectTo('/login');
     }
 
