@@ -161,15 +161,9 @@
                 </div>
             </div>
             <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #eef1f5;border-radius:8px;">
-                <div style="width:36px;height:36px;border-radius:8px;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;"><i class="bi bi-mortarboard"></i></div>
-                <div><strong style="font-size:13px;">Guru</strong>
-                    <div style="font-size:12px;color:#7c8a9c;">Tanpa akun login</div>
-                </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #eef1f5;border-radius:8px;">
-                <div style="width:36px;height:36px;border-radius:8px;background:#ec4899;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;"><i class="bi bi-person-badge"></i></div>
-                <div><strong style="font-size:13px;">Siswa</strong>
-                    <div style="font-size:12px;color:#7c8a9c;">Tanpa akun login</div>
+                <div style="width:36px;height:36px;border-radius:8px;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;"><i class="bi bi-pencil-square"></i></div>
+                <div><strong style="font-size:13px;">Content Manager</strong>
+                    <div style="font-size:12px;color:#7c8a9c;">Konten website saja</div>
                 </div>
             </div>
         </div>

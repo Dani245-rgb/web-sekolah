@@ -56,14 +56,25 @@ class HakAkses extends BaseConfig
             ],
         ],
         [
-            'nama' => 'Guru',
-            'desc' => 'Tidak bisa login ke sistem. Data guru dikelola langsung oleh Admin.',
-            'grup' => [],
-        ],
-        [
-            'nama' => 'Siswa',
-            'desc' => 'Tidak bisa login ke sistem. Data siswa dikelola langsung oleh Admin.',
-            'grup' => [],
+            'nama' => 'Content Manager',
+            'desc' => 'Hanya mengelola konten website. Tidak bisa membuka data siswa, guru, PPDB, pesan masuk, pengaturan, maupun menu superadmin.',
+            'grup' => [
+                'Dashboard dan Akademik' => ['Dashboard (ringkasan konten)', 'Jurusan'],
+                'Website (CMS)' => [
+                    'Berita',
+                    'Galeri',
+                    'Pengumuman',
+                    'Prestasi',
+                    'Agenda',
+                    'Ekstrakurikuler',
+                    'Industri Mitra',
+                    'Kalender Akademik',
+                    'Profil Sekolah',
+                    'Organisasi Sekolah',
+                    'Artikel BK',
+                    'Pusat Unduhan',
+                ],
+            ],
         ],
     ];
 }
