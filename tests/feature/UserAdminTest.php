@@ -292,7 +292,7 @@ final class UserAdminTest extends CIUnitTestCase
             'password' => self::PASSWORD_KUAT,
         ]));
 
-        $result->assertRedirectTo('/admin/user');
+        $result->assertRedirectTo('/admin/user/content-manager');
 
         $row = $this->db->table('users')->where('username', 'cm_baru')->get()->getRowArray();
         $this->assertNotNull($row);

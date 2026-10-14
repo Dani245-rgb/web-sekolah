@@ -81,7 +81,7 @@ class User extends BaseController
             return redirect()->back()->withInput()->with('errors', ['user' => $pesan]);
         }
 
-        return redirect()->to('/admin/user')->with('success', 'Akun Content Manager baru berhasil dibuat.');
+        return redirect()->to('/admin/user/content-manager')->with('success', 'Akun Content Manager baru berhasil dibuat.');
     }
 
     public function unlock($id)
