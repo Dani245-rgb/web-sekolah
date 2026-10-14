@@ -209,4 +209,40 @@ final class AksesPerRoleTest extends CIUnitTestCase
         $this->assertNotNull($result, 'Content Manager tidak boleh mendapat 404.');
         $result->assertStatus(200);
     }
+
+    public function testDashboardContentManagerTanpaDataSiswaGuru(): void
+    {
+        $result = $this->buka('admin/dashboard', $this->sesi(false, 'Content Manager'));
+
+        $this->assertNotNull($result);
+        $result->assertStatus(200);
+        $result->assertDontSee('Total Siswa');
+        $result->assertDontSee('Total Guru');
+        $result->assertDontSee('Siswa per Gender');
+        $result->assertDontSee('Notifikasi Terbaru');
+        $result->assertDontSee('admin/notifikasi/poll');
+        $result->assertSee('Dashboard');
+    }
+
+    public function testDashboardAdminTetapMenampilkanDataLengkap(): void
+    {
+        $result = $this->buka('admin/dashboard', $this->sesi(false, 'Admin'));
+
+        $this->assertNotNull($result);
+        $result->assertStatus(200);
+        $result->assertSee('Total Siswa');
+        $result->assertSee('Notifikasi Terbaru');
+    }
+
+    public function testSidebarContentManagerTanpaMenuAdmin(): void
+    {
+        $result = $this->buka('admin/dashboard', $this->sesi(false, 'Content Manager'));
+
+        $this->assertNotNull($result);
+        $result->assertSee('admin/berita');
+        $result->assertDontSee('admin/siswa');
+        $result->assertDontSee('admin/ppdb');
+        $result->assertDontSee('admin/pengaturan');
+        $result->assertDontSee('admin/audit-log');
+    }
 }

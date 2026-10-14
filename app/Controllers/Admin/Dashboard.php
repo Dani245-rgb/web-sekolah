@@ -16,9 +16,12 @@ class Dashboard extends BaseController
 
     public function index()
     {
+        $admin = session()->get('role') === 'Admin';
+
         $data = $this->dashboard->ringkasan(
             (int) session()->get('id_user'),
-            (bool) session()->get('is_superadmin')
+            $admin && (bool) session()->get('is_superadmin'),
+            $admin
         );
 
         $data['title'] = 'Dashboard';

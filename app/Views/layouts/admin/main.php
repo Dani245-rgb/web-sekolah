@@ -5,6 +5,9 @@
 $pengaturanModelLayout = new \App\Models\PengaturanModel();
 $pengaturanLayout      = $pengaturanModelLayout->getPengaturan();
 $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
+$roleLayout            = (string) session()->get('role');
+$adalahAdmin           = $roleLayout === 'Admin';
+$adalahSuper           = $adalahAdmin && (bool) session()->get('is_superadmin');
 ?>
 
 <head>
@@ -37,7 +40,7 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
             <div class="sidebar-profile">
                 <div class="profile-avatar">A</div>
                 <div>
-                    <strong>Admin</strong>
+                    <strong><?= esc($roleLayout ?: 'Admin') ?></strong>
                     <small><?= esc(session()->get('username')) ?></small>
                 </div>
             </div>
@@ -48,11 +51,13 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                     <i class="bi bi-house-door"></i> <span class="label">Dashboard</span>
                 </a>
 
+                <?php if ($adalahAdmin): ?>
                 <p class="menu-label">DATA SEKOLAH</p>
                 <a href="<?= base_url('admin/siswa') ?>"
                     class="<?= strpos(uri_string(), 'admin/siswa') === 0 ? 'active' : '' ?>"><i class="bi bi-people"></i> <span class="label">Siswa</span></a>
                 <a href="<?= base_url('admin/guru') ?>"
                     class="<?= strpos(uri_string(), 'admin/guru') === 0 ? 'active' : '' ?>"><i class="bi bi-person-badge"></i> <span class="label">Guru</span></a>
+                <?php endif; ?>
 
 
 
@@ -77,6 +82,7 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                     class="<?= strpos(uri_string(), 'admin/ekstrakurikuler') === 0 ? 'active' : '' ?>"><i class="bi bi-stars"></i> <span class="label">Ekstrakurikuler</span></a>
                 <a href="<?= base_url('admin/partner') ?>"
                     class="<?= strpos(uri_string(), 'admin/partner') === 0 ? 'active' : '' ?>"><i class="bi bi-briefcase"></i> <span class="label">Industri Mitra</span></a>
+                <?php if ($adalahAdmin): ?>
                 <a href="<?= base_url('admin/pkl') ?>"
                     class="<?= strpos(uri_string(), 'admin/pkl') === 0 ? 'active' : '' ?>"><i class="bi bi-person-workspace"></i> <span class="label">PKL</span></a>
                 <a href="<?= base_url('admin/laporan-siswa') ?>"
@@ -87,6 +93,7 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                     class="<?= strpos(uri_string(), 'admin/ppdb/pengaturan') === 0 ? 'active' : '' ?>"><i class="bi bi-toggle-on"></i> <span class="label">Buka/Tutup PPDB</span></a>
                 <a href="<?= base_url('admin/kontak') ?>"
                     class="<?= strpos(uri_string(), 'admin/kontak') === 0 ? 'active' : '' ?>"><i class="bi bi-envelope"></i> <span class="label">Pesan Masuk</span></a>
+                <?php endif; ?> 
                 <a href="<?= base_url('admin/kalender-akademik') ?>"
                     class="<?= strpos(uri_string(), 'admin/kalender-akademik') === 0 ? 'active' : '' ?>"><i class="bi bi-calendar-check"></i> <span class="label">Kalender Akademik</span></a>
                 <a href="<?= base_url('admin/profil-sekolah/sejarah') ?>"
@@ -95,7 +102,7 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                     class="<?= strpos(uri_string(), 'admin/organisasi') === 0 ? 'active' : '' ?>"><i class="bi bi-diagram-2"></i> <span class="label">Organisasi Sekolah</span></a>
 
 
-                <?php if (session()->get('is_superadmin')): ?>
+                <?php if ($adalahSuper): ?>
                     <p class="menu-label">USER MANAGEMENT</p>
                     <a href="<?= base_url('admin/user/admin') ?>"
                         class="<?= uri_string() === 'admin/user' || uri_string() === 'admin/user/admin' ? 'active' : '' ?>"><i class="bi bi-person-gear"></i> <span class="label">Admin</span></a>
@@ -103,16 +110,18 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                         class="<?= strpos(uri_string(), 'admin/role-permission') === 0 ? 'active' : '' ?>"><i class="bi bi-shield-lock"></i> <span class="label">Role & Permission</span></a>
                 <?php endif; ?>
 
+                <?php if ($adalahAdmin): ?>
                 <p class="menu-label">SISTEM</p>
                 <a href="<?= base_url('admin/notifikasi') ?>"
                     class="<?= strpos(uri_string(), 'admin/notifikasi') === 0 ? 'active' : '' ?>"><i class="bi bi-bell"></i> <span class="label">Notifikasi</span></a>
-                <?php if (session()->get('is_superadmin')): ?>
+                <?php endif; ?>
+                <?php if ($adalahSuper): ?>
                     <a href="<?= base_url('admin/backup-database') ?>"
                         class="<?= strpos(uri_string(), 'admin/backup-database') === 0 ? 'active' : '' ?>"><i class="bi bi-hdd-stack"></i> <span class="label">Backup Database</span></a>
                 <?php endif; ?>
                 <a href="<?= base_url('admin/pengaturan') ?>"
                     class="<?= strpos(uri_string(), 'admin/pengaturan') === 0 ? 'active' : '' ?>"><i class="bi bi-gear"></i> <span class="label">Pengaturan</span></a>
-                <?php if (session()->get('is_superadmin')): ?>
+                <?php if ($adalahSuper): ?>
                     <a href="<?= base_url('admin/audit-log') ?>"
                         class="<?= strpos(uri_string(), 'admin/audit-log') === 0 ? 'active' : '' ?>"><i class="bi bi-journal-text"></i> <span class="label">Audit Log</span></a>
                 <?php endif; ?>
@@ -136,12 +145,14 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                     <span><?= $hariIni ?>, <?= date('d') ?> <?= $bulanIni ?> <?= date('Y') ?></span>
                 </div>
                 <div class="topbar-right" style="display:flex;align-items:center;gap:16px;flex-shrink:0;white-space:nowrap;">
+                    <?php if ($adalahAdmin): ?>
                     <div style="position:relative;">
                         <a href="<?= base_url('admin/notifikasi') ?>" id="bell-notif" style="position:relative;text-decoration:none;color:#4b5563;font-size:20px;">
                             <i class="bi bi-bell"></i>
                             <span id="badge-notif" style="display:none;position:absolute;top:-6px;right:-8px;background:red;color:white;border-radius:50%;font-size:11px;padding:1px 6px;"></span>
                         </a>
                     </div>
+                    <?php endif; ?>
                     <div style="display:flex;align-items:center;gap:8px;">
                         <div style="width:32px;height:32px;border-radius:50%;background:#3b5f8a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;">
                             <?= esc(strtoupper(substr(session()->get('username'), 0, 1))) ?>
@@ -153,6 +164,7 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                 </div>
             </header>
 
+            <?php if ($adalahAdmin): ?>
             <script>
                 (function() {
                     function pollNotif() {
@@ -174,6 +186,7 @@ $namaSekolahLayout     = $pengaturanLayout['nama_sekolah'] ?? 'Sistem Sekolah';
                     setInterval(pollNotif, 20000); // cek tiap 20 detik
                 })();
             </script>
+            <?php endif; ?>
 
             <div class="content-body">
                 <?= $this->renderSection('content') ?>

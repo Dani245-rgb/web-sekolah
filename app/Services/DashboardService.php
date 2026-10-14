@@ -22,20 +22,35 @@ class DashboardService
     ) {
     }
 
-    public function ringkasan(int $idUser, bool $superadmin): array
+        public function ringkasan(int $idUser, bool $superadmin, bool $penuh = true): array
     {
-        return [
-            'totalSiswa'        => $this->siswaModel->countAllResults(),
-            'totalGuru'         => $this->guruModel->countAllResults(),
-            'perGender'         => $this->siswaPerGender(),
-            'notifikasiTerbaru' => $this->notifikasiModel->getForUser($idUser, 5),
+        $data = [
+            'penuh'             => $penuh,
+            'totalSiswa'        => 0,
+            'totalGuru'         => 0,
+            'perGender'         => ['L' => 0, 'P' => 0],
+            'notifikasiTerbaru' => [],
             'pengumumanTerbaru' => $this->pengumumanModel->getTerbaru(5),
-            // Audit log hanya boleh dilihat superadmin, sama seperti halaman Audit Log
-            'aktivitasTerbaru'  => $superadmin
-                ? $this->auditLogModel->orderBy('created_at', 'DESC')->findAll(5)
-                : [],
-            'tampilAktivitas'   => $superadmin,
+            'aktivitasTerbaru'  => [],
+            'tampilAktivitas'   => false,
         ];
+
+        // Content Manager: hanya ringkasan konten website, tanpa data siswa/guru/notifikasi/audit.
+        if (!$penuh) {
+            return $data;
+        }
+
+        $data['totalSiswa']        = $this->siswaModel->countAllResults();
+        $data['totalGuru']         = $this->guruModel->countAllResults();
+        $data['perGender']         = $this->siswaPerGender();
+        $data['notifikasiTerbaru'] = $this->notifikasiModel->getForUser($idUser, 5);
+        // Audit log hanya boleh dilihat superadmin, sama seperti halaman Audit Log
+        $data['aktivitasTerbaru']  = $superadmin
+            ? $this->auditLogModel->orderBy('created_at', 'DESC')->findAll(5)
+            : [];
+        $data['tampilAktivitas']   = $superadmin;
+
+        return $data;
     }
 
     /**

@@ -6,6 +6,7 @@
     <p class="breadcrumb">Selamat datang, <?= esc(session()->get('username')) ?></p>
 </div>
 
+<?php if ($penuh): ?>
 <!-- STAT CARDS -->
 <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
     <div class="card" style="flex:1;min-width:180px;display:flex;gap:12px;align-items:center;">
@@ -27,10 +28,12 @@
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- ROW: Gender + Pengumuman + Aktivitas -->
 <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:24px;align-items:stretch;">
 
+    <?php if ($penuh): ?>
     <!-- Siswa per Gender -->
     <div class="card" style="flex:1;min-width:230px;">
         <strong>Siswa per Gender</strong>
@@ -48,6 +51,7 @@
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- Pengumuman Terbaru -->
     <div class="card" style="flex:1;min-width:230px;">
@@ -105,16 +109,22 @@
 <div class="card">
     <strong>Quick Action</strong>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;">
+        <?php if ($penuh): ?>
         <a href="<?= base_url('admin/siswa/create') ?>" class="btn btn-accent" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-person-plus"></i> Tambah Siswa</a>
         <a href="<?= base_url('admin/guru/create') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-person-plus"></i> Tambah Guru</a>
+        <?php endif; ?>
+        <a href="<?= base_url('admin/berita/create') ?>" class="btn btn-accent" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-newspaper"></i> Tulis Berita</a>
         <a href="<?= base_url('admin/pengumuman/create') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-megaphone"></i> Buat Pengumuman</a>
+        <?php if ($penuh): ?>
         <a href="<?= base_url('admin/laporan-siswa') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-file-earmark-text"></i> Lihat Laporan</a>
-        <?php if (session()->get('is_superadmin')): ?>
+        <?php endif; ?>
+        <?php if ($tampilAktivitas): ?>
         <a href="<?= base_url('admin/backup-database') ?>" class="btn btn-secondary" style="flex:1;min-width:140px;text-align:center;"><i class="bi bi-hdd-stack"></i> Backup Data</a>
         <?php endif; ?>
     </div>
 </div>
 
+<?php if ($penuh): ?>
 <!-- Notifikasi + Akses Role -->
 <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:24px;">
     <div class="card" style="flex:2;min-width:300px;">
@@ -165,7 +175,9 @@
         </div>
     </div>
 </div>
+<?php endif; ?>
 
+<?php if ($penuh): ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
     (function() {
@@ -192,5 +204,6 @@
         });
     })();
 </script>
+<?php endif; ?>
 
 <?= $this->endSection() ?>
