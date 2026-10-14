@@ -31,6 +31,8 @@ $routes->group('admin', ['filter' => 'roleAuth:Admin,Content Manager'], function
         $routes->get('user/admin', 'Admin\User::index/admin');
         $routes->get('user/create-admin', 'Admin\User::createAdmin');
         $routes->post('user/store-admin', 'Admin\User::storeAdmin');
+        $routes->get('user/create-content-manager', 'Admin\User::createContentManager');
+        $routes->post('user/store-content-manager', 'Admin\User::storeContentManager');
         $routes->post('user/unlock/(:num)', 'Admin\User::unlock/$1');
         $routes->post('user/reset-password/(:num)', 'Admin\User::resetPassword/$1');
 

@@ -60,7 +60,7 @@ class UserModel extends BaseModel
      * Ambil semua user lintas role, dengan nama tampilan
      * (nama guru/siswa kalau ada, atau username untuk admin).
      */
-    
+
     /**
      * Buka kunci akun: reset percobaan gagal dan hapus status terkunci.
      */
@@ -109,5 +109,15 @@ class UserModel extends BaseModel
     public function usernameSudahAda(string $username): bool
     {
         return $this->where('username', $username)->first() !== null;
+    }
+
+    /**
+     * Id role berdasarkan nama (null kalau tidak ada).
+     */
+    public function idRolePerNama(string $nama): ?int
+    {
+        $row = $this->db->table('roles')->select('id_role')->where('nama_role', $nama)->get()->getRowArray();
+
+        return $row ? (int) $row['id_role'] : null;
     }
 }

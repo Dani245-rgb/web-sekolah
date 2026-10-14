@@ -53,6 +53,37 @@ class User extends BaseController
         return redirect()->to('/admin/user')->with('success', 'Akun admin baru berhasil dibuat.');
     }
 
+    public function createContentManager()
+    {
+        return view('admin/user/create_content_manager');
+    }
+
+    public function storeContentManager()
+    {
+        $rules = [
+            'username' => 'required|min_length[4]|is_unique[users.username]',
+            'password' => 'required|strongPassword',
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        try {
+            $this->user->buatContentManager($this->request->getPost(['username', 'password']));
+        } catch (Throwable $e) {
+            log_message('error', 'Gagal buat akun Content Manager: ' . $e->getMessage());
+
+            $pesan = $e instanceof InvalidArgumentException
+                ? $e->getMessage()
+                : 'Gagal membuat akun Content Manager. Silakan coba lagi.';
+
+            return redirect()->back()->withInput()->with('errors', ['user' => $pesan]);
+        }
+
+        return redirect()->to('/admin/user')->with('success', 'Akun Content Manager baru berhasil dibuat.');
+    }
+
     public function unlock($id)
     {
         try {

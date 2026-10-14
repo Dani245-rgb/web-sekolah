@@ -80,6 +80,36 @@ class UserService
         }
     }
 
+    public function buatContentManager(array $input): void
+    {
+        $roleId = $this->model->idRolePerNama('Content Manager')
+            ?? throw new InvalidArgumentException('Role Content Manager belum ada. Jalankan migration dulu.');
+
+        $username = rapikan_teks((string) ($input['username'] ?? ''));
+
+        if ($username === '') {
+            throw new InvalidArgumentException('Username tidak boleh kosong/hanya spasi.');
+        }
+
+        if ($this->model->usernameSudahAda($username)) {
+            throw new InvalidArgumentException('Username ini sudah terdaftar.');
+        }
+
+        $berhasil = $this->model->insert([
+            'username'       => $username,
+            'password'       => password_hash((string) ($input['password'] ?? ''), PASSWORD_DEFAULT),
+            'role_id'        => $roleId,
+            'status'         => 'Aktif',
+            'login_attempts' => 0,
+        ]);
+
+        if (!$berhasil) {
+            $errors = $this->model->errors();
+
+            throw new InvalidArgumentException($errors ? implode('; ', $errors) : 'Gagal membuat akun Content Manager.');
+        }
+    }
+
     public function bukaKunci(int $idTarget, $idPelaku, $usernamePelaku): void
     {
         if ($idTarget === (int) $idPelaku) {

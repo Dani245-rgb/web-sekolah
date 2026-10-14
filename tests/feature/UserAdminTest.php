@@ -282,4 +282,49 @@ final class UserAdminTest extends CIUnitTestCase
             'password kosong'         => [['username' => 'admin_baru', 'password' => ''], 'password'],
         ];
     }
+
+    public function testBuatContentManagerTersimpanDenganRoleContentManager(): void
+    {
+        $this->db->table('roles')->insert(['id_role' => 4, 'nama_role' => 'Content Manager']);
+
+        $result = $this->withSession($this->sesi(true))->post('admin/user/store-content-manager', $this->denganCsrf([
+            'username' => 'cm_baru',
+            'password' => self::PASSWORD_KUAT,
+        ]));
+
+        $result->assertRedirectTo('/admin/user');
+
+        $row = $this->db->table('users')->where('username', 'cm_baru')->get()->getRowArray();
+        $this->assertNotNull($row);
+        $this->assertSame(4, (int) $row['role_id']);
+        $this->assertSame(0, (int) $row['is_superadmin']);
+        $this->assertTrue(password_verify(self::PASSWORD_KUAT, $row['password']));
+    }
+
+    public function testBuatContentManagerTanpaRoleDitolak(): void
+    {
+        $result = $this->withSession($this->sesi(true))->post('admin/user/store-content-manager', $this->denganCsrf([
+            'username' => 'cm_baru',
+            'password' => self::PASSWORD_KUAT,
+        ]));
+
+        $result->assertRedirect();
+        $this->seeNumRecords(0, 'users', ['username' => 'cm_baru']);
+    }
+
+    public function testAdminBiasaTidakBisaMembuatContentManager(): void
+    {
+        $this->db->table('roles')->insert(['id_role' => 4, 'nama_role' => 'Content Manager']);
+
+        try {
+            $this->withSession($this->sesi(false))->post('admin/user/store-content-manager', $this->denganCsrf([
+                'username' => 'cm_baru',
+                'password' => self::PASSWORD_KUAT,
+            ]));
+        } catch (PageNotFoundException) {
+            $this->addToAssertionCount(1);
+        }
+
+        $this->seeNumRecords(0, 'users', ['username' => 'cm_baru']);
+    }
 }
